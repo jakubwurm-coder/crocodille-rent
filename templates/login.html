@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-box">
+  <h1>Admin přihlášení</h1>
+
+  {% with messages=get_flashed_messages() %}
+    {% if messages %}
+      <div class="flashbox">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" class="login-form">
+    <input type="password" name="pin" placeholder="PIN">
+    <button class="btn" type="submit">Přihlásit</button>
+  </form>
+
+  <a href="/">Zpět na přehled</a>
+</div>
+{% endblock %}

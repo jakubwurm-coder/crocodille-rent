@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <div class="brand">CROCODILLE <span>RENT</span></div>
+    <h1>Administrace</h1>
+    <p>Editace karet vozidel</p>
+  </div>
+  <div class="top-actions">
+    <a class="btn small muted-btn" href="/">Web</a>
+    <a class="btn small muted-btn" href="/admin/logout">Odhlásit</a>
+  </div>
+</header>
+
+<div class="table">
+  {% for v in vehicles %}
+    <a href="/admin/{{ v.id }}">
+      <strong>{{ v.spz }}</strong>
+      <span>{{ v.name }}{% if v.vin %} · {{ v.vin }}{% endif %}</span>
+      <em>upravit</em>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <div class="brand">CROCODILLE <span>RENT</span></div>
+    <h1>Přehled vozidel</h1>
+    <p>{{ vehicles|length }} vozidel</p>
+  </div>
+  <a class="btn small" href="/admin">Admin</a>
+</header>
+
+<form class="search" method="get">
+  <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
+</form>
+
+<div class="legend">
+  <span><i class="dot ok"></i> OK</span>
+  <span><i class="dot soon"></i> blíží se</span>
+  <span><i class="dot bad"></i> nutno řešit</span>
+</div>
+
+<div class="grid">
+  {% for v in vehicles %}
+    <a class="vehicle-tile" href="/v/{{ v.id }}">
+      <div class="thumb">
+        <img src="{{ url_for('static', filename='images/' + v.photo) }}">
+        <i class="dot {{ vehicle_alert(v) }}"></i>
+      </div>
+
+      <div class="tile-main">
+        <strong>{{ v.spz }}</strong>
+        {% if v.vehicle_id %}
+          <small>ID: {{ v.vehicle_id }}</small>
+        {% else %}
+          <small>ID: nezadáno</small>
+        {% endif %}
+        <span>{{ v.brand }}</span>
+        <em>{{ v.name }}</em>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

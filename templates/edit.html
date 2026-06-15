@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <h1>Upravit {{ v.spz }}</h1>
+    <p>{{ v.name }}</p>
+  </div>
+  <div class="top-actions">
+    <a class="btn small" href="/v/{{ v.id }}">Karta</a>
+    <a class="btn small muted-btn" href="/admin">Admin</a>
+  </div>
+</header>
+
+{% with messages=get_flashed_messages() %}
+  {% if messages %}
+    <div class="flashbox">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
+<section class="admin-panel">
+  <h3>Základní údaje</h3>
+
+  <form class="edit" method="post" enctype="multipart/form-data">
+    {% for name,label,type in [
+      ('spz','SPZ','text'),
+      ('vehicle_id','ID vozidla','text'),
+      ('name','Název vozidla','text'),
+      ('model','Model','text'),
+      ('vin','VIN','text'),
+      ('year','Rok výroby','number'),
+      ('status','Stav','text'),
+      ('stk_until','STK do','date'),
+      ('vignette_until','Dálniční známka do','date'),
+      ('liability_until','Povinné ručení do','date'),
+      ('casco_until','Havarijní pojištění do','date'),
+      ('assistance_until','Asistence do','date'),
+      ('next_service_km','Příští servis km','number')
+    ] %}
+      <label>{{ label }}
+        <input type="{{ type }}" name="{{ name }}" value="{{ v.get(name,'') }}">
+      </label>
+
+      {% if name == 'vin' %}
+        <button type="button" class="btn" onclick="loadVinData()">
+          Načíst z Datové kostky
+        </button>
+      {% endif %}
+    {% endfor %}
+
+    <label>Poznámka
+      <textarea name="note">{{ v.note }}</textarea>
+    </label>
+
+    <label>Fotka vozidla
+      <input type="file" name="photo" accept="image/*">
+    </label>
+
+    <button class="btn" type="submit">Uložit údaje</button>
+  </form>
+</section>
+
+<section class="admin-panel">
+  <h2>Dokumenty</h2>
+
+  <form class="doc-upload" action="/admin/{{ v.id }}/documents/add" method="post" enctype="multipart/form-data">
+    <label>Název dokumentu
+      <select name="title">
+        <option>Technický průkaz</option>
+        <option>Zelená karta</option>
+        <option>STK protokol</option>
+        <option>Povinné ručení</option>
+        <option>Havarijní pojištění</option>
+        <option>Předávací protokol</option>
+        <option>Servisní dokument</option>
+        <option>Ostatní dokument</option>
+      </select>
+    </label>
+
+    <label>Soubor
+      <input type="file" name="document" required>
+    </label>
+
+    <button class="btn" type="submit">Nahrát</button>
+  </form>
+
+  <div class="admin-doc-list">
+    {% for d in v.get('documents', []) %}
+      {% if d.filename %}
+        <div class="admin-doc-item">
+          <div>
+            <strong>{{ d.title or d.name or 'Dokument' }}</strong>
+            <span>{{ d.original_name or d.filename }} · {{ d.uploaded_at or d.date or '' }}</span>
+          </div>
+          <div class="admin-doc-actions">
+            <a class="btn small" href="/documents/{{ d.filename }}" target="_blank">Otevřít</a>
+            {% if d.id %}
+              <form method="post" action="/admin/{{ v.id }}/documents/{{ d.id }}/delete">
+                <button class="btn small danger">Smazat</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <p class="admin-help">Zatím žádné dokumenty.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="admin-panel">
+  <h2>Servis</h2>
+
+  <form class="doc-upload" action="/admin/{{ v.id }}/service/add" method="post">
+    <label>Datum
+      <input type="date" name="date">
+    </label>
+
+    <label>Km
+      <input type="number" name="km">
+    </label>
+
+    <label>Úkon
+      <input type="text" name="title" placeholder="např. výměna oleje">
+    </label>
+
+    <label>Příští servis
+      <input type="text" name="next_service">
+    </label>
+
+    <button class="btn" type="submit">Přidat</button>
+  </form>
+
+  <div class="admin-doc-list">
+    {% for s in v.get('service_records', []) %}
+      <div class="admin-doc-item">
+        <div>
+          <strong>{{ s.title }}</strong>
+          <span>{{ s.date|czdate }} · {{ s.km|km }}</span>
+          {% if s.next_service %}
+            <span>Příště: {{ s.next_service }}</span>
+          {% endif %}
+        </div>
+
+        {% if s.id %}
+          <form method="post" action="/admin/{{ v.id }}/service/{{ s.id }}/delete">
+            <button class="btn small danger">Smazat</button>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <p class="admin-help">Zatím žádné servisní úkony.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+function loadVinData() {
+  fetch("/admin/vin/{{ v.id }}")
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        location.reload();
+      } else {
+        alert(data.error || "Chyba při načítání z Datové kostky");
+      }
+    })
+    .catch(error => {
+      alert("Chyba komunikace s aplikací");
+      console.error(error);
+    });
+}
+</script>
+
+{% endblock %}

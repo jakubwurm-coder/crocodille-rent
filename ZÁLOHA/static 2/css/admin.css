@@ -1,0 +1,121 @@
+.flashbox{
+  background:rgba(47,189,104,.14);
+  border:1px solid rgba(47,189,104,.35);
+  border-radius:16px;
+  padding:12px 16px;
+  margin-bottom:16px;
+  color:#a7f3c1;
+  font-weight:800;
+}
+
+.admin-panel{
+  width:100%;
+  background:linear-gradient(180deg,#162336,#101b2a);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:20px;
+  margin:0 0 18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.20);
+}
+
+.admin-panel h2{
+  margin:0 0 12px;
+}
+
+.edit{
+  width:100%;
+  max-width:none;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+}
+
+.edit label,
+.doc-upload label{
+  display:grid;
+  gap:6px;
+  color:#cbd5e1;
+}
+
+.edit input,
+.edit textarea,
+.doc-upload input,
+.doc-upload select,
+.login-form input{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#0d1724;
+  color:white;
+}
+
+.edit textarea{
+  min-height:100px;
+}
+
+.edit label:has(textarea),
+.edit label:has(input[type=file]),
+.edit button{
+  grid-column:1/-1;
+}
+
+.doc-upload{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr auto;
+  gap:12px;
+  align-items:end;
+  margin-bottom:16px;
+}
+
+.admin-doc-list{
+  display:grid;
+  gap:10px;
+}
+
+.admin-doc-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+}
+
+.admin-doc-item strong,
+.admin-doc-item span{
+  display:block;
+}
+
+.admin-doc-item span{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:4px;
+}
+
+.admin-doc-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.admin-doc-actions form{
+  margin:0;
+}
+
+.login-box{
+  max-width:420px;
+  margin:80px auto;
+  background:linear-gradient(180deg,#162336,#101b2a);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:24px;
+}
+
+.login-form{
+  display:grid;
+  gap:12px;
+  margin-bottom:14px;
+}

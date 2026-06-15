@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <div class="brand">Vans <span>Centre - Crocodille</span></div>
+    <h1>Přehled vozidel</h1>
+    <p>{{ vehicles|length }} vozidel</p>
+  </div>
+  <a class="btn small" href="/admin">Admin</a>
+</header>
+
+<form class="search" method="get">
+  <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
+</form>
+
+<div class="legend">
+  <span><i class="dot ok"></i> OK</span>
+  <span><i class="dot soon"></i> blíží se</span>
+  <span><i class="dot bad"></i> nutno řešit</span>
+</div>
+
+<div class="grid vehicle-list">
+  {% for v in vehicles %}
+    <a class="vehicle-tile vehicle-row" href="/v/{{ v.id }}">
+      <div class="tile-main">
+        <strong>{{ v.spz }}</strong>
+
+        {% if v.vehicle_id %}
+          <small>ID: {{ v.vehicle_id }}</small>
+        {% else %}
+          <small>ID: nezadáno</small>
+        {% endif %}
+
+        {% if v.brand %}
+          <span>{{ v.brand }}</span>
+        {% endif %}
+
+        {% if v.name %}
+          <em>{{ v.name }}</em>
+        {% endif %}
+      </div>
+
+      <div class="vehicle-status">
+        <i class="dot {{ vehicle_alert(v) }}"></i>
+
+        {% set alerts = vehicle_alert_items(v) %}
+        {% if alerts %}
+          <div class="status-reasons">
+            {% for a in alerts %}
+              <span class="status-reason {{ a.state }}">{{ a.label }}: {{ a.text }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+@media(max-width:1300px){
+  .edit{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+
+@media(max-width:1050px){
+  .shell{
+    padding:18px;
+  }
+
+  .vehicle-screen{
+    display:block;
+    max-width:760px;
+    margin:0 auto 86px;
+  }
+
+  .vehicle-left{
+    margin-bottom:18px;
+  }
+
+  .wide-hero{
+    height:340px;
+    min-height:0;
+  }
+
+  .compact-list,
+  .wide-timeline,
+  .wide-docs,
+  .doc-upload{
+    grid-template-columns:1fr;
+  }
+
+  .table a{
+    grid-template-columns:1fr;
+  }
+
+  .edit{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:640px){
+  .shell{
+    padding:14px;
+  }
+
+  .topbar{
+    align-items:flex-start;
+  }
+
+  .topbar h1{
+    font-size:28px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .vehicle-screen{
+    max-width:none;
+    margin:-14px -14px 72px;
+  }
+
+  .vehicle-left{
+    border-radius:0;
+    border-left:0;
+    border-right:0;
+  }
+
+  .wide-hero{
+    height:260px;
+  }
+
+  .wide-main{
+    padding:20px;
+  }
+
+  .wide-main h1{
+    font-size:38px;
+  }
+
+  .wide-main p{
+    font-size:18px;
+  }
+
+  .stats{
+    padding:0 20px 18px;
+  }
+
+  .vehicle-right{
+    padding:0 14px;
+  }
+
+  .panel{
+    border-radius:20px;
+  }
+
+  .vehicle-tile img{
+    width:78px;
+    height:78px;
+  }
+
+  .edit{
+    grid-template-columns:1fr;
+  }
+}

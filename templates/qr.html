@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <h1>QR odkazy</h1>
+    <p>Tyto URL použij pro QR kódy na vozidla.</p>
+  </div>
+  <a class="btn small" href="/admin">Admin</a>
+</header>
+
+<div class="table">
+  {% for v in vehicles %}
+    <a href="{{ base }}/v/{{ v.id }}">
+      <strong>{{ v.spz }}</strong>
+      <span>{{ base }}/v/{{ v.id }}</span>
+      <em>otevřít</em>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

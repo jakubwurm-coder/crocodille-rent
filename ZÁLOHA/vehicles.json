@@ -1,0 +1,1940 @@
+[
+  {
+    "id": "7AR1214",
+    "spz": "9AS0701",
+    "pf": "81087",
+    "type": "Iveco Daily",
+    "model": "",
+    "year": "2023",
+    "km": "",
+    "price": 8580,
+    "vin": "VF1VB000569836115",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "26/342",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-02-21",
+    "vignette": "Ano",
+    "vignette_until": "2027-02-14",
+    "liability_until": "2027-06-01",
+    "casco_until": "2027-06-01",
+    "assistance_until": "2027-06-01",
+    "tires": "",
+    "tire_depth": "",
+    "last_service_date": "2026-01-14",
+    "last_service_km": 183664,
+    "next_service_km": "",
+    "next_service_note": "",
+    "note": "",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "id": "fbcfce6562",
+        "title": "Ostatní dokument",
+        "filename": "7AR1214_4a952ac3_Ostatni_dokument.pdf",
+        "original_name": "Zelena_karta_k_pojistne_smlouve_3803094968.pdf",
+        "type": "PDF",
+        "uploaded_at": "2026-06-14 20:56"
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-05",
+        "title": "Výměna oleje a filtrů",
+        "km": 183664,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-04",
+        "title": "Kontrola brzd a podvozku",
+        "km": 171664,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "RENAULT MASTER",
+    "name": "",
+    "vehicle_id": "1",
+    "next_service_date": ""
+  },
+  {
+    "id": "9AH7885",
+    "spz": "9AH7885",
+    "pf": "",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily",
+    "year": "2023",
+    "km": "",
+    "price": 20044,
+    "vin": "ZCFCH35A005446508",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "",
+    "internal_number": "26/453",
+    "driver": "Crocodille",
+    "stk_until": "2026-08-08",
+    "vignette": "Ano",
+    "vignette_until": "2026-07-10",
+    "liability_until": "2002-09-08",
+    "casco_until": "2027-06-01",
+    "assistance_until": "2027-06-16",
+    "tires": "",
+    "tire_depth": "",
+    "last_service_date": "2026-06-11",
+    "last_service_km": 209000,
+    "next_service_km": "220000",
+    "next_service_note": "",
+    "note": "",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "id": "1",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "id": "2",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "id": "3",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "filename": ""
+      },
+      {
+        "id": "4",
+        "title": "Technický průkaz",
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "filename": "9AH7885_4_Technicky_prukaz.pdf",
+        "original_name": "WURM_fa.pdf",
+        "uploaded_at": "2026-06-11 16:44",
+        "date": "2026-06-11"
+      },
+      {
+        "id": "5",
+        "title": "Zelená karta",
+        "name": "Zelená karta",
+        "type": "PDF",
+        "filename": "9AH7885_5_Zelena_karta.pdf",
+        "original_name": "WURM_fa.pdf",
+        "uploaded_at": "2026-06-11 16:45",
+        "date": "2026-06-11"
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-09",
+        "title": "Výměna oleje a filtrů",
+        "km": "171980",
+        "place": "Servis Vans Centre",
+        "id": "1",
+        "description": "",
+        "price": "",
+        "updated_at": "2026-06-11 16:44"
+      },
+      {
+        "date": "2026-06-02",
+        "title": "výměna brzd a podvozku, opracha jednotky chlazení",
+        "km": "202333",
+        "place": "Servis Vans Centre",
+        "id": "2",
+        "description": "",
+        "price": "",
+        "updated_at": "2026-06-11 16:43"
+      },
+      {
+        "id": "3",
+        "date": "2026-06-11",
+        "km": "2200000",
+        "title": "olej filtry",
+        "description": "příště rozvody",
+        "price": "",
+        "created_at": "2026-06-11 17:02",
+        "place": "příště rozvody"
+      },
+      {
+        "id": "75e09781ca",
+        "date": "",
+        "km": "",
+        "title": "",
+        "next_service": ""
+      },
+      {
+        "id": "3921eb3f71",
+        "date": "",
+        "km": "",
+        "title": "",
+        "next_service": ""
+      }
+    ],
+    "brand": "",
+    "name": "Iveco Daily",
+    "vehicle_id": "26/453",
+    "next_service_date": ""
+  },
+  {
+    "id": "9AH7886",
+    "spz": "9AH7886",
+    "pf": "109357",
+    "type": "Iveco Daily",
+    "model": "",
+    "year": "2022",
+    "km": "",
+    "price": 21939,
+    "vin": "ZCFC00109357H7886",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-08-27",
+    "vignette": "Ano",
+    "vignette_until": "2026-07-18",
+    "liability_until": "2027-03-31",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2027-03-31",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-01-26",
+    "last_service_km": 177060,
+    "next_service_km": "190000",
+    "next_service_note": "",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "id": "1",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "id": "2",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "id": "3",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-13",
+        "title": "Výměna oleje a filtrů",
+        "km": 177060,
+        "place": "Servis Vans Centre",
+        "id": "1"
+      },
+      {
+        "date": "2025-10-10",
+        "title": "Kontrola brzd a podvozku",
+        "km": 165060,
+        "place": "Servis Vans Centre",
+        "id": "2"
+      }
+    ],
+    "brand": "",
+    "name": "Iveco Daily",
+    "vehicle_id": "109357",
+    "next_service_date": ""
+  },
+  {
+    "id": "9AS0701",
+    "spz": "9AS0701",
+    "pf": "115751",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 170701,
+    "price": 26783,
+    "vin": "VF1MA00115751S070",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-004",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-09-15",
+    "vignette": "Ano",
+    "vignette_until": "2026-07-29",
+    "liability_until": "2027-04-30",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2027-04-30",
+    "tires": "Letní",
+    "tire_depth": "5 mm",
+    "last_service_date": "2026-02-01",
+    "last_service_km": 165501,
+    "next_service_km": 180000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-17",
+        "title": "Výměna oleje a filtrů",
+        "km": 165501,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-13",
+        "title": "Kontrola brzd a podvozku",
+        "km": 153501,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-004"
+  },
+  {
+    "id": "9AR7894",
+    "spz": "9AR7894",
+    "pf": "115752",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 194444,
+    "price": 27712,
+    "vin": "VF1MA00115752R789",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-005",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-10-04",
+    "vignette": "Ano",
+    "vignette_until": "2026-08-09",
+    "liability_until": "2026-12-31",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2026-12-31",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-02-07",
+    "last_service_km": 190944,
+    "next_service_km": 200000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-21",
+        "title": "Výměna oleje a filtrů",
+        "km": 190944,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-16",
+        "title": "Kontrola brzd a podvozku",
+        "km": 178944,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-005"
+  },
+  {
+    "id": "9AR3683",
+    "spz": "9AR3683",
+    "pf": "115754",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 294930,
+    "price": 28037,
+    "vin": "VF1MA00115754R368",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-006",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-10-23",
+    "vignette": "Ano",
+    "vignette_until": "2026-08-20",
+    "liability_until": "2027-01-30",
+    "casco_until": "2027-03-31",
+    "assistance_until": "2027-01-30",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-02-13",
+    "last_service_km": 291430,
+    "next_service_km": 300000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-25",
+        "title": "Výměna oleje a filtrů",
+        "km": 291430,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-19",
+        "title": "Kontrola brzd a podvozku",
+        "km": 279430,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-006"
+  },
+  {
+    "id": "9AR5623",
+    "spz": "9AR5623",
+    "pf": "115755",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 214715,
+    "price": 27766,
+    "vin": "VF1MA00115755R562",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-007",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-11-11",
+    "vignette": "Ano",
+    "vignette_until": "2026-08-31",
+    "liability_until": "2027-03-01",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2027-03-01",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-02-19",
+    "last_service_km": 207915,
+    "next_service_km": 220000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-01-29",
+        "title": "Výměna oleje a filtrů",
+        "km": 207915,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-22",
+        "title": "Kontrola brzd a podvozku",
+        "km": 195915,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-007"
+  },
+  {
+    "id": "9AS0732",
+    "spz": "9AS0732",
+    "pf": "115756",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 151734,
+    "price": 27716,
+    "vin": "VF1MA00115756S073",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-008",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-11-30",
+    "vignette": "Ano",
+    "vignette_until": "2026-09-11",
+    "liability_until": "2027-03-31",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2027-03-31",
+    "tires": "Letní",
+    "tire_depth": "5 mm",
+    "last_service_date": "2026-02-25",
+    "last_service_km": 142634,
+    "next_service_km": 160000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-02",
+        "title": "Výměna oleje a filtrů",
+        "km": 142634,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-25",
+        "title": "Kontrola brzd a podvozku",
+        "km": 130634,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-008"
+  },
+  {
+    "id": "9AR3682",
+    "spz": "9AR3682",
+    "pf": "115758",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 184051,
+    "price": 27821,
+    "vin": "VF1MA00115758R368",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-009",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2026-12-19",
+    "vignette": "Ano",
+    "vignette_until": "2026-09-22",
+    "liability_until": "2027-04-30",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2027-04-30",
+    "tires": "Letní",
+    "tire_depth": "7 mm",
+    "last_service_date": "2026-03-03",
+    "last_service_km": 177251,
+    "next_service_km": 190000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-06",
+        "title": "Výměna oleje a filtrů",
+        "km": 177251,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-28",
+        "title": "Kontrola brzd a podvozku",
+        "km": 165251,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-009"
+  },
+  {
+    "id": "9AR3681",
+    "spz": "9AR3681",
+    "pf": "115759",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 131172,
+    "price": 28228,
+    "vin": "VF1MA00115759R368",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-010",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-01-07",
+    "vignette": "Ano",
+    "vignette_until": "2026-10-03",
+    "liability_until": "2026-12-31",
+    "casco_until": "2027-03-31",
+    "assistance_until": "2026-12-31",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-03-09",
+    "last_service_km": 122072,
+    "next_service_km": 140000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-10",
+        "title": "Výměna oleje a filtrů",
+        "km": 122072,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-10-31",
+        "title": "Kontrola brzd a podvozku",
+        "km": 110072,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-010"
+  },
+  {
+    "id": "9AS3697",
+    "spz": "9AS3697",
+    "pf": "115760",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 205874,
+    "price": 28213,
+    "vin": "VF1MA00115760S369",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-011",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-01-26",
+    "vignette": "Ano",
+    "vignette_until": "2026-10-14",
+    "liability_until": "2027-01-30",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2027-01-30",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-03-15",
+    "last_service_km": 200674,
+    "next_service_km": 210000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-14",
+        "title": "Výměna oleje a filtrů",
+        "km": 200674,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-03",
+        "title": "Kontrola brzd a podvozku",
+        "km": 188674,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-011"
+  },
+  {
+    "id": "9AS3726",
+    "spz": "9AS3726",
+    "pf": "115761",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 184812,
+    "price": 30101,
+    "vin": "VF1MA00115761S372",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-012",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-02-14",
+    "vignette": "Ano",
+    "vignette_until": "2026-10-25",
+    "liability_until": "2027-03-01",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2027-03-01",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-03-21",
+    "last_service_km": 175712,
+    "next_service_km": 190000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-18",
+        "title": "Výměna oleje a filtrů",
+        "km": 175712,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-06",
+        "title": "Kontrola brzd a podvozku",
+        "km": 163712,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-012"
+  },
+  {
+    "id": "9AS3727",
+    "spz": "9AS3727",
+    "pf": "115762",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 138590,
+    "price": 28361,
+    "vin": "VF1MA00115762S372",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-013",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-03-05",
+    "vignette": "Ano",
+    "vignette_until": "2026-11-05",
+    "liability_until": "2027-03-31",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2027-03-31",
+    "tires": "Letní",
+    "tire_depth": "7 mm",
+    "last_service_date": "2026-03-27",
+    "last_service_km": 131790,
+    "next_service_km": 140000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-22",
+        "title": "Výměna oleje a filtrů",
+        "km": 131790,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-09",
+        "title": "Kontrola brzd a podvozku",
+        "km": 119790,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-013"
+  },
+  {
+    "id": "9AS3725",
+    "spz": "9AS3725",
+    "pf": "115763",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 197215,
+    "price": 28229,
+    "vin": "VF1MA00115763S372",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-014",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-03-24",
+    "vignette": "Ano",
+    "vignette_until": "2026-11-16",
+    "liability_until": "2027-04-30",
+    "casco_until": "2027-03-31",
+    "assistance_until": "2027-04-30",
+    "tires": "Letní",
+    "tire_depth": "7 mm",
+    "last_service_date": "2026-04-02",
+    "last_service_km": 189815,
+    "next_service_km": 200000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-02-26",
+        "title": "Výměna oleje a filtrů",
+        "km": 189815,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-12",
+        "title": "Kontrola brzd a podvozku",
+        "km": 177815,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-014"
+  },
+  {
+    "id": "9AS3698",
+    "spz": "9AS3698",
+    "pf": "115764",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 273337,
+    "price": 28149,
+    "vin": "VF1MA00115764S369",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-015",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-04-12",
+    "vignette": "Ano",
+    "vignette_until": "2026-11-27",
+    "liability_until": "2026-12-31",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2026-12-31",
+    "tires": "Letní",
+    "tire_depth": "5 mm",
+    "last_service_date": "2026-04-08",
+    "last_service_km": 264237,
+    "next_service_km": 280000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-02",
+        "title": "Výměna oleje a filtrů",
+        "km": 264237,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-15",
+        "title": "Kontrola brzd a podvozku",
+        "km": 252237,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-015"
+  },
+  {
+    "id": "9AS3728",
+    "spz": "9AS3728",
+    "pf": "115765",
+    "type": "Renault Master",
+    "model": "Renault Master L3H2",
+    "year": 2023,
+    "km": 112157,
+    "price": 28235,
+    "vin": "VF1MA00115765S372",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-016",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-05-01",
+    "vignette": "Ano",
+    "vignette_until": "2026-12-08",
+    "liability_until": "2027-01-30",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2027-01-30",
+    "tires": "Letní",
+    "tire_depth": "5 mm",
+    "last_service_date": "2026-04-14",
+    "last_service_km": 104757,
+    "next_service_km": 120000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "renault_master.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-06",
+        "title": "Výměna oleje a filtrů",
+        "km": 104757,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-18",
+        "title": "Kontrola brzd a podvozku",
+        "km": 92757,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Renault",
+    "name": "Renault Master L3H2",
+    "vehicle_id": "VC-016"
+  },
+  {
+    "id": "1AAK755",
+    "spz": "1AAK755",
+    "pf": "122551",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily",
+    "year": 2023,
+    "km": 137043,
+    "price": 40315,
+    "vin": "ZCFC00122551AK755",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-017",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-05-20",
+    "vignette": "Ano",
+    "vignette_until": "2026-12-19",
+    "liability_until": "2027-03-01",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2027-03-01",
+    "tires": "Letní",
+    "tire_depth": "8 mm",
+    "last_service_date": "2026-04-20",
+    "last_service_km": 133543,
+    "next_service_km": 140000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-10",
+        "title": "Výměna oleje a filtrů",
+        "km": 133543,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-21",
+        "title": "Kontrola brzd a podvozku",
+        "km": 121543,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily",
+    "vehicle_id": "VC-017"
+  },
+  {
+    "id": "1AAK764",
+    "spz": "1AAK764",
+    "pf": "122554",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily",
+    "year": 2023,
+    "km": 183322,
+    "price": 41927,
+    "vin": "ZCFC00122554AK764",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-018",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-06-08",
+    "vignette": "Ano",
+    "vignette_until": "2026-12-30",
+    "liability_until": "2027-03-31",
+    "casco_until": "2027-03-31",
+    "assistance_until": "2027-03-31",
+    "tires": "Letní",
+    "tire_depth": "6 mm",
+    "last_service_date": "2026-04-26",
+    "last_service_km": 175922,
+    "next_service_km": 190000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-14",
+        "title": "Výměna oleje a filtrů",
+        "km": 175922,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-24",
+        "title": "Kontrola brzd a podvozku",
+        "km": 163922,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily",
+    "vehicle_id": "VC-018"
+  },
+  {
+    "id": "1AAX960",
+    "spz": "1AAX960",
+    "pf": "122555",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 214999,
+    "price": 40966,
+    "vin": "ZCFC00122555AX960",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-019",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-06-27",
+    "vignette": "Ano",
+    "vignette_until": "2027-01-10",
+    "liability_until": "2027-04-30",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2027-04-30",
+    "tires": "Letní",
+    "tire_depth": "6 mm",
+    "last_service_date": "2026-05-02",
+    "last_service_km": 205899,
+    "next_service_km": 220000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-18",
+        "title": "Výměna oleje a filtrů",
+        "km": 205899,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-27",
+        "title": "Kontrola brzd a podvozku",
+        "km": 193899,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "VC-019"
+  },
+  {
+    "id": "1AAX963",
+    "spz": "1AAX963",
+    "pf": "122556",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 170479,
+    "price": 42144,
+    "vin": "ZCFC00122556AX963",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-020",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-07-16",
+    "vignette": "Ano",
+    "vignette_until": "2027-01-21",
+    "liability_until": "2026-12-31",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2026-12-31",
+    "tires": "Letní",
+    "tire_depth": "5 mm",
+    "last_service_date": "2026-05-08",
+    "last_service_km": 163679,
+    "next_service_km": 180000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-22",
+        "title": "Výměna oleje a filtrů",
+        "km": 163679,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-11-30",
+        "title": "Kontrola brzd a podvozku",
+        "km": 151679,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "VC-020"
+  },
+  {
+    "id": "1ACC124",
+    "spz": "1ACC124",
+    "pf": "122558",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 220035,
+    "price": 40462,
+    "vin": "ZCFC00122558CC124",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-021",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-08-04",
+    "vignette": "Ano",
+    "vignette_until": "2027-02-01",
+    "liability_until": "2027-01-30",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2027-01-30",
+    "tires": "Letní",
+    "tire_depth": "7 mm",
+    "last_service_date": "2026-05-14",
+    "last_service_km": 214835,
+    "next_service_km": 230000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-26",
+        "title": "Výměna oleje a filtrů",
+        "km": 214835,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-12-03",
+        "title": "Kontrola brzd a podvozku",
+        "km": 202835,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "VC-021"
+  },
+  {
+    "id": "1ADB491",
+    "spz": "1ADB491",
+    "pf": "122561",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 133280,
+    "price": 50420,
+    "vin": "ZCFC00122561DB491",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-022",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-08-23",
+    "vignette": "Ano",
+    "vignette_until": "2027-02-12",
+    "liability_until": "2027-03-01",
+    "casco_until": "2027-03-31",
+    "assistance_until": "2027-03-01",
+    "tires": "Letní",
+    "tire_depth": "6 mm",
+    "last_service_date": "2026-05-20",
+    "last_service_km": 124180,
+    "next_service_km": 140000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-03-30",
+        "title": "Výměna oleje a filtrů",
+        "km": 124180,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-12-06",
+        "title": "Kontrola brzd a podvozku",
+        "km": 112180,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "VC-022"
+  },
+  {
+    "id": "1ADE689",
+    "spz": "1ADE689",
+    "pf": "122563",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 190731,
+    "price": 41440,
+    "vin": "ZCFC00122563DE689",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-023",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-09-11",
+    "vignette": "Ano",
+    "vignette_until": "2027-02-23",
+    "liability_until": "2027-03-31",
+    "casco_until": "2027-05-15",
+    "assistance_until": "2027-03-31",
+    "tires": "Letní",
+    "tire_depth": "6 mm",
+    "last_service_date": "2026-05-26",
+    "last_service_km": 185531,
+    "next_service_km": 200000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-04-03",
+        "title": "Výměna oleje a filtrů",
+        "km": 185531,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-12-09",
+        "title": "Kontrola brzd a podvozku",
+        "km": 173531,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "VC-023"
+  },
+  {
+    "id": "1ABF288",
+    "spz": "1ABF288",
+    "pf": "122565",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily",
+    "year": 2024,
+    "km": 109703,
+    "price": 42889,
+    "vin": "ZCFC00122565BF288",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "VC-024",
+    "driver": "Crocodille / provoz",
+    "stk_until": "2027-09-30",
+    "vignette": "Ano",
+    "vignette_until": "2027-03-06",
+    "liability_until": "2027-04-30",
+    "casco_until": "2026-12-31",
+    "assistance_until": "2027-04-30",
+    "tires": "Letní",
+    "tire_depth": "7 mm",
+    "last_service_date": "2026-06-01",
+    "last_service_km": 102903,
+    "next_service_km": 110000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-04-07",
+        "title": "Výměna oleje a filtrů",
+        "km": 102903,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-12-12",
+        "title": "Kontrola brzd a podvozku",
+        "km": 90903,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily",
+    "vehicle_id": "VC-024"
+  },
+  {
+    "id": "1ABT145",
+    "spz": "1ABT145",
+    "pf": "122566",
+    "type": "Iveco Daily",
+    "model": "Iveco Daily ",
+    "year": 2024,
+    "km": 202370,
+    "price": 43315,
+    "vin": "ZCFC00122566BT145",
+    "status": "V provozu",
+    "fuel": "Nafta",
+    "color": "Bílá",
+    "internal_number": "26/433",
+    "driver": "Crocodille",
+    "stk_until": "2029-10-22",
+    "vignette": "Ano",
+    "vignette_until": "2027-03-17",
+    "liability_until": "2026-12-31",
+    "casco_until": "2027-02-14",
+    "assistance_until": "2026-12-31",
+    "tires": "",
+    "tire_depth": "",
+    "last_service_date": "2026-06-07",
+    "last_service_km": 198870,
+    "next_service_km": 210000,
+    "next_service_note": "výměna oleje a filtrů",
+    "note": "Testovací data – upravitelné v administraci. Vozidlo v režimu půjčovny.",
+    "photo": "iveco_daily.png",
+    "documents": [
+      {
+        "name": "Technický průkaz",
+        "type": "PDF",
+        "date": "2026-01-10",
+        "title": "Technický průkaz",
+        "uploaded_at": "2026-01-10",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "Pojištění",
+        "type": "PDF",
+        "date": "2026-01-15",
+        "title": "Pojištění",
+        "uploaded_at": "2026-01-15",
+        "id": "3",
+        "filename": ""
+      },
+      {
+        "name": "STK protokol",
+        "type": "PDF",
+        "date": "2026-02-01",
+        "title": "STK protokol",
+        "uploaded_at": "2026-02-01",
+        "id": "3",
+        "filename": ""
+      }
+    ],
+    "service_records": [
+      {
+        "date": "2026-04-11",
+        "title": "Výměna oleje a filtrů",
+        "km": 198870,
+        "place": "Servis Vans Centre"
+      },
+      {
+        "date": "2025-12-15",
+        "title": "Kontrola brzd a podvozku",
+        "km": 186870,
+        "place": "Servis Vans Centre"
+      }
+    ],
+    "brand": "Iveco",
+    "name": "Iveco Daily ",
+    "vehicle_id": "26/433"
+  }
+]
