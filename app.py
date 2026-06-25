@@ -3,7 +3,6 @@ from pathlib import Path
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
 import json, os, uuid
-import requests
 
 APP_DIR = Path(__file__).parent
 DATA_FILE = APP_DIR / "vehicles.json"
@@ -11,8 +10,6 @@ IMAGES_DIR = APP_DIR / "static" / "images"
 DOCS_DIR = APP_DIR / "static" / "documents"
 
 ADMIN_PIN = os.environ.get("ADMIN_PIN", "1234")
-MD_API_KEY = os.environ.get("MD_API_KEY", "mTcto2N0E3XEto6jnFEp370s8nKbPto3")
-MD_API_URL = "https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-crocodille-rent")
@@ -337,84 +334,7 @@ def qr():
     return render_template("qr.html", vehicles=load_vehicles(), base=base)
 
 
-@app.route("/admin/vin/<vehicle_id>")
-def load_vin(vehicle_id):
-    if not require_admin():
-        return {"ok": False, "error": "Nepřihlášený admin"}, 403
-
-    vehicle = get_vehicle(vehicle_id)
-    if not vehicle:
-        return {"ok": False, "error": "Vozidlo nenalezeno"}, 404
-
-    vin = str(vehicle.get("vin", "")).strip().upper()
-    if not vin:
-        return {"ok": False, "error": "VIN není zadán"}, 400
-
-    try:
-        r = requests.get(
-            MD_API_URL,
-            headers={"API_KEY": MD_API_KEY},
-            params={"vin": vin},
-            timeout=20
-        )
-        data = r.json()
-    except Exception as e:
-        return {"ok": False, "error": f"Chyba API: {e}"}, 500
-
-    if data.get("Status") != 1 or not data.get("Data"):
-        return {
-            "ok": False,
-            "error": "VIN nebyl nalezen v Datové kostce",
-            "status": data.get("Status")
-        }, 404
-
-    d = data["Data"]
-
-    def updater(v):
-        if not v.get("brand"):
-            v["brand"] = d.get("TovarniZnacka", "")
-        if not v.get("model"):
-            v["model"] = d.get("ObchodniOznaceni", "")
-
-        first_reg = d.get("DatumPrvniRegistrace")
-        if first_reg:
-            v["year"] = str(first_reg)[:4]
-
-        stk = d.get("PravidelnaTechnickaProhlidkaDo")
-        if stk:
-            v["stk_until"] = str(stk)[:10]
-
-        v["fuel"] = d.get("Palivo") or v.get("fuel", "")
-        v["color"] = d.get("VozidloKaroserieBarva") or v.get("color", "")
-
-        # Technická data z Datové kostky
-        v["vehicle_kind"] = d.get("VozidloDruh", "")
-        v["body_type"] = d.get("VozidloDruh2", "")
-        v["category"] = d.get("Kategorie", "")
-        v["engine_type"] = d.get("MotorTyp", "")
-        v["engine_power"] = d.get("MotorMaxVykon", "")
-        v["engine_volume"] = d.get("MotorZdvihObjem", "")
-        v["emission_class"] = d.get("EmisniUroven", "")
-        v["dimensions"] = d.get("Rozmery", "")
-        v["wheelbase"] = d.get("RozmeryRozvor", "")
-        v["weight_running"] = d.get("HmotnostiProvozni", "")
-        v["weight_max"] = d.get("HmotnostiPripPov", "")
-        v["orv"] = d.get("CisloOrv", "")
-        v["rsv_status"] = d.get("StatusNazev", "")
-
-        return v
-
-    update_vehicle(vehicle_id, updater)
-
-    return {
-        "ok": True,
-        "message": "Data načtena z Datové kostky"
-    }
-
-
 if __name__ == "__main__":
-    import os
-
     port = int(os.environ.get("PORT", 5000))
 
     app.run(
