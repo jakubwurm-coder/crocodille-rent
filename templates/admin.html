@@ -12,13 +12,53 @@
   </div>
 </header>
 
-<div class="table">
+<div class="admin-vehicle-list">
   {% for v in vehicles %}
-    <a href="/admin/{{ v.id }}">
-      <strong>{{ v.spz }}</strong>
-      <span>{{ v.name }}{% if v.vin %} · {{ v.vin }}{% endif %}</span>
-      <em>upravit</em>
-    </a>
+    <div class="admin-vehicle-card">
+      <div class="admin-vehicle-data">
+        <button class="copy-line" type="button" data-copy="{{ v.vehicle_id or '' }}">
+          <small>ID</small>
+          <strong>{{ v.vehicle_id or 'nezadáno' }}</strong>
+        </button>
+
+        <button class="copy-line" type="button" data-copy="{{ v.spz or '' }}">
+          <small>SPZ</small>
+          <strong>{{ v.spz or 'nezadáno' }}</strong>
+        </button>
+
+        <button class="copy-line" type="button" data-copy="{{ v.vin or '' }}">
+          <small>VIN</small>
+          <strong>{{ v.vin or 'nezadáno' }}</strong>
+        </button>
+
+        <div class="vehicle-admin-name">
+          {{ v.brand or v.name or v.model or 'Vozidlo' }}
+        </div>
+      </div>
+
+      <a class="btn small" href="/admin/{{ v.id }}">Upravit</a>
+    </div>
   {% endfor %}
 </div>
+
+<div id="copy-toast" class="copy-toast">Zkopírováno</div>
+
+<script>
+document.querySelectorAll('[data-copy]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const value = button.dataset.copy;
+    if (!value) return;
+
+    try {
+      await navigator.clipboard.writeText(value);
+      const toast = document.getElementById('copy-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1100);
+    } catch (error) {
+      console.error(error);
+      alert('Kopírování se nepodařilo.');
+    }
+  });
+});
+</script>
 {% endblock %}
