@@ -39,12 +39,6 @@
       <label>{{ label }}
         <input type="{{ type }}" name="{{ name }}" value="{{ v.get(name,'') }}">
       </label>
-
-      {% if name == 'vin' %}
-        <button type="button" class="btn" onclick="loadVinData()">
-          Načíst z Datové kostky
-        </button>
-      {% endif %}
     {% endfor %}
 
     <label>Poznámka
@@ -152,23 +146,5 @@
     {% endfor %}
   </div>
 </section>
-
-<script>
-function loadVinData() {
-  fetch("/admin/vin/{{ v.id }}")
-    .then(response => response.json())
-    .then(data => {
-      if (data.ok) {
-        location.reload();
-      } else {
-        alert(data.error || "Chyba při načítání z Datové kostky");
-      }
-    })
-    .catch(error => {
-      alert("Chyba komunikace s aplikací");
-      console.error(error);
-    });
-}
-</script>
 
 {% endblock %}
