@@ -22,6 +22,92 @@
   margin:0 0 12px;
 }
 
+.admin-vehicle-list{
+  display:grid;
+  gap:12px;
+}
+
+.admin-vehicle-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  background:linear-gradient(180deg,#162336,#101b2a);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 18px 44px rgba(0,0,0,.20);
+}
+
+.admin-vehicle-data{
+  display:grid;
+  grid-template-columns:130px 150px minmax(260px,1fr) 190px;
+  gap:12px;
+  align-items:center;
+  width:100%;
+}
+
+.copy-line{
+  width:100%;
+  text-align:left;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.045);
+  color:inherit;
+  border-radius:14px;
+  padding:10px 12px;
+  cursor:pointer;
+}
+
+.copy-line:hover{
+  border-color:rgba(255,255,255,.22);
+}
+
+.copy-line small{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.copy-line strong{
+  display:block;
+  margin-top:4px;
+  font-size:18px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.vehicle-admin-name{
+  font-size:20px;
+  font-weight:900;
+  color:#fff;
+}
+
+.copy-toast{
+  position:fixed;
+  left:50%;
+  bottom:78px;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(10,20,32,.95);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:11px 18px;
+  color:#fff;
+  font-weight:900;
+  opacity:0;
+  pointer-events:none;
+  transition:.18s ease;
+  z-index:50;
+}
+
+.copy-toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
 .edit{
   width:100%;
   max-width:none;
@@ -121,4 +207,14 @@
   display:grid;
   gap:12px;
   margin-bottom:14px;
+}
+
+@media(max-width:900px){
+  .admin-vehicle-card{
+    display:grid;
+  }
+
+  .admin-vehicle-data{
+    grid-template-columns:1fr;
+  }
 }
