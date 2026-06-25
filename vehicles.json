@@ -621,7 +621,7 @@
         "next_service": "226000 Km - olej + filtry"
       }
     ],
-    "name": "",
+    "name": "Iveco Daily",
     "model": ""
   },
   {
@@ -849,7 +849,7 @@
     "fuel": "Nafta",
     "color": "",
     "internal_number": "26/453",
-    "stk_until": "2026-06-28",
+    "stk_until": "2028-06-26",
     "vignette": "Ano",
     "vignette_until": "2026-10-15",
     "liability_until": "2027-06-01",
@@ -884,7 +884,7 @@
     "fuel": "Nafta",
     "color": "Bílá",
     "internal_number": "",
-    "stk_until": "2028-06-28",
+    "stk_until": "2026-06-28",
     "vignette": "Ano",
     "vignette_until": "2026-09-06",
     "liability_until": "2027-06-01",
