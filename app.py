@@ -212,6 +212,18 @@ def parse_date(value):
         return None
 
 
+def days_until(value):
+    d = parse_date(value)
+    if not d:
+        return None
+    return (d - date.today()).days
+
+
+def is_active_vehicle(v):
+    status = str(v.get("status", "")).strip().lower()
+    return status not in ("servis", "v servisu", "mimo provoz", "odstaveno", "odstavené")
+
+
 def status_for(value):
     d = parse_date(value)
     if not d:
@@ -227,13 +239,14 @@ def status_for(value):
 
 
 def vehicle_alert(v):
+    if not is_active_vehicle(v):
+        return "inactive"
+
     keys = [
         "stk_until",
         "vignette_until",
         "liability_until",
         "casco_until",
-        "assistance_until",
-        "next_service_date",
     ]
     classes = [status_for(v.get(k))[0] for k in keys if v.get(k)]
     if "bad" in classes:
@@ -246,13 +259,14 @@ def vehicle_alert(v):
 
 
 def vehicle_alert_items(v):
+    if not is_active_vehicle(v):
+        return []
+
     items = [
         ("stk_until", "STK"),
         ("vignette_until", "Dálniční známka"),
         ("liability_until", "Povinné ručení"),
         ("casco_until", "Havarijní pojištění"),
-        ("assistance_until", "Asistence"),
-        ("next_service_date", "Příští servis"),
     ]
 
     result = []
@@ -272,6 +286,58 @@ def vehicle_alert_items(v):
             })
 
     return result
+
+
+def dashboard_data(vehicles):
+    active = [v for v in vehicles if is_active_vehicle(v)]
+
+    def due_count(keys, limit=30):
+        count = 0
+        for v in active:
+            for key in keys:
+                days = days_until(v.get(key))
+                if days is not None and days <= limit:
+                    count += 1
+                    break
+        return count
+
+    attention = []
+    checks = [
+        ("stk_until", "STK"),
+        ("vignette_until", "Dálniční známka"),
+        ("liability_until", "Povinné ručení"),
+        ("casco_until", "Havarijní pojištění"),
+    ]
+
+    for v in active:
+        for key, label in checks:
+            days = days_until(v.get(key))
+            if days is None or days > 30:
+                continue
+            if days < 0:
+                reason = f"{label} propadlé"
+            elif days == 0:
+                reason = f"{label} dnes"
+            else:
+                reason = f"{label} za {days} dní"
+            attention.append({
+                "id": v.get("id"),
+                "vehicle_id": v.get("vehicle_id") or "nezadáno",
+                "spz": v.get("spz") or "nezadáno",
+                "reason": reason,
+                "days": days,
+            })
+
+    attention.sort(key=lambda item: item["days"])
+
+    return {
+        "total": len(vehicles),
+        "active": len(active),
+        "stk_30": due_count(["stk_until"]),
+        "vignette_30": due_count(["vignette_until"]),
+        "insurance_30": due_count(["liability_until", "casco_until"]),
+        "attention": attention,
+    }
 
 
 @app.template_filter("czdate")
@@ -294,6 +360,7 @@ def inject_helpers():
         status_for=status_for,
         vehicle_alert=vehicle_alert,
         vehicle_alert_items=vehicle_alert_items,
+        is_active_vehicle=is_active_vehicle,
         admin_logged=session.get("admin") is True,
     )
 
@@ -344,7 +411,9 @@ def logout():
 def admin():
     if not require_admin():
         return redirect(url_for("login"))
-    return render_template("admin.html", vehicles=load_vehicles())
+
+    vehicles = load_vehicles()
+    return render_template("admin.html", vehicles=vehicles, dashboard=dashboard_data(vehicles))
 
 
 @app.route("/admin/<vehicle_id>", methods=["GET", "POST"])
