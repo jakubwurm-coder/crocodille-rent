@@ -12,24 +12,54 @@
   </div>
 </header>
 
+{% set ns = namespace(total=0, in_operation=0, stk=0, vignette=0, insurance=0, service=0) %}
+{% for v in vehicles %}
+  {% set ns.total = ns.total + 1 %}
+  {% set vehicle_status = (v.status or 'V provozu')|lower %}
+  {% if not v.status or 'provoz' in vehicle_status %}
+    {% set ns.in_operation = ns.in_operation + 1 %}
+  {% endif %}
+  {% if status_for(v.stk_until)[0] in ['bad','soon'] %}
+    {% set ns.stk = ns.stk + 1 %}
+  {% endif %}
+  {% if status_for(v.vignette_until)[0] in ['bad','soon'] %}
+    {% set ns.vignette = ns.vignette + 1 %}
+  {% endif %}
+  {% if status_for(v.liability_until)[0] in ['bad','soon'] or status_for(v.casco_until)[0] in ['bad','soon'] or status_for(v.assistance_until)[0] in ['bad','soon'] %}
+    {% set ns.insurance = ns.insurance + 1 %}
+  {% endif %}
+  {% if status_for(v.next_service_date)[0] in ['bad','soon'] %}
+    {% set ns.service = ns.service + 1 %}
+  {% endif %}
+{% endfor %}
+
+<section class="dashboard-grid">
+  <div class="dashboard-card"><span>Vozidel celkem</span><strong>{{ ns.total }}</strong></div>
+  <div class="dashboard-card ok-card"><span>V provozu</span><strong>{{ ns.in_operation }}</strong></div>
+  <div class="dashboard-card {% if ns.stk %}warn-card{% endif %}"><span>STK k řešení</span><strong>{{ ns.stk }}</strong></div>
+  <div class="dashboard-card {% if ns.vignette %}warn-card{% endif %}"><span>Dálniční známky</span><strong>{{ ns.vignette }}</strong></div>
+  <div class="dashboard-card {% if ns.insurance %}warn-card{% endif %}"><span>Pojištění / asistence</span><strong>{{ ns.insurance }}</strong></div>
+  <div class="dashboard-card {% if ns.service %}warn-card{% endif %}"><span>Servisní termíny</span><strong>{{ ns.service }}</strong></div>
+</section>
+
 <div class="admin-vehicle-list">
   {% for v in vehicles %}
     <div class="admin-vehicle-card">
       <div class="admin-vehicle-data">
-        <button class="copy-line" type="button" data-copy="{{ v.vehicle_id or '' }}">
+        <div class="copy-line">
           <small>ID</small>
           <strong>{{ v.vehicle_id or 'nezadáno' }}</strong>
-        </button>
+        </div>
 
-        <button class="copy-line" type="button" data-copy="{{ v.spz or '' }}">
+        <div class="copy-line">
           <small>SPZ</small>
           <strong>{{ v.spz or 'nezadáno' }}</strong>
-        </button>
+        </div>
 
-        <button class="copy-line" type="button" data-copy="{{ v.vin or '' }}">
+        <div class="copy-line">
           <small>VIN</small>
           <strong>{{ v.vin or 'nezadáno' }}</strong>
-        </button>
+        </div>
 
         <div class="vehicle-admin-name">
           {{ v.brand or v.name or v.model or 'Vozidlo' }}
@@ -40,25 +70,4 @@
     </div>
   {% endfor %}
 </div>
-
-<div id="copy-toast" class="copy-toast">Zkopírováno</div>
-
-<script>
-document.querySelectorAll('[data-copy]').forEach((button) => {
-  button.addEventListener('click', async () => {
-    const value = button.dataset.copy;
-    if (!value) return;
-
-    try {
-      await navigator.clipboard.writeText(value);
-      const toast = document.getElementById('copy-toast');
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1100);
-    } catch (error) {
-      console.error(error);
-      alert('Kopírování se nepodařilo.');
-    }
-  });
-});
-</script>
 {% endblock %}
