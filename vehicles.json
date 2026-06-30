@@ -27,18 +27,10 @@
     "next_service_date": "",
     "next_service_km": "207000",
     "next_service_note": "",
-    "note": "olej, filtry, kontrola chlazení",
+    "note": "",
     "photo": "renault_master.png",
     "documents": [],
-    "service_records": [
-      {
-        "id": "8f72dd7d61",
-        "date": "2026-06-30",
-        "km": "192000",
-        "title": "výměna olej, filtry, komplet brzdy včetně kotoučů",
-        "next_service": "207000"
-      }
-    ],
+    "service_records": [],
     "name": "",
     "model": "",
     "vehicle_kind": "NÁKLADNÍ AUTOMOBIL",
