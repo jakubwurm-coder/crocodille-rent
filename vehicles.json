@@ -270,7 +270,15 @@
     "note": "",
     "photo": "renault_master.png",
     "documents": [],
-    "service_records": [],
+    "service_records": [
+      {
+        "id": "6a49291913",
+        "date": "2026-07-02",
+        "km": "162000",
+        "title": "olej, filtry + 4x pneu, kontrola chlazení",
+        "next_service": ""
+      }
+    ],
     "name": "",
     "model": ""
   },
