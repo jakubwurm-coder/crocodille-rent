@@ -235,7 +235,15 @@
     "note": "",
     "photo": "renault_master.png",
     "documents": [],
-    "service_records": [],
+    "service_records": [
+      {
+        "id": "257f8f5f8c",
+        "date": "2026-07-03",
+        "km": "",
+        "title": "destičky + kotouče předek zadek",
+        "next_service": ""
+      }
+    ],
     "name": "",
     "model": ""
   },
