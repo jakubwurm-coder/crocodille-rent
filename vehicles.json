@@ -491,9 +491,9 @@
     "last_service_date": "",
     "last_service_km": "",
     "next_service_date": "",
-    "next_service_km": "",
+    "next_service_km": "220000",
     "next_service_note": "",
-    "note": "",
+    "note": "OLEJ",
     "photo": "iveco_daily.png",
     "documents": [],
     "service_records": [
