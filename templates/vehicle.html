@@ -69,6 +69,7 @@
       {% endfor %}
 
       {% set next_date_status = status_for(v.next_service_date) %}
+      {% set service_has_value = v.next_service_km or service_next_text or v.next_service_date %}
       <article class="status-card service-card">
         <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg>
         <div>
@@ -86,7 +87,11 @@
             {% endif %}
           </small>
         </div>
-        <b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>
+        {% if service_has_value and next_date_status[0] == 'unknown' %}
+          <b class="pill ok">OK</b>
+        {% else %}
+          <b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>
+        {% endif %}
       </article>
     </section>
 
