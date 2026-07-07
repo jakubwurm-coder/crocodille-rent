@@ -35,7 +35,7 @@
     <section class="panel">
       <h2></h2>
       <div class="list compact-list">
-        {% for label, value in [('STK',v.stk_until),('DÁLNIČNÍ ZNÁMKA',v.vignette_until),('POVINNÉ RUČENÍ',v.liability_until),('HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('Asistence',v.assistance_until)] %}
+        {% for label, value in [('STK',v.stk_until),('DÁLNIČNÍ ZNÁMKA',v.vignette_until),('POVINNÉ RUČENÍ',v.liability_until),('HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('ASISTENCE',v.assistance_until)] %}
           {% set s=status_for(value) %}
           <div class="row">
             <div>
