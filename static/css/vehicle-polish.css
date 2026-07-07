@@ -1,0 +1,203 @@
+/* Finální doladění detailu vozidla po vizuální kontrole */
+
+.pro-detail{
+  grid-template-columns:minmax(480px,42%) minmax(680px,58%);
+  gap:24px;
+  padding-bottom:92px;
+}
+
+.vehicle-left{
+  min-height:720px;
+}
+
+.pro-back{
+  top:18px;
+  left:18px;
+  height:44px;
+  padding:0 15px;
+}
+
+.vehicle-status-badge{
+  top:82px;
+  left:28px;
+  padding:10px 17px;
+}
+
+.wide-hero{
+  height:360px;
+  min-height:360px;
+  padding:70px 26px 0;
+}
+
+.wide-hero img{
+  transform:scale(1.06) translateY(4px);
+  transform-origin:center center;
+}
+
+.pro-main{
+  padding:32px 28px 20px;
+}
+
+.wide-main h1{
+  font-size:64px;
+  letter-spacing:-3px;
+  margin-bottom:14px;
+}
+
+.stats{
+  margin:0 28px;
+  padding:24px 0 30px;
+}
+
+.stats div{
+  min-height:96px;
+  padding-right:20px;
+}
+
+.stats div + div{
+  padding-left:24px;
+}
+
+.status-grid{
+  gap:14px;
+}
+
+.status-card{
+  min-height:104px;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  gap:16px;
+  padding:20px 22px;
+}
+
+.status-icon{
+  width:36px;
+  height:36px;
+}
+
+.status-card strong{
+  font-size:19px;
+  line-height:1.08;
+  max-width:100%;
+}
+
+.status-card span{
+  font-size:22px;
+  line-height:1.1;
+}
+
+.status-card small{
+  font-size:18px;
+  line-height:1.16;
+}
+
+.status-card .service-km{
+  font-size:26px;
+}
+
+.service-card strong,
+.status-card:nth-child(2) strong,
+.status-card:nth-child(4) strong{
+  max-width:180px;
+}
+
+.panel{
+  padding:24px 26px 28px;
+}
+
+.service-panel{
+  min-height:300px;
+  margin-bottom:28px;
+}
+
+.panel h2{
+  font-size:25px;
+  padding-bottom:20px;
+}
+
+.pro-timeline{
+  padding-top:22px;
+}
+
+.timeline-dot{
+  margin-top:22px;
+}
+
+.timeline strong{
+  font-size:22px;
+  line-height:1.22;
+  max-width:100%;
+}
+
+.service-meta{
+  width:100%;
+  padding:14px 18px;
+}
+
+.service-meta span{
+  font-size:19px;
+}
+
+.bottom{
+  z-index:20;
+  bottom:18px;
+  background:rgba(7,17,29,.72);
+  border:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(18px);
+}
+
+@media(min-width:1051px){
+  .bottom{
+    left:auto;
+    right:28px;
+    transform:none;
+  }
+}
+
+@media(max-height:820px) and (min-width:1051px){
+  .pro-detail{
+    grid-template-columns:minmax(460px,41%) minmax(700px,59%);
+    gap:22px;
+    padding-bottom:112px;
+  }
+
+  .vehicle-left{
+    min-height:680px;
+  }
+
+  .wide-hero{
+    height:330px;
+    min-height:330px;
+    padding-top:66px;
+  }
+
+  .wide-main h1{
+    font-size:58px;
+  }
+
+  .pro-main{
+    padding-top:24px;
+  }
+
+  .stats{
+    padding-top:20px;
+    padding-bottom:22px;
+  }
+
+  .status-card{
+    min-height:94px;
+    padding:17px 20px;
+  }
+
+  .status-card strong{
+    font-size:18px;
+  }
+
+  .status-card span{
+    font-size:21px;
+  }
+
+  .service-panel{
+    min-height:300px;
+    padding-bottom:44px;
+  }
+}
