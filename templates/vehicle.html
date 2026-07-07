@@ -2,86 +2,117 @@
 {% block content %}
 {% set last_service = (v.get('service_records', [])|last) if v.get('service_records', []) else none %}
 {% set service_next_text = (last_service.next_service if last_service and last_service.next_service else v.next_service_note) %}
+{% set icon_sprite = url_for('static', filename='icons/fleet-icons.svg') %}
+{% set status_items = [
+  ('stk', 'STK', v.stk_until),
+  ('vignette', 'DÁLNIČNÍ ZNÁMKA', v.vignette_until),
+  ('liability', 'POVINNÉ RUČENÍ', v.liability_until),
+  ('casco', 'HAVARIJNÍ POJIŠTĚNÍ', v.casco_until),
+  ('assistance', 'ASISTENCE', v.assistance_until)
+] %}
 
-<div class="vehicle-screen">
+<div class="vehicle-screen pro-detail">
   <aside class="vehicle-left">
-    <div class="wide-hero">
-      <img src="{{ url_for('static', filename='images/' + v.photo) }}">
-      <a class="back" href="/">←</a>
-      <i class="dot detail-dot {{ vehicle_alert(v) }}"></i>
+    <a class="back pro-back" href="/">← <span>Zpět</span></a>
+
+    <div class="vehicle-status-badge">
+      <i class="status-light {{ vehicle_alert(v) }}"></i>
+      <span>{{ v.status or 'V provozu' }}</span>
     </div>
 
-    <section class="main-info wide-main">
+    <div class="wide-hero pro-hero">
+      <img src="{{ url_for('static', filename='images/' + v.photo) }}" alt="{{ v.spz }}">
+    </div>
+
+    <section class="main-info wide-main pro-main">
       <div>
         <h1>{{ v.spz }}</h1>
-        <p>{{ v.name }}</p>
         {% if v.vin %}
-          <span>VIN: {{ v.vin }}</span>
+          <span><em>VIN:</em> {{ v.vin }}</span>
         {% else %}
-          <span>VIN: nezadáno</span>
+          <span><em>VIN:</em> nezadáno</span>
         {% endif %}
       </div>
-      <b class="pill ok">{{ v.status or 'V provozu' }}</b>
     </section>
 
-    <section class="stats wide-stats">
-      <div><small>Značka</small><strong>{{ v.brand or 'nezadáno' }}</strong></div>
-      <div><small>ID</small><strong>{{ v.vehicle_id or 'nezadáno' }}</strong></div>
-      <div><small>Rok výroby</small><strong>{{ v.year or 'nezadáno' }}</strong></div>
+    <section class="stats wide-stats pro-stats">
+      <div>
+        <svg class="ui-icon"><use href="{{ icon_sprite }}#truck"></use></svg>
+        <small>ZNAČKA / MODEL</small>
+        <strong>{{ v.brand or 'nezadáno' }}</strong>
+      </div>
+      <div>
+        <svg class="ui-icon"><use href="{{ icon_sprite }}#id"></use></svg>
+        <small>ID VOZIDLA</small>
+        <strong>{{ v.vehicle_id or 'nezadáno' }}</strong>
+      </div>
+      <div>
+        <svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg>
+        <small>ROK VÝROBY</small>
+        <strong>{{ v.year or 'nezadáno' }}</strong>
+      </div>
     </section>
   </aside>
 
   <main class="vehicle-right">
-    <section class="panel">
-      <h2></h2>
-      <div class="list compact-list">
-        {% for label, value in [('STK',v.stk_until),('DÁLNIČNÍ ZNÁMKA',v.vignette_until),('POVINNÉ RUČENÍ',v.liability_until),('HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('ASISTENCE',v.assistance_until)] %}
-          {% set s=status_for(value) %}
-          <div class="row">
-            <div>
-              <strong>{{ label }}</strong>
-              <span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span>
-            </div>
-            <b class="pill {{ s[0] }}">{{ s[1] }}</b>
-          </div>
-        {% endfor %}
-
-        {% set next_date_status = status_for(v.next_service_date) %}
-        <div class="row">
+    <section class="status-grid">
+      {% for icon, label, value in status_items %}
+        {% set s=status_for(value) %}
+        <article class="status-card">
+          <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg>
           <div>
-            <strong>PŘÍŠTÍ SERVIS</strong>
-            <span>
-              {% if service_next_text %}
-                {{ service_next_text }}
-              {% elif v.next_service_date %}
-                {{ v.next_service_date|czdate }}
-              {% else %}
-                nezadáno
-              {% endif %}
-            </span>
+            <strong>{{ label }}</strong>
+            <span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span>
           </div>
+          <b class="pill {{ s[0] }}">{{ s[1] }}</b>
+        </article>
+      {% endfor %}
+
+      {% set next_date_status = status_for(v.next_service_date) %}
+      <article class="status-card service-card">
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg>
+        <div>
+          <strong>PŘÍŠTÍ SERVIS</strong>
           {% if v.next_service_km %}
-            <b>{{ v.next_service_km|km }}</b>
-          {% else %}
-            <b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>
+            <span class="service-km">{{ v.next_service_km|km }}</span>
           {% endif %}
+          <small>
+            {% if service_next_text %}
+              {{ service_next_text }}
+            {% elif v.next_service_date %}
+              {{ v.next_service_date|czdate }}
+            {% else %}
+              nezadáno
+            {% endif %}
+          </small>
         </div>
-      </div>
+        <b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>
+      </article>
     </section>
 
-    <section class="panel">
-      <h2>Servisní úkony</h2>
+    <section class="panel service-panel">
+      <h2>
+        <svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg>
+        Servisní úkony
+      </h2>
       {% if v.service_records %}
-        <div class="timeline wide-timeline">
+        <div class="timeline wide-timeline pro-timeline">
           {% for s in v.service_records %}
-            <div>
-              {% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}
-              <strong>{{ s.title }}</strong>
-              <span>
-                {% if s.km %}{{ s.km|km }}{% endif %}
-                {% if s.next_service %}<br>Příště: {{ s.next_service }}{% endif %}
-              </span>
-            </div>
+            <article class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                {% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}
+                <strong>{{ s.title }}</strong>
+                <div class="service-meta">
+                  {% if s.km %}
+                    <span><svg class="ui-icon"><use href="{{ icon_sprite }}#speed"></use></svg>{{ s.km|km }}</span>
+                  {% endif %}
+                  {% if s.next_service %}
+                    <span><svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg>Příště: {{ s.next_service }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
           {% endfor %}
         </div>
       {% else %}
