@@ -496,7 +496,15 @@
     "note": "",
     "photo": "iveco_daily.png",
     "documents": [],
-    "service_records": [],
+    "service_records": [
+      {
+        "id": "dd0947a732",
+        "date": "2026-07-07",
+        "km": "150300",
+        "title": "olej, filtry, nové pneu, servis chlazení, doplnění klima",
+        "next_service": "170300 - rozvody"
+      }
+    ],
     "name": "",
     "model": ""
   },
