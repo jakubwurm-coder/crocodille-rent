@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+{% set last_service = (v.get('service_records', [])|last) if v.get('service_records', []) else none %}
+{% set service_next_text = (last_service.next_service if last_service and last_service.next_service else v.next_service_note) %}
+
 <div class="vehicle-screen">
   <aside class="vehicle-left">
     <div class="wide-hero">
@@ -32,7 +35,7 @@
     <section class="panel">
       <h2></h2>
       <div class="list compact-list">
-        {% for label, value in [('STK',v.stk_until),('DÁLNIČNÍ ZNÁMKA',v.vignette_until),('POVINNÉ RUČENÍ',v.liability_until),('HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('Asistence',v.assistance_until),('PŘÍŠTÍ SERVIS',v.next_service_date)] %}
+        {% for label, value in [('STK',v.stk_until),('DÁLNIČNÍ ZNÁMKA',v.vignette_until),('POVINNÉ RUČENÍ',v.liability_until),('HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('Asistence',v.assistance_until)] %}
           {% set s=status_for(value) %}
           <div class="row">
             <div>
@@ -43,15 +46,26 @@
           </div>
         {% endfor %}
 
-        {% if v.next_service_km or v.next_service_note %}
-          <div class="row">
-            <div>
-              <strong>Příští servis</strong>
-              <span>{{ v.next_service_note or 'bez poznámky' }}</span>
-            </div>
-            <b>{{ v.next_service_km|km }}</b>
+        {% set next_date_status = status_for(v.next_service_date) %}
+        <div class="row">
+          <div>
+            <strong>PŘÍŠTÍ SERVIS</strong>
+            <span>
+              {% if service_next_text %}
+                {{ service_next_text }}
+              {% elif v.next_service_date %}
+                {{ v.next_service_date|czdate }}
+              {% else %}
+                nezadáno
+              {% endif %}
+            </span>
           </div>
-        {% endif %}
+          {% if v.next_service_km %}
+            <b>{{ v.next_service_km|km }}</b>
+          {% else %}
+            <b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>
+          {% endif %}
+        </div>
       </div>
     </section>
 
