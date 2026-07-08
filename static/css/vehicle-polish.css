@@ -8,31 +8,77 @@
 
 .vehicle-left{
   min-height:720px;
+  border-color:rgba(120,170,230,.24);
+  box-shadow:0 28px 90px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px rgba(77,136,210,.08);
 }
 
 .pro-back{
-  top:18px;
-  left:18px;
-  height:44px;
-  padding:0 15px;
+  top:22px;
+  left:22px;
+  height:48px;
+  padding:0 16px;
+  background:rgba(8,14,24,.44);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 10px 30px rgba(0,0,0,.22);
 }
 
 .vehicle-status-badge{
-  top:20px;
-  left:auto;
-  right:22px;
-  padding:10px 17px;
+  top:94px;
+  left:34px;
+  right:auto;
+  padding:10px 18px;
+  background:rgba(47,189,104,.14);
+  border:1px solid rgba(88,236,142,.3);
+  box-shadow:0 12px 28px rgba(0,0,0,.14);
 }
 
 .wide-hero{
-  height:360px;
-  min-height:360px;
-  padding:78px 34px 0;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  height:372px;
+  min-height:372px;
+  padding:82px 30px 0;
+  background:
+    radial-gradient(circle at 56% 50%,rgba(41,115,221,.26),rgba(41,115,221,0) 42%),
+    linear-gradient(180deg,rgba(255,255,255,.015),rgba(255,255,255,0));
+}
+
+.wide-hero::before{
+  content:"";
+  position:absolute;
+  left:18%;
+  right:14%;
+  bottom:28px;
+  height:82px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(18,55,108,.62) 0%, rgba(9,27,52,.38) 42%, rgba(9,27,52,0) 74%);
+  filter:blur(18px);
+  z-index:0;
+}
+
+.wide-hero::after{
+  content:"";
+  position:absolute;
+  left:29%;
+  right:27%;
+  bottom:48px;
+  height:122px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(52,122,236,.2),rgba(52,122,236,0) 70%);
+  filter:blur(26px);
+  z-index:0;
 }
 
 .wide-hero img{
-  transform:scale(.98) translate(20px, 6px);
+  position:relative;
+  z-index:2;
+  transform:scale(1.03) translate(8px, 2px);
   transform-origin:center center;
+  filter:
+    drop-shadow(0 10px 16px rgba(9,20,33,.35))
+    drop-shadow(0 26px 30px rgba(5,15,29,.42))
+    drop-shadow(0 46px 38px rgba(7,20,36,.32));
 }
 
 .pro-main{
@@ -40,9 +86,13 @@
 }
 
 .wide-main h1{
-  font-size:64px;
+  font-size:70px;
   letter-spacing:-3px;
   margin-bottom:14px;
+}
+
+.wide-main span{
+  color:#dfeaf7;
 }
 
 .stats{
@@ -68,6 +118,8 @@
   grid-template-columns:44px minmax(0,1fr) auto;
   gap:16px;
   padding:20px 22px;
+  border-color:rgba(120,170,230,.18);
+  box-shadow:0 22px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035);
 }
 
 .status-icon{
@@ -103,6 +155,8 @@
 
 .panel{
   padding:24px 26px 28px;
+  border-color:rgba(120,170,230,.18);
+  box-shadow:0 22px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035);
 }
 
 .service-panel{
@@ -121,6 +175,7 @@
 
 .timeline-dot{
   margin-top:22px;
+  box-shadow:0 0 0 10px rgba(88,166,255,.12),0 0 28px rgba(88,166,255,.42);
 }
 
 .timeline strong{
@@ -165,18 +220,23 @@
     min-height:680px;
   }
 
+  .vehicle-status-badge{
+    top:88px;
+    left:28px;
+  }
+
   .wide-hero{
-    height:330px;
-    min-height:330px;
-    padding-top:74px;
+    height:340px;
+    min-height:340px;
+    padding-top:78px;
   }
 
   .wide-hero img{
-    transform:scale(.96) translate(24px, 8px);
+    transform:scale(1.01) translate(12px, 6px);
   }
 
   .wide-main h1{
-    font-size:58px;
+    font-size:60px;
   }
 
   .pro-main{
