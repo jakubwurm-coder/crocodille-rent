@@ -932,7 +932,15 @@
     "note": "",
     "photo": "iveco_daily.png",
     "documents": [],
-    "service_records": [],
+    "service_records": [
+      {
+        "id": "b14765bfd9",
+        "date": "2026-07-15",
+        "km": "",
+        "title": "výměna olej + filtry, olej v převodovce, nové pneu ",
+        "next_service": ""
+      }
+    ],
     "name": "",
     "model": ""
   }
