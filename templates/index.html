@@ -47,7 +47,9 @@
         {% if alerts %}
           <div class="status-reasons">
             {% for a in alerts %}
-              <span class="status-reason {{ a.state }}">{{ a.label }}: {{ a.text }}</span>
+              <span class="status-reason {{ a.state }}">
+                {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} · {{ a.text }}
+              </span>
             {% endfor %}
           </div>
         {% endif %}
