@@ -57,6 +57,33 @@
     grid-template-columns:1fr;
   }
 
+  .vehicle-row{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .vehicle-row .tile-main{
+    flex:1 1 150px;
+  }
+
+  .vehicle-row .vehicle-status{
+    flex:1 1 100%;
+    min-width:0;
+  }
+
+  .vehicle-row .status-reasons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    min-width:0;
+  }
+
+  .vehicle-row .status-reason{
+    max-width:100%;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+
   .vehicle-screen{
     max-width:none;
     margin:-14px -14px 72px;
