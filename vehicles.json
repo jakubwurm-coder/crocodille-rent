@@ -574,15 +574,7 @@
     "note": "",
     "photo": "iveco_daily.png",
     "documents": [],
-    "service_records": [
-      {
-        "id": "cf08761037",
-        "date": "2026-08-11",
-        "km": "275000",
-        "title": "olej, filtry, kontrola chlazr",
-        "next_service": ""
-      }
-    ],
+    "service_records": [],
     "name": "",
     "model": ""
   },
