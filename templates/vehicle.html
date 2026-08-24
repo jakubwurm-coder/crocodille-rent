@@ -11,6 +11,12 @@
   ('assistance', 'ASISTENCE', v.assistance_until)
 ] %}
 
+{% with messages=get_flashed_messages() %}
+  {% if messages %}
+    <div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
 <div class="vehicle-screen pro-detail">
   <aside class="vehicle-left">
     <a class="back pro-back" href="/">← <span>Zpět</span></a>
@@ -95,6 +101,54 @@
       </article>
     </section>
 
+    <section class="panel registry-panel">
+      <div class="registry-head">
+        <h2 style="border:0;padding:0">
+          <svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg>
+          Technické údaje z registru
+        </h2>
+        {% if admin_logged %}
+          <form method="post" action="/admin/{{ v.id }}/datova-kostka">
+            <button class="btn small" type="submit">{% if v.get('datova_kostka') %}Obnovit podle VIN{% else %}Načíst podle VIN{% endif %}</button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% set dk = v.get('datova_kostka', {}) %}
+      {% set b = dk.get('basic', {}) %}
+      {% if dk %}
+        <div class="registry-meta">Načteno {{ dk.get('loaded_at','') }} · VIN {{ dk.get('vin', v.vin) }}</div>
+        <div class="registry-grid">
+          {% for label, value, suffix in [
+            ('Značka', b.get('brand'), ''),
+            ('Model / obchodní označení', b.get('model'), ''),
+            ('Typ', b.get('type'), ''),
+            ('Kategorie', b.get('category'), ''),
+            ('Rok / první registrace', b.get('year'), ''),
+            ('Palivo', b.get('fuel'), ''),
+            ('Typ motoru', b.get('engine_type'), ''),
+            ('Objem motoru', b.get('engine_capacity'), ' cm³'),
+            ('Výkon', b.get('power_kw'), ' kW'),
+            ('Emisní úroveň', b.get('emission'), ''),
+            ('Barva', b.get('color'), ''),
+            ('Počet míst', b.get('seats'), ''),
+            ('Provozní hmotnost', b.get('curb_weight'), ' kg'),
+            ('Max. hmotnost', b.get('max_weight'), ' kg'),
+            ('Technická prohlídka do', b.get('inspection_until'), '')
+          ] %}
+            {% if value %}
+              <div class="registry-item">
+                <small>{{ label }}</small>
+                <strong>{{ value }}{{ suffix }}</strong>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">Údaje z Datové kostky zatím nejsou načtené.{% if admin_logged %} Klikni na „Načíst podle VIN“.{% endif %}</p>
+      {% endif %}
+    </section>
+
     <section class="panel service-panel">
       <h2>
         <svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg>
@@ -133,6 +187,17 @@
     {% endif %}
   </main>
 </div>
+
+<style>
+.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}
+.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}
+.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.registry-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}
+.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}
+@media(max-width:900px){.registry-grid{grid-template-columns:1fr 1fr}.registry-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.registry-grid{grid-template-columns:1fr}}
+</style>
 
 <nav class="bottom">
   <a href="/">Přehled</a>
