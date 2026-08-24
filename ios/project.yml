@@ -1,0 +1,23 @@
+name: CrocodilleFleet
+options:
+  bundleIdPrefix: cz.vanscentre
+settings:
+  base:
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+    SWIFT_VERSION: 5.0
+targets:
+  CrocodilleFleet:
+    type: application
+    platform: iOS
+    sources:
+      - CrocodilleFleet
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.vanscentre.crocodillefleet
+        INFOPLIST_KEY_CFBundleDisplayName: Crocodille Fleet
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        GENERATE_INFOPLIST_FILE: YES
+    scheme:
+      testTargets: []
