@@ -20,7 +20,10 @@
 <section class="admin-panel">
   <h3>Základní údaje</h3>
 
-  <form class="edit" method="post" enctype="multipart/form-data">
+  {% set raw_status = (v.get('status','') or '')|lower %}
+  {% set is_returned = 'vráceno' in raw_status or 'vraceno' in raw_status %}
+
+  <form class="edit" method="post" enctype="multipart/form-data" id="vehicle-edit-form">
     {% for name,label,type in [
       ('spz','SPZ','text'),
       ('vehicle_id','ID vozidla','text'),
@@ -28,7 +31,6 @@
       ('model','Model','text'),
       ('vin','VIN','text'),
       ('year','Rok výroby','number'),
-      ('status','Stav','text'),
       ('stk_until','STK do','date'),
       ('vignette_until','Dálniční známka do','date'),
       ('liability_until','Povinné ručení do','date'),
@@ -40,6 +42,19 @@
         <input type="{{ type }}" name="{{ name }}" value="{{ v.get(name,'') }}">
       </label>
     {% endfor %}
+
+    <label>Stav vozidla
+      <select id="status-choice">
+        <option value="active" {% if not is_returned %}selected{% endif %}>V provozu</option>
+        <option value="returned" {% if is_returned %}selected{% endif %}>Vráceno</option>
+      </select>
+    </label>
+
+    <label id="returned-date-wrap" {% if not is_returned %}style="display:none"{% endif %}>Vráceno dne
+      <input type="date" id="returned-date" value="{% if is_returned %}{{ v.status[-10:] }}{% endif %}">
+    </label>
+
+    <input type="hidden" name="status" id="status-value" value="{% if is_returned %}{{ v.status }}{% else %}V provozu{% endif %}">
 
     <label>Poznámka
       <textarea name="note">{{ v.note }}</textarea>
@@ -146,5 +161,29 @@
     {% endfor %}
   </div>
 </section>
+
+<script>
+(function () {
+  const form = document.getElementById('vehicle-edit-form');
+  const choice = document.getElementById('status-choice');
+  const dateWrap = document.getElementById('returned-date-wrap');
+  const returnedDate = document.getElementById('returned-date');
+  const statusValue = document.getElementById('status-value');
+
+  function syncStatus() {
+    const returned = choice.value === 'returned';
+    dateWrap.style.display = returned ? '' : 'none';
+    returnedDate.required = returned;
+    statusValue.value = returned
+      ? 'Vráceno dne ' + returnedDate.value
+      : 'V provozu';
+  }
+
+  choice.addEventListener('change', syncStatus);
+  returnedDate.addEventListener('change', syncStatus);
+  form.addEventListener('submit', syncStatus);
+  syncStatus();
+})();
+</script>
 
 {% endblock %}
