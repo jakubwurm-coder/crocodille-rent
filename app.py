@@ -16,6 +16,8 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "").strip()
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "").strip()
 GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main").strip() or "main"
 GITHUB_API = "https://api.github.com"
+DATOVA_KOSTKA_API_KEY = os.environ.get("DATOVA_KOSTKA_API_KEY", "").strip()
+DATOVA_KOSTKA_URL = "https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-crocodille-rent")
@@ -44,41 +46,30 @@ def github_content_url(repo_path):
 def github_get_file_sha(repo_path):
     if not github_sync_enabled():
         return None
-
     response = requests.get(
-        github_content_url(repo_path),
-        headers=github_headers(),
-        params={"ref": GITHUB_BRANCH},
-        timeout=20,
+        github_content_url(repo_path), headers=github_headers(),
+        params={"ref": GITHUB_BRANCH}, timeout=20,
     )
-
     if response.status_code == 404:
         return None
-
     response.raise_for_status()
-    data = response.json()
-    return data.get("sha")
+    return response.json().get("sha")
 
 
 def github_put_text(repo_path, text, message):
     if not github_sync_enabled():
         return None
-
     payload = {
         "message": message,
         "content": base64.b64encode(text.encode("utf-8")).decode("ascii"),
         "branch": GITHUB_BRANCH,
     }
-
     sha = github_get_file_sha(repo_path)
     if sha:
         payload["sha"] = sha
-
     response = requests.put(
-        github_content_url(repo_path),
-        headers=github_headers(),
-        json=payload,
-        timeout=30,
+        github_content_url(repo_path), headers=github_headers(),
+        json=payload, timeout=30,
     )
     response.raise_for_status()
     return response.json()
@@ -87,23 +78,18 @@ def github_put_text(repo_path, text, message):
 def github_put_binary(repo_path, file_path, message):
     if not github_sync_enabled():
         return None
-
     content = Path(file_path).read_bytes()
     payload = {
         "message": message,
         "content": base64.b64encode(content).decode("ascii"),
         "branch": GITHUB_BRANCH,
     }
-
     sha = github_get_file_sha(repo_path)
     if sha:
         payload["sha"] = sha
-
     response = requests.put(
-        github_content_url(repo_path),
-        headers=github_headers(),
-        json=payload,
-        timeout=45,
+        github_content_url(repo_path), headers=github_headers(),
+        json=payload, timeout=45,
     )
     response.raise_for_status()
     return response.json()
@@ -112,22 +98,13 @@ def github_put_binary(repo_path, file_path, message):
 def github_delete_file(repo_path, message):
     if not github_sync_enabled():
         return None
-
     sha = github_get_file_sha(repo_path)
     if not sha:
         return None
-
-    payload = {
-        "message": message,
-        "sha": sha,
-        "branch": GITHUB_BRANCH,
-    }
-
+    payload = {"message": message, "sha": sha, "branch": GITHUB_BRANCH}
     response = requests.delete(
-        github_content_url(repo_path),
-        headers=github_headers(),
-        json=payload,
-        timeout=30,
+        github_content_url(repo_path), headers=github_headers(),
+        json=payload, timeout=30,
     )
     response.raise_for_status()
     return response.json()
@@ -136,7 +113,6 @@ def github_delete_file(repo_path, message):
 def backup_current_vehicles():
     if not github_sync_enabled() or not DATA_FILE.exists():
         return
-
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_name = f"backups/vehicles_{timestamp}_{uuid.uuid4().hex[:6]}.json"
     github_put_text(
@@ -149,25 +125,17 @@ def backup_current_vehicles():
 def sync_vehicles_to_github(message="Aktualizace vehicles.json"):
     if not github_sync_enabled() or not DATA_FILE.exists():
         return
-
-    github_put_text(
-        "vehicles.json",
-        DATA_FILE.read_text(encoding="utf-8"),
-        message,
-    )
+    github_put_text("vehicles.json", DATA_FILE.read_text(encoding="utf-8"), message)
 
 
 def sync_local_file_to_github(local_path, repo_path, message):
-    if not github_sync_enabled():
-        return
-
-    github_put_binary(repo_path, local_path, message)
+    if github_sync_enabled():
+        github_put_binary(repo_path, local_path, message)
 
 
 def safe_github_sync(callback):
     if not github_sync_enabled():
         return
-
     try:
         callback()
     except Exception as e:
@@ -221,7 +189,9 @@ def days_until(value):
 
 def is_active_vehicle(v):
     status = str(v.get("status", "")).strip().lower()
-    return status not in ("servis", "v servisu", "mimo provoz", "odstaveno", "odstavené")
+    return not (status.startswith("vráceno") or status.startswith("vraceno") or status in (
+        "servis", "v servisu", "mimo provoz", "odstaveno", "odstavené"
+    ))
 
 
 def status_for(value):
@@ -241,13 +211,7 @@ def status_for(value):
 def vehicle_alert(v):
     if not is_active_vehicle(v):
         return "inactive"
-
-    keys = [
-        "stk_until",
-        "vignette_until",
-        "liability_until",
-        "casco_until",
-    ]
+    keys = ["stk_until", "vignette_until", "liability_until", "casco_until"]
     classes = [status_for(v.get(k))[0] for k in keys if v.get(k)]
     if "bad" in classes:
         return "bad"
@@ -261,36 +225,95 @@ def vehicle_alert(v):
 def vehicle_alert_items(v):
     if not is_active_vehicle(v):
         return []
-
     items = [
         ("stk_until", "STK"),
         ("vignette_until", "Dálniční známka"),
         ("liability_until", "Povinné ručení"),
         ("casco_until", "Havarijní pojištění"),
     ]
-
     result = []
     for key, label in items:
         value = v.get(key)
         if not value:
             continue
-
         state, text = status_for(value)
-
         if state in ("bad", "soon"):
-            result.append({
-                "key": key,
-                "label": label,
-                "state": state,
-                "text": text,
-            })
-
+            result.append({"key": key, "label": label, "state": state, "text": text})
     return result
+
+
+def _flatten_dict(value, out=None):
+    if out is None:
+        out = {}
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if isinstance(item, (dict, list)):
+                _flatten_dict(item, out)
+            elif item not in (None, ""):
+                out[str(key).lower()] = item
+    elif isinstance(value, list):
+        for item in value:
+            _flatten_dict(item, out)
+    return out
+
+
+def _pick(flat, *keys):
+    for key in keys:
+        value = flat.get(key.lower())
+        if value not in (None, ""):
+            return value
+    return ""
+
+
+def datova_kostka_basic(data):
+    flat = _flatten_dict(data)
+    first_registration = _pick(flat, "DatumPrvniRegistrace", "DatumPrvniRegistraceVCR", "PrvniRegistrace")
+    year = str(first_registration)[:4] if first_registration else _pick(flat, "RokVyroby", "Rok")
+    return {
+        "vin": _pick(flat, "VIN"),
+        "brand": _pick(flat, "TovarniZnacka", "Znacka", "Vyrobce"),
+        "model": _pick(flat, "ObchodniOznaceni", "Model"),
+        "type": _pick(flat, "Typ", "TypVozidla"),
+        "category": _pick(flat, "KategorieVozidla", "Kategorie"),
+        "year": year,
+        "first_registration": first_registration,
+        "fuel": _pick(flat, "Palivo", "DruhPaliva"),
+        "engine_type": _pick(flat, "MotorTyp", "TypMotoru"),
+        "engine_capacity": _pick(flat, "MotorZdvihObjem", "ZdvihovyObjem", "ObjemMotoru"),
+        "power_kw": _pick(flat, "MotorMaxVykon", "MaxVykon", "Vykon"),
+        "emission": _pick(flat, "EmisniUroven", "EmisniNorma"),
+        "color": _pick(flat, "Barva", "BarvaVozidla"),
+        "seats": _pick(flat, "PocetMistSezeni", "PocetMist"),
+        "curb_weight": _pick(flat, "ProvozniHmotnost", "HmotnostProvozni"),
+        "max_weight": _pick(flat, "NejvetsiTechnickyPripustnaHmotnost", "NejvetsiPovolenaHmotnost"),
+        "inspection_until": _pick(flat, "PravidelnaTechnickaProhlidkaDo", "TechnickaProhlidkaDo"),
+    }
+
+
+def fetch_datova_kostka(vin):
+    if not DATOVA_KOSTKA_API_KEY:
+        raise RuntimeError("Na Renderu není nastaven DATOVA_KOSTKA_API_KEY.")
+    vin = (vin or "").strip().upper()
+    if len(vin) != 17:
+        raise ValueError("VIN musí mít 17 znaků.")
+    response = requests.get(
+        DATOVA_KOSTKA_URL,
+        params={"vin": vin},
+        headers={"API_KEY": DATOVA_KOSTKA_API_KEY},
+        timeout=30,
+    )
+    if response.status_code == 401 or response.status_code == 403:
+        raise RuntimeError("Datová kostka odmítla API klíč.")
+    response.raise_for_status()
+    payload = response.json()
+    data = payload.get("Data", payload.get("data", payload)) if isinstance(payload, dict) else payload
+    if not data:
+        raise RuntimeError("Datová kostka pro tento VIN nevrátila žádná data.")
+    return data
 
 
 def dashboard_data(vehicles):
     active = [v for v in vehicles if is_active_vehicle(v)]
-
     def due_count(keys, limit=30):
         count = 0
         for v in active:
@@ -300,39 +323,24 @@ def dashboard_data(vehicles):
                     count += 1
                     break
         return count
-
     attention = []
     checks = [
-        ("stk_until", "STK"),
-        ("vignette_until", "Dálniční známka"),
-        ("liability_until", "Povinné ručení"),
-        ("casco_until", "Havarijní pojištění"),
+        ("stk_until", "STK"), ("vignette_until", "Dálniční známka"),
+        ("liability_until", "Povinné ručení"), ("casco_until", "Havarijní pojištění"),
     ]
-
     for v in active:
         for key, label in checks:
             days = days_until(v.get(key))
             if days is None or days > 30:
                 continue
-            if days < 0:
-                reason = f"{label} propadlé"
-            elif days == 0:
-                reason = f"{label} dnes"
-            else:
-                reason = f"{label} za {days} dní"
+            reason = f"{label} propadlé" if days < 0 else (f"{label} dnes" if days == 0 else f"{label} za {days} dní")
             attention.append({
-                "id": v.get("id"),
-                "vehicle_id": v.get("vehicle_id") or "nezadáno",
-                "spz": v.get("spz") or "nezadáno",
-                "reason": reason,
-                "days": days,
+                "id": v.get("id"), "vehicle_id": v.get("vehicle_id") or "nezadáno",
+                "spz": v.get("spz") or "nezadáno", "reason": reason, "days": days,
             })
-
     attention.sort(key=lambda item: item["days"])
-
     return {
-        "total": len(vehicles),
-        "active": len(active),
+        "total": len(vehicles), "active": len(active),
         "stk_30": due_count(["stk_until"]),
         "vignette_30": due_count(["vignette_until"]),
         "insurance_30": due_count(["liability_until", "casco_until"]),
@@ -373,13 +381,11 @@ def require_admin():
 def index():
     q = request.args.get("q", "").strip().lower()
     vehicles = load_vehicles()
-
     if q:
         vehicles = [
             v for v in vehicles
             if q in " ".join(str(v.get(k, "")) for k in ["spz", "vin", "brand", "name", "vehicle_id"]).lower()
         ]
-
     return render_template("index.html", vehicles=vehicles, q=q)
 
 
@@ -411,7 +417,6 @@ def logout():
 def admin():
     if not require_admin():
         return redirect(url_for("login"))
-
     vehicles = load_vehicles()
     return render_template("admin.html", vehicles=vehicles, dashboard=dashboard_data(vehicles))
 
@@ -420,11 +425,9 @@ def admin():
 def edit(vehicle_id):
     if not require_admin():
         return redirect(url_for("login"))
-
     v = get_vehicle(vehicle_id)
     if not v:
         return render_template("not_found.html", vehicle_id=vehicle_id), 404
-
     if request.method == "POST":
         fields = [
             "spz", "vehicle_id", "brand", "name", "model", "vin", "year", "km",
@@ -432,14 +435,12 @@ def edit(vehicle_id):
             "casco_until", "assistance_until", "next_service_date",
             "next_service_km", "next_service_note", "note"
         ]
-
         def updater(x):
             for f in fields:
                 if f in request.form:
                     value = request.form.get(f)
                     if value is not None:
                         x[f] = value.strip()
-
             photo = request.files.get("photo")
             if photo and photo.filename:
                 ext = Path(photo.filename).suffix.lower()
@@ -447,60 +448,70 @@ def edit(vehicle_id):
                 local_path = IMAGES_DIR / fname
                 photo.save(local_path)
                 x["photo"] = fname
-                safe_github_sync(
-                    lambda: sync_local_file_to_github(
-                        local_path,
-                        f"static/images/{fname}",
-                        f"Přidána fotka k vozidlu {x.get('spz') or x.get('id')}",
-                    )
-                )
-
+                safe_github_sync(lambda: sync_local_file_to_github(
+                    local_path, f"static/images/{fname}",
+                    f"Přidána fotka k vozidlu {x.get('spz') or x.get('id')}",
+                ))
             return x
-
         update_vehicle(vehicle_id, updater, f"Upraveno vozidlo {vehicle_id}")
         flash("Uloženo.")
         return redirect(url_for("edit", vehicle_id=vehicle_id))
-
     return render_template("edit.html", v=v)
+
+
+@app.route("/admin/<vehicle_id>/datova-kostka", methods=["POST"])
+def load_datova_kostka(vehicle_id):
+    if not require_admin():
+        return redirect(url_for("login"))
+    v = get_vehicle(vehicle_id)
+    if not v:
+        return render_template("not_found.html", vehicle_id=vehicle_id), 404
+    try:
+        data = fetch_datova_kostka(v.get("vin"))
+        basic = datova_kostka_basic(data)
+        def updater(x):
+            x["datova_kostka"] = {
+                "loaded_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "vin": (x.get("vin") or "").upper(),
+                "basic": basic,
+                "raw": data,
+            }
+            return x
+        update_vehicle(vehicle_id, updater, f"Načtena Datová kostka pro {v.get('vin')}")
+        flash("Údaje z Datové kostky byly načteny.")
+    except ValueError as e:
+        flash(str(e))
+    except requests.RequestException as e:
+        flash(f"Datová kostka není dostupná: {e}")
+    except Exception as e:
+        flash(str(e))
+    return redirect(url_for("vehicle", vehicle_id=vehicle_id))
 
 
 @app.route("/admin/<vehicle_id>/documents/add", methods=["POST"])
 def add_document(vehicle_id):
     if not require_admin():
         return redirect(url_for("login"))
-
     f = request.files.get("document")
     title = request.form.get("title", "Dokument").strip()
-
     if not f or not f.filename:
         flash("Soubor nebyl vybrán.")
         return redirect(url_for("edit", vehicle_id=vehicle_id))
-
     ext = Path(f.filename).suffix.lower()
     safe_title = secure_filename(title) or "document"
     fname = secure_filename(f"{vehicle_id}_{uuid.uuid4().hex[:8]}_{safe_title}{ext}")
     local_path = DOCS_DIR / fname
     f.save(local_path)
-
-    safe_github_sync(
-        lambda: sync_local_file_to_github(
-            local_path,
-            f"static/documents/{fname}",
-            f"Přidán dokument k vozidlu {vehicle_id}",
-        )
-    )
-
+    safe_github_sync(lambda: sync_local_file_to_github(
+        local_path, f"static/documents/{fname}", f"Přidán dokument k vozidlu {vehicle_id}",
+    ))
     def updater(v):
         v.setdefault("documents", []).append({
-            "id": uuid.uuid4().hex[:10],
-            "title": title,
-            "filename": fname,
-            "original_name": f.filename,
-            "type": ext.replace(".", "").upper(),
+            "id": uuid.uuid4().hex[:10], "title": title, "filename": fname,
+            "original_name": f.filename, "type": ext.replace(".", "").upper(),
             "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         })
         return v
-
     update_vehicle(vehicle_id, updater, f"Přidán dokument k vozidlu {vehicle_id}")
     flash("Dokument nahrán.")
     return redirect(url_for("edit", vehicle_id=vehicle_id))
@@ -510,9 +521,7 @@ def add_document(vehicle_id):
 def delete_document(vehicle_id, doc_id):
     if not require_admin():
         return redirect(url_for("login"))
-
     deleted_filename = None
-
     def updater(v):
         nonlocal deleted_filename
         docs = []
@@ -526,17 +535,11 @@ def delete_document(vehicle_id, doc_id):
                 docs.append(d)
         v["documents"] = docs
         return v
-
     update_vehicle(vehicle_id, updater, f"Smazán dokument k vozidlu {vehicle_id}")
-
     if deleted_filename:
-        safe_github_sync(
-            lambda: github_delete_file(
-                f"static/documents/{deleted_filename}",
-                f"Smazán dokument k vozidlu {vehicle_id}",
-            )
-        )
-
+        safe_github_sync(lambda: github_delete_file(
+            f"static/documents/{deleted_filename}", f"Smazán dokument k vozidlu {vehicle_id}",
+        ))
     flash("Dokument smazán.")
     return redirect(url_for("edit", vehicle_id=vehicle_id))
 
@@ -545,19 +548,14 @@ def delete_document(vehicle_id, doc_id):
 def add_service(vehicle_id):
     if not require_admin():
         return redirect(url_for("login"))
-
     rec = {
-        "id": uuid.uuid4().hex[:10],
-        "date": request.form.get("date", ""),
-        "km": request.form.get("km", ""),
-        "title": request.form.get("title", ""),
+        "id": uuid.uuid4().hex[:10], "date": request.form.get("date", ""),
+        "km": request.form.get("km", ""), "title": request.form.get("title", ""),
         "next_service": request.form.get("next_service", ""),
     }
-
     def updater(v):
         v.setdefault("service_records", []).append(rec)
         return v
-
     update_vehicle(vehicle_id, updater, f"Přidán servisní záznam k vozidlu {vehicle_id}")
     flash("Servisní záznam přidán.")
     return redirect(url_for("edit", vehicle_id=vehicle_id))
@@ -567,14 +565,9 @@ def add_service(vehicle_id):
 def delete_service(vehicle_id, sid):
     if not require_admin():
         return redirect(url_for("login"))
-
     def updater(v):
-        v["service_records"] = [
-            s for s in v.get("service_records", [])
-            if s.get("id") != sid
-        ]
+        v["service_records"] = [s for s in v.get("service_records", []) if s.get("id") != sid]
         return v
-
     update_vehicle(vehicle_id, updater, f"Smazán servisní záznam k vozidlu {vehicle_id}")
     flash("Servisní záznam smazán.")
     return redirect(url_for("edit", vehicle_id=vehicle_id))
@@ -593,9 +586,4 @@ def qr():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
+    app.run(host="0.0.0.0", port=port, debug=False)
