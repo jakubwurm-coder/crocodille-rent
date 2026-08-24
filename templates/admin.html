@@ -12,6 +12,23 @@
   </div>
 </header>
 
+{% with messages=get_flashed_messages() %}
+  {% if messages %}
+    <div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
+<section class="admin-panel add-vin-panel">
+  <div>
+    <h2>Přidat vozidlo podle VIN</h2>
+    <p class="admin-help">Zadej pouze VIN. Základní technické údaje se načtou automaticky z Datové kostky a vytvoří se nová karta vozidla.</p>
+  </div>
+  <form action="/admin/add-by-vin" method="post" class="add-vin-form">
+    <input name="vin" maxlength="17" minlength="17" required placeholder="17místný VIN" autocomplete="off" spellcheck="false">
+    <button class="btn" type="submit">Přidat vozidlo</button>
+  </form>
+</section>
+
 <section class="dashboard-grid">
   <div class="dashboard-card"><span>Vozidel celkem</span><strong>{{ dashboard.total }}</strong></div>
   <div class="dashboard-card ok-card"><span>V provozu</span><strong>{{ dashboard.active }}</strong></div>
@@ -45,9 +62,28 @@
         <div class="copy-line"><small>SPZ</small><strong>{{ v.spz or 'nezadáno' }}</strong></div>
         <div class="copy-line"><small>VIN</small><strong>{{ v.vin or 'nezadáno' }}</strong></div>
         <div class="vehicle-admin-name">{{ v.brand or v.name or v.model or 'Vozidlo' }}</div>
+        {% if v.get('datova_kostka') %}
+          <div class="dk-state ok">Datová kostka načtena</div>
+        {% elif v.vin %}
+          <div class="dk-state pending">Datová kostka se načte automaticky</div>
+        {% endif %}
       </div>
-      <a class="btn small" href="/admin/{{ v.id }}">Upravit</a>
+      <div class="admin-card-actions">
+        <a class="btn small muted-btn" href="/v/{{ v.id }}">Karta</a>
+        <a class="btn small" href="/admin/{{ v.id }}">Upravit</a>
+      </div>
     </div>
   {% endfor %}
 </div>
+
+<style>
+.add-vin-panel{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px}
+.add-vin-panel h2{margin-top:0}
+.add-vin-form{display:flex;gap:10px;align-items:center}
+.add-vin-form input{min-width:330px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#0d1724;color:#fff;font-size:16px;text-transform:uppercase;letter-spacing:.6px}
+.admin-card-actions{display:flex;gap:8px;align-items:center}
+.dk-state{margin-top:8px;font-size:12px;font-weight:850}
+.dk-state.ok{color:#8de5ac}.dk-state.pending{color:#ffd08a}
+@media(max-width:800px){.add-vin-panel{grid-template-columns:1fr}.add-vin-form{align-items:stretch;flex-direction:column}.add-vin-form input{min-width:0;width:100%}.admin-card-actions{flex-direction:column}}
+</style>
 {% endblock %}
