@@ -29,27 +29,47 @@
   </form>
 </section>
 
+{% set ns = namespace(stk=0, vignette=0, insurance=0) %}
+{% for v in vehicles %}
+  {% set flags = namespace(stk=false, vignette=false, insurance=false) %}
+  {% for item in vehicle_alert_items(v) %}
+    {% set due30 = item.text == 'propadlé' or (item.text.split(' ')[0] | int) <= 30 %}
+    {% if due30 and item.key == 'stk_until' %}{% set flags.stk = true %}{% endif %}
+    {% if due30 and item.key == 'vignette_until' %}{% set flags.vignette = true %}{% endif %}
+    {% if due30 and item.key in ['liability_until', 'casco_until'] %}{% set flags.insurance = true %}{% endif %}
+  {% endfor %}
+  {% if flags.stk %}{% set ns.stk = ns.stk + 1 %}{% endif %}
+  {% if flags.vignette %}{% set ns.vignette = ns.vignette + 1 %}{% endif %}
+  {% if flags.insurance %}{% set ns.insurance = ns.insurance + 1 %}{% endif %}
+{% endfor %}
+
 <section class="dashboard-grid">
   <div class="dashboard-card"><span>Vozidel celkem</span><strong>{{ dashboard.total }}</strong></div>
   <div class="dashboard-card ok-card"><span>V provozu</span><strong>{{ dashboard.active }}</strong></div>
-  <div class="dashboard-card warn-card"><span>STK do 30 dnů</span><strong>{{ dashboard.stk_30 }}</strong></div>
-  <div class="dashboard-card warn-card"><span>Dálniční známky do 30 dnů</span><strong>{{ dashboard.vignette_30 }}</strong></div>
-  <div class="dashboard-card warn-card"><span>Pojištění do 30 dnů</span><strong>{{ dashboard.insurance_30 }}</strong></div>
+  <div class="dashboard-card warn-card"><span>STK do 30 dnů</span><strong>{{ ns.stk }}</strong></div>
+  <div class="dashboard-card warn-card"><span>Dálniční známky do 30 dnů</span><strong>{{ ns.vignette }}</strong></div>
+  <div class="dashboard-card warn-card"><span>Pojištění do 30 dnů</span><strong>{{ ns.insurance }}</strong></div>
 </section>
 
 <section class="admin-panel">
   <h2>Vyžaduje pozornost</h2>
-  {% if dashboard.attention %}
-    <div class="attention-list">
-      {% for item in dashboard.attention %}
-        <a href="/v/{{ item.id }}" class="attention-row">
-          <strong>{{ item.vehicle_id }}</strong>
-          <span>{{ item.spz }}</span>
-          <em>{{ item.reason }}</em>
-        </a>
+  {% set attention = namespace(count=0) %}
+  <div class="attention-list">
+    {% for v in vehicles %}
+      {% for item in vehicle_alert_items(v) %}
+        {% set due30 = item.text == 'propadlé' or (item.text.split(' ')[0] | int) <= 30 %}
+        {% if due30 %}
+          {% set attention.count = attention.count + 1 %}
+          <a href="/v/{{ v.id }}" class="attention-row">
+            <strong>{{ v.vehicle_id or 'ID nezadáno' }}</strong>
+            <span>{{ v.spz or 'SPZ nezadána' }}</span>
+            <em>{{ item.label }} – {{ item.text }}</em>
+          </a>
+        {% endif %}
       {% endfor %}
-    </div>
-  {% else %}
+    {% endfor %}
+  </div>
+  {% if attention.count == 0 %}
     <p class="admin-help">Aktuálně nic nevyžaduje pozornost.</p>
   {% endif %}
 </section>
