@@ -27,7 +27,11 @@
     </div>
 
     <div class="wide-hero pro-hero">
-      <img src="{{ url_for('static', filename='images/' + v.photo) }}" alt="{{ v.spz }}">
+      {% if v.get('photo') %}
+        <img src="{{ url_for('static', filename='images/' + v.photo) }}" alt="{{ v.spz }}">
+      {% else %}
+        <div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>
+      {% endif %}
     </div>
 
     <section class="main-info wide-main pro-main">
@@ -119,31 +123,39 @@
       {% if dk %}
         <div class="registry-meta">Načteno {{ dk.get('loaded_at','') }} · VIN {{ dk.get('vin', v.vin) }}</div>
         <div class="registry-grid">
-          {% for label, value, suffix in [
-            ('Značka', b.get('brand'), ''),
-            ('Model / obchodní označení', b.get('model'), ''),
-            ('Typ', b.get('type'), ''),
-            ('Kategorie', b.get('category'), ''),
-            ('Rok / první registrace', b.get('year'), ''),
-            ('Palivo', b.get('fuel'), ''),
-            ('Typ motoru', b.get('engine_type'), ''),
-            ('Objem motoru', b.get('engine_capacity'), ' cm³'),
-            ('Výkon', b.get('power_kw'), ' kW'),
-            ('Emisní úroveň', b.get('emission'), ''),
-            ('Barva', b.get('color'), ''),
-            ('Počet míst', b.get('seats'), ''),
-            ('Provozní hmotnost', b.get('curb_weight'), ' kg'),
-            ('Max. hmotnost', b.get('max_weight'), ' kg'),
-            ('Technická prohlídka do', b.get('inspection_until'), '')
+          {% for label, value, suffix, dateformat in [
+            ('Značka', b.get('brand'), '', false),
+            ('Model / obchodní označení', b.get('model'), '', false),
+            ('Rok / první registrace', b.get('year'), '', false),
+            ('Palivo', b.get('fuel'), '', false),
+            ('Typ motoru', b.get('engine_type'), '', false),
+            ('Objem motoru', b.get('engine_capacity'), ' cm³', false),
+            ('Výkon', b.get('power_kw'), ' kW', false),
+            ('Emisní úroveň', b.get('emission'), '', false),
+            ('Technická prohlídka do', b.get('inspection_until'), '', true)
           ] %}
             {% if value %}
               <div class="registry-item">
                 <small>{{ label }}</small>
-                <strong>{{ value }}{{ suffix }}</strong>
+                <strong>{% if dateformat %}{{ value|czdate_short }}{% else %}{{ value }}{{ suffix }}{% endif %}</strong>
               </div>
             {% endif %}
           {% endfor %}
         </div>
+
+        {% if dk.get('details') %}
+          <details class="registry-details">
+            <summary>Další údaje z registru</summary>
+            <div class="registry-detail-grid">
+              {% for item in dk.get('details', []) %}
+                <div class="registry-detail-item">
+                  <small>{{ item.label }}</small>
+                  <span>{{ item.value }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+        {% endif %}
       {% else %}
         <p class="empty">Údaje z Datové kostky zatím nejsou načtené.{% if admin_logged %} Klikni na „Načíst podle VIN“.{% endif %}</p>
       {% endif %}
@@ -193,10 +205,16 @@
 .registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}
 .registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
 .registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
-.registry-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}
+.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}
 .registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}
-@media(max-width:900px){.registry-grid{grid-template-columns:1fr 1fr}.registry-head{align-items:flex-start;flex-direction:column}}
-@media(max-width:560px){.registry-grid{grid-template-columns:1fr}}
+.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}
+.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}
+.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}
+.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}
+.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}
+.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}
+@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}}
 </style>
 
 <nav class="bottom">
