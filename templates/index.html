@@ -4,7 +4,7 @@
   <div>
     <div class="brand">Vans <span>Centre - Crocodille</span></div>
     <h1>Přehled vozidel</h1>
-    <p>{{ vehicles|length }} vozidel</p>
+    <p>Celkem vozidel: {{ vehicles|length }}</p>
   </div>
   <a class="btn small" href="/admin">Admin</a>
 </header>
@@ -21,6 +21,8 @@
 
 <div class="grid vehicle-list">
   {% for v in vehicles %}
+    {% set raw_status = (v.get('status','') or '')|lower %}
+    {% set is_returned = 'vráceno' in raw_status or 'vraceno' in raw_status %}
     <a class="vehicle-tile vehicle-row" href="/v/{{ v.id }}">
       <div class="tile-main">
         <strong>{{ v.spz }}</strong>
@@ -41,18 +43,21 @@
       </div>
 
       <div class="vehicle-status">
-        <i class="dot {{ vehicle_alert(v) }}"></i>
+        <div class="status-reasons">
+          {% if is_returned %}
+            <span class="status-reason bad">Vráceno{% if v.status[-10:]|length == 10 %} · {{ v.status[-10:] }}{% endif %}</span>
+          {% else %}
+            <span class="status-reason" style="color:#8de5ac">V provozu</span>
 
-        {% set alerts = vehicle_alert_items(v) %}
-        {% if alerts %}
-          <div class="status-reasons">
+            {% set alerts = vehicle_alert_items(v) %}
             {% for a in alerts %}
               <span class="status-reason {{ a.state }}">
-                {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} · {{ a.text }}
+                {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} {{ a.text|replace(' dní',' d') }}
               </span>
             {% endfor %}
-          </div>
-        {% endif %}
+          {% endif %}
+        </div>
+        <i class="dot {% if is_returned %}inactive{% else %}{{ vehicle_alert(v) }}{% endif %}"></i>
       </div>
     </a>
   {% endfor %}
