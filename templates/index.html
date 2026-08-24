@@ -45,7 +45,7 @@
       <div class="vehicle-status">
         <div class="status-reasons">
           {% if is_returned %}
-            <span class="status-reason bad">Vráceno{% if v.status[-10:]|length == 10 %} · {{ v.status[-10:] }}{% endif %}</span>
+            <span class="status-reason bad">Vráceno{% if v.status[-10:]|length == 10 %} · {{ v.status[-10:]|czdate }}{% endif %}</span>
           {% else %}
             <span class="status-reason" style="color:#8de5ac">V provozu</span>
 
