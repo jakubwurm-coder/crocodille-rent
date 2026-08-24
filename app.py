@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, session
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, session, jsonify
 from pathlib import Path
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
@@ -257,4 +257,39 @@ def delete_service(vehicle_id,sid):
 def documents(filename):return send_from_directory(DOCS_DIR,filename)
 @app.route("/qr")
 def qr():return render_template("qr.html",vehicles=load_vehicles(),base=request.url_root.rstrip("/"))
+
+# --- Mobilni API pro iPhone aplikaci ---
+def _api_alerts_for_vehicle(v, horizon=30):
+    alerts=[]
+    if not is_active_vehicle(v):return alerts
+    checks=[("stk_until","STK"),("vignette_until","Dálniční známka"),("liability_until","Povinné ručení"),("casco_until","Havarijní pojištění"),("assistance_until","Asistence"),("next_service_date","Servis")]
+    for key,label in checks:
+        value=v.get(key);days=days_until(value)
+        if days is None or days>horizon:continue
+        severity="overdue" if days<0 else "critical" if days<=7 else "warning" if days<=14 else "info"
+        text=f"{label} je po termínu {abs(days)} dní" if days<0 else f"{label} končí dnes" if days==0 else f"{label} končí za {days} dní"
+        alerts.append({"id":f"{v.get('id')}:{key}:{value}","vehicle_id":str(v.get('id') or ''),"spz":v.get('spz') or '',"kind":key,"title":label,"message":text,"date":str(value or '')[:10],"days":days,"severity":severity})
+    return alerts
+
+def _api_vehicle(v):
+    dk=v.get("datova_kostka") or {};basic=dk.get("basic") or {}
+    return {"id":str(v.get("id") or ''),"spz":v.get("spz") or '',"vehicle_number":v.get("vehicle_id") or '',"vin":v.get("vin") or '',"brand":basic.get("brand") or v.get("brand") or '',"model":basic.get("model") or v.get("model") or v.get("name") or '',"year":basic.get("year") or v.get("year") or '',"status":v.get("status") or 'V provozu',"km":v.get("km") or '',"stk_until":v.get("stk_until") or basic.get("inspection_until") or '',"vignette_until":v.get("vignette_until") or '',"liability_until":v.get("liability_until") or '',"casco_until":v.get("casco_until") or '',"assistance_until":v.get("assistance_until") or '',"next_service_date":v.get("next_service_date") or '',"next_service_km":v.get("next_service_km") or '',"fuel":str(basic.get("fuel") or v.get("fuel") or '').upper(),"engine_type":basic.get("engine_type") or v.get("engine_type") or '',"engine_capacity":basic.get("engine_capacity") or v.get("engine_volume") or '',"power_kw":basic.get("power_kw") or v.get("engine_power") or '',"emission":basic.get("emission") or v.get("emission_class") or '',"photo_url":url_for('static',filename='images/'+v.get('photo'),_external=True) if v.get('photo') else '',"alerts":_api_alerts_for_vehicle(v)}
+
+@app.route('/api/v1/health')
+def api_health():return jsonify({"ok":True,"service":"crocodille-fleet","version":1})
+@app.route('/api/v1/vehicles')
+def api_vehicles():return jsonify({"vehicles":[_api_vehicle(v) for v in load_vehicles()]})
+@app.route('/api/v1/vehicles/<vehicle_id>')
+def api_vehicle_detail(vehicle_id):
+    v=get_vehicle(vehicle_id)
+    return jsonify(_api_vehicle(v)) if v else (jsonify({"error":"Vozidlo nenalezeno"}),404)
+@app.route('/api/v1/alerts')
+def api_alerts():
+    try:horizon=max(1,min(int(request.args.get('days','30')),365))
+    except:horizon=30
+    alerts=[]
+    for v in load_vehicles():alerts.extend(_api_alerts_for_vehicle(v,horizon))
+    alerts.sort(key=lambda x:x['days'])
+    return jsonify({"days":horizon,"count":len(alerts),"alerts":alerts})
+
 if __name__=="__main__":app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)
