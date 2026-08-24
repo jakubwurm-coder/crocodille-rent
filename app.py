@@ -27,11 +27,18 @@ DOCS_DIR.mkdir(parents=True, exist_ok=True)
 def github_sync_enabled(): return bool(GITHUB_TOKEN and GITHUB_REPO and GITHUB_BRANCH)
 def github_headers(): return {"Authorization": f"Bearer {GITHUB_TOKEN}", "Accept":"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28"}
 def github_content_url(repo_path): return f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{str(repo_path).replace(chr(92),'/').lstrip('/')}"
-def github_get_file_sha(repo_path):
+def github_get_file(repo_path):
     if not github_sync_enabled(): return None
     r=requests.get(github_content_url(repo_path),headers=github_headers(),params={"ref":GITHUB_BRANCH},timeout=20)
     if r.status_code==404:return None
-    r.raise_for_status();return r.json().get("sha")
+    r.raise_for_status();return r.json()
+def github_get_file_sha(repo_path):
+    data=github_get_file(repo_path);return data.get("sha") if data else None
+def github_get_text(repo_path):
+    data=github_get_file(repo_path)
+    if not data:return None
+    content=data.get("content") or ""
+    return base64.b64decode(content).decode("utf-8")
 def github_put_text(repo_path,text,message):
     if not github_sync_enabled():return None
     p={"message":message,"content":base64.b64encode(text.encode()).decode(),"branch":GITHUB_BRANCH};sha=github_get_file_sha(repo_path)
@@ -48,8 +55,10 @@ def github_delete_file(repo_path,message):
     if not sha:return None
     r=requests.delete(github_content_url(repo_path),headers=github_headers(),json={"message":message,"sha":sha,"branch":GITHUB_BRANCH},timeout=30);r.raise_for_status();return r.json()
 def backup_current_vehicles():
-    if github_sync_enabled() and DATA_FILE.exists():
-        t=datetime.now().strftime("%Y%m%d_%H%M%S");github_put_text(f"backups/vehicles_{t}_{uuid.uuid4().hex[:6]}.json",DATA_FILE.read_text(),f"Záloha vehicles.json {t}")
+    if not github_sync_enabled():return
+    current=github_get_text("vehicles.json")
+    if current is None:return
+    t=datetime.now().strftime("%Y%m%d_%H%M%S");github_put_text(f"backups/vehicles_{t}_{uuid.uuid4().hex[:6]}.json",current,f"Záloha vehicles.json {t}")
 def sync_vehicles_to_github(message="Aktualizace vehicles.json"):
     if github_sync_enabled() and DATA_FILE.exists():github_put_text("vehicles.json",DATA_FILE.read_text(),message)
 def sync_local_file_to_github(local_path,repo_path,message):
@@ -58,9 +67,28 @@ def safe_github_sync(callback):
     if not github_sync_enabled():return
     try:callback()
     except Exception as e:print(f"GitHub sync failed: {e}")
-def load_vehicles():return json.loads(DATA_FILE.read_text()) if DATA_FILE.exists() else []
+def load_vehicles():
+    if github_sync_enabled():
+        try:
+            text=github_get_text("vehicles.json")
+            if text is not None:
+                vehicles=json.loads(text)
+                DATA_FILE.write_text(text)
+                return vehicles
+        except Exception as e:print(f"GitHub load failed, používám lokální kopii: {e}")
+    return json.loads(DATA_FILE.read_text()) if DATA_FILE.exists() else []
 def save_vehicles(vehicles,commit_message="Aktualizace vehicles.json"):
-    safe_github_sync(backup_current_vehicles);DATA_FILE.write_text(json.dumps(vehicles,ensure_ascii=False,indent=2));safe_github_sync(lambda:sync_vehicles_to_github(commit_message))
+    text=json.dumps(vehicles,ensure_ascii=False,indent=2)
+    if github_sync_enabled():
+        try:
+            backup_current_vehicles()
+            github_put_text("vehicles.json",text,commit_message)
+            DATA_FILE.write_text(text)
+            return
+        except Exception as e:
+            print(f"GitHub save failed: {e}")
+            raise RuntimeError("Data se nepodařilo trvale uložit na GitHub. Změna nebyla potvrzena.") from e
+    DATA_FILE.write_text(text)
 def get_vehicle(vehicle_id):return next((v for v in load_vehicles() if str(v.get("id"))==str(vehicle_id)),None)
 def update_vehicle(vehicle_id,updater,commit_message=None):
     vehicles=load_vehicles()
@@ -276,7 +304,7 @@ def _api_vehicle(v):
     return {"id":str(v.get("id") or ''),"spz":v.get("spz") or '',"vehicle_number":v.get("vehicle_id") or '',"vin":v.get("vin") or '',"brand":basic.get("brand") or v.get("brand") or '',"model":basic.get("model") or v.get("model") or v.get("name") or '',"year":basic.get("year") or v.get("year") or '',"status":v.get("status") or 'V provozu',"km":v.get("km") or '',"stk_until":v.get("stk_until") or basic.get("inspection_until") or '',"vignette_until":v.get("vignette_until") or '',"liability_until":v.get("liability_until") or '',"casco_until":v.get("casco_until") or '',"assistance_until":v.get("assistance_until") or '',"next_service_date":v.get("next_service_date") or '',"next_service_km":v.get("next_service_km") or '',"fuel":str(basic.get("fuel") or v.get("fuel") or '').upper(),"engine_type":basic.get("engine_type") or v.get("engine_type") or '',"engine_capacity":basic.get("engine_capacity") or v.get("engine_volume") or '',"power_kw":basic.get("power_kw") or v.get("engine_power") or '',"emission":basic.get("emission") or v.get("emission_class") or '',"photo_url":url_for('static',filename='images/'+v.get('photo'),_external=True) if v.get('photo') else '',"alerts":_api_alerts_for_vehicle(v)}
 
 @app.route('/api/v1/health')
-def api_health():return jsonify({"ok":True,"service":"crocodille-fleet","version":1})
+def api_health():return jsonify({"ok":True,"service":"crocodille-fleet","version":1,"persistence":"github" if github_sync_enabled() else "local"})
 @app.route('/api/v1/vehicles')
 def api_vehicles():return jsonify({"vehicles":[_api_vehicle(v) for v in load_vehicles()]})
 @app.route('/api/v1/vehicles/<vehicle_id>')
