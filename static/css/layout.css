@@ -59,18 +59,23 @@
   left:50%;
   transform:translateX(-50%);
   bottom:14px;
-  background:rgba(7,17,29,.86);
+  background:rgba(10,10,10,.90);
   backdrop-filter:blur(12px);
-  border:1px solid var(--line);
+  border:1px solid rgba(242,183,5,.24);
   border-radius:999px;
   padding:10px;
   display:flex;
   gap:10px;
   z-index:10;
+  box-shadow:0 12px 40px rgba(0,0,0,.42);
 }
 
 .bottom a{
   padding:10px 16px;
   border-radius:999px;
-  background:rgba(255,255,255,.06);
+  background:rgba(255,255,255,.07);
+}
+
+.bottom a:hover{
+  background:rgba(242,183,5,.16);
 }
