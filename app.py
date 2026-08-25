@@ -5,6 +5,7 @@ from datetime import datetime, date
 import base64
 import json, os, uuid
 import requests
+import db_storage
 
 APP_DIR = Path(__file__).parent
 DATA_FILE = APP_DIR / "vehicles.json"
@@ -68,6 +69,12 @@ def safe_github_sync(callback):
     try:callback()
     except Exception as e:print(f"GitHub sync failed: {e}")
 def load_vehicles():
+    if db_storage.enabled():
+        try:
+            return db_storage.load_vehicles(DATA_FILE)
+        except Exception as e:
+            print(f"PostgreSQL load failed: {e}")
+            raise RuntimeError("Data se nepodařilo načíst z PostgreSQL databáze.") from e
     if github_sync_enabled():
         try:
             text=github_get_text("vehicles.json")
@@ -79,6 +86,14 @@ def load_vehicles():
     return json.loads(DATA_FILE.read_text()) if DATA_FILE.exists() else []
 def save_vehicles(vehicles,commit_message="Aktualizace vehicles.json"):
     text=json.dumps(vehicles,ensure_ascii=False,indent=2)
+    if db_storage.enabled():
+        try:
+            db_storage.save_vehicles(vehicles)
+            DATA_FILE.write_text(text)
+            return
+        except Exception as e:
+            print(f"PostgreSQL save failed: {e}")
+            raise RuntimeError("Data se nepodařilo trvale uložit do PostgreSQL databáze. Změna nebyla potvrzena.") from e
     if github_sync_enabled():
         try:
             backup_current_vehicles()
@@ -304,7 +319,7 @@ def _api_vehicle(v):
     return {"id":str(v.get("id") or ''),"spz":v.get("spz") or '',"vehicle_number":v.get("vehicle_id") or '',"vin":v.get("vin") or '',"brand":basic.get("brand") or v.get("brand") or '',"model":basic.get("model") or v.get("model") or v.get("name") or '',"year":basic.get("year") or v.get("year") or '',"status":v.get("status") or 'V provozu',"km":v.get("km") or '',"stk_until":v.get("stk_until") or basic.get("inspection_until") or '',"vignette_until":v.get("vignette_until") or '',"liability_until":v.get("liability_until") or '',"casco_until":v.get("casco_until") or '',"assistance_until":v.get("assistance_until") or '',"next_service_date":v.get("next_service_date") or '',"next_service_km":v.get("next_service_km") or '',"fuel":str(basic.get("fuel") or v.get("fuel") or '').upper(),"engine_type":basic.get("engine_type") or v.get("engine_type") or '',"engine_capacity":basic.get("engine_capacity") or v.get("engine_volume") or '',"power_kw":basic.get("power_kw") or v.get("engine_power") or '',"emission":basic.get("emission") or v.get("emission_class") or '',"photo_url":url_for('static',filename='images/'+v.get('photo'),_external=True) if v.get('photo') else '',"alerts":_api_alerts_for_vehicle(v)}
 
 @app.route('/api/v1/health')
-def api_health():return jsonify({"ok":True,"service":"crocodille-fleet","version":1,"persistence":"github" if github_sync_enabled() else "local"})
+def api_health():return jsonify({"ok":True,"service":"crocodille-fleet","version":1,"persistence":"postgresql" if db_storage.enabled() else "github" if github_sync_enabled() else "local"})
 @app.route('/api/v1/vehicles')
 def api_vehicles():return jsonify({"vehicles":[_api_vehicle(v) for v in load_vehicles()]})
 @app.route('/api/v1/vehicles/<vehicle_id>')
