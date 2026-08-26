@@ -39,29 +39,36 @@
 </div>
 
 <style>
-.qr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
-.qr-card{background:#fff;color:#0a2f5e;border-radius:22px;padding:22px;border:1px solid #dce4ee;display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:center;break-inside:avoid}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px}
+.qr-card{background:#fff;color:#0a2f5e;border-radius:22px;padding:22px;border:1px solid #dce4ee;display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;break-inside:avoid}
 .qr-code-wrap{background:#fff;border-radius:16px;padding:8px;border:1px solid #e3e8ef}
 .qr-code-wrap img{display:block;width:100%;height:auto}
 .qr-card-info{min-width:0}
 .qr-company{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .qr-company-logo{display:block;width:76px;height:58px;object-fit:contain;border-radius:6px}
 .qr-brand{font-size:12px;font-weight:900;letter-spacing:.04em;color:#0b65bd}
-.qr-card h2{font-size:30px;line-height:1;margin:8px 0 7px;color:#082f5f}
+.qr-card h2{font-size:30px;line-height:1;margin:8px 0 7px;color:#082f5f;white-space:nowrap;letter-spacing:-.02em}
 .qr-card p{margin:0 0 7px;color:#536276;font-weight:700}
 .qr-id{font-size:14px;font-weight:800;color:#082f5f}
 .qr-help{margin-top:13px;font-size:13px;color:#536276;line-height:1.35}
 .qr-actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
-@media(max-width:650px){.qr-card{grid-template-columns:105px 1fr;padding:16px}.qr-card h2{font-size:25px}.qr-company{align-items:flex-start;flex-direction:column;gap:4px}.qr-company-logo{width:66px;height:50px}.qr-actions{justify-content:stretch;flex-direction:column}.qr-actions .btn{text-align:center}}
+@media(max-width:650px){.qr-grid{grid-template-columns:1fr}.qr-card{grid-template-columns:105px minmax(0,1fr);padding:16px}.qr-card h2{font-size:25px}.qr-company{align-items:flex-start;flex-direction:column;gap:4px}.qr-company-logo{width:66px;height:50px}.qr-actions{justify-content:stretch;flex-direction:column}.qr-actions .btn{text-align:center}}
 @media print{
+  @page{size:A4 portrait;margin:10mm}
   body{background:#fff!important}
-  .topbar{margin-bottom:15px}
+  .shell{max-width:none!important;padding:0!important}
+  .topbar{margin-bottom:6mm}
   .topbar p,.brand,.no-print{display:none!important}
-  .qr-grid{grid-template-columns:repeat(2,1fr);gap:10mm}
-  .qr-card{border:1px solid #bbb;border-radius:8px;padding:8mm;grid-template-columns:42mm 1fr;box-shadow:none;page-break-inside:avoid}
-  .qr-company-logo{width:28mm;height:20mm}
-  .qr-card h2{font-size:22pt}
-  .qr-help{font-size:9pt}
+  .qr-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6mm 8mm}
+  .qr-card{border:1px solid #bbb;border-radius:4mm;padding:5mm;grid-template-columns:34mm minmax(0,1fr);gap:4mm;box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+  .qr-code-wrap{padding:2mm;border-radius:3mm}
+  .qr-company{gap:2mm;margin-bottom:2mm}
+  .qr-company-logo{width:22mm;height:15mm}
+  .qr-brand{font-size:8pt}
+  .qr-card h2{font-size:20pt;white-space:nowrap}
+  .qr-card p{font-size:10pt}
+  .qr-id{font-size:9pt}
+  .qr-help{font-size:8pt;margin-top:3mm}
 }
 </style>
 {% endblock %}
