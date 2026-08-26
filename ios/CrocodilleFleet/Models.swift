@@ -2,12 +2,28 @@ import Foundation
 
 struct VehicleEnvelope: Decodable {
     let vehicles: [Vehicle]
+
+    enum CodingKeys: String, CodingKey { case vehicles }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        vehicles = try container.decodeIfPresent([Vehicle].self, forKey: .vehicles) ?? []
+    }
 }
 
 struct AlertsEnvelope: Decodable {
     let days: Int
     let count: Int
     let alerts: [FleetAlert]
+
+    enum CodingKeys: String, CodingKey { case days, count, alerts }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        days = container.flexibleInt(forKey: .days)
+        alerts = try container.decodeIfPresent([FleetAlert].self, forKey: .alerts) ?? []
+        count = container.flexibleInt(forKey: .count, default: alerts.count)
+    }
 }
 
 struct Vehicle: Decodable, Identifiable, Hashable {
@@ -50,6 +66,33 @@ struct Vehicle: Decodable, Identifiable, Hashable {
         case powerKw = "power_kw"
         case photoUrl = "photo_url"
     }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.flexibleString(forKey: .id)
+        spz = c.flexibleString(forKey: .spz)
+        vehicleNumber = c.flexibleString(forKey: .vehicleNumber)
+        vin = c.flexibleString(forKey: .vin)
+        brand = c.flexibleString(forKey: .brand)
+        model = c.flexibleString(forKey: .model)
+        year = c.flexibleString(forKey: .year)
+        status = c.flexibleString(forKey: .status)
+        km = c.flexibleString(forKey: .km)
+        stkUntil = c.flexibleString(forKey: .stkUntil)
+        vignetteUntil = c.flexibleString(forKey: .vignetteUntil)
+        liabilityUntil = c.flexibleString(forKey: .liabilityUntil)
+        cascoUntil = c.flexibleString(forKey: .cascoUntil)
+        assistanceUntil = c.flexibleString(forKey: .assistanceUntil)
+        nextServiceDate = c.flexibleString(forKey: .nextServiceDate)
+        nextServiceKm = c.flexibleString(forKey: .nextServiceKm)
+        fuel = c.flexibleString(forKey: .fuel)
+        engineType = c.flexibleString(forKey: .engineType)
+        engineCapacity = c.flexibleString(forKey: .engineCapacity)
+        powerKw = c.flexibleString(forKey: .powerKw)
+        emission = c.flexibleString(forKey: .emission)
+        photoUrl = c.flexibleString(forKey: .photoUrl)
+        alerts = (try? c.decodeIfPresent([FleetAlert].self, forKey: .alerts)) ?? []
+    }
 }
 
 struct FleetAlert: Decodable, Identifiable, Hashable {
@@ -66,5 +109,37 @@ struct FleetAlert: Decodable, Identifiable, Hashable {
     enum CodingKeys: String, CodingKey {
         case id, spz, kind, title, message, date, days, severity
         case vehicleId = "vehicle_id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.flexibleString(forKey: .id)
+        vehicleId = c.flexibleString(forKey: .vehicleId)
+        spz = c.flexibleString(forKey: .spz)
+        kind = c.flexibleString(forKey: .kind)
+        title = c.flexibleString(forKey: .title)
+        message = c.flexibleString(forKey: .message)
+        date = c.flexibleString(forKey: .date)
+        days = c.flexibleInt(forKey: .days)
+        severity = c.flexibleString(forKey: .severity)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func flexibleString(forKey key: Key, default defaultValue: String = "") -> String {
+        if let value = try? decodeIfPresent(String.self, forKey: key), let value { return value }
+        if let value = try? decodeIfPresent(Int.self, forKey: key), let value { return String(value) }
+        if let value = try? decodeIfPresent(Double.self, forKey: key), let value {
+            return value.rounded() == value ? String(Int(value)) : String(value)
+        }
+        if let value = try? decodeIfPresent(Bool.self, forKey: key), let value { return value ? "true" : "false" }
+        return defaultValue
+    }
+
+    func flexibleInt(forKey key: Key, default defaultValue: Int = 0) -> Int {
+        if let value = try? decodeIfPresent(Int.self, forKey: key), let value { return value }
+        if let value = try? decodeIfPresent(Double.self, forKey: key), let value { return Int(value) }
+        if let value = try? decodeIfPresent(String.self, forKey: key), let value, let intValue = Int(value) { return intValue }
+        return defaultValue
     }
 }
