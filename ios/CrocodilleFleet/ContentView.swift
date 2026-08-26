@@ -31,15 +31,29 @@ struct VehiclesView: View {
         List(filtered) { vehicle in
             NavigationLink(value: vehicle) {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: vehicle.photoUrl)) { image in
-                        image.resizable().scaledToFit()
-                    } placeholder: {
-                        Image(systemName: "truck.box.fill").font(.title2)
+                    AsyncImage(url: URL(string: vehicle.photoUrl)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFit()
+                        case .empty:
+                            ProgressView()
+                        case .failure:
+                            Image(systemName: "truck.box.fill").font(.title2)
+                        @unknown default:
+                            Image(systemName: "truck.box.fill").font(.title2)
+                        }
                     }
-                    .frame(width: 64, height: 48)
+                    .frame(width: 74, height: 56)
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(vehicle.spz).font(.headline)
+                        HStack(spacing: 8) {
+                            Text(vehicle.spz).font(.headline)
+                            if !vehicle.vehicleNumber.isEmpty {
+                                Text("ID \(vehicle.vehicleNumber)")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Text("\(vehicle.brand) \(vehicle.model)").font(.subheadline)
                         Text(vehicle.status).font(.caption).foregroundStyle(.secondary)
                     }
@@ -53,7 +67,7 @@ struct VehiclesView: View {
                 }
             }
         }
-        .navigationTitle("Crocodille Fleet")
+        .navigationTitle("Vans Renting")
         .searchable(text: $search, prompt: "SPZ, VIN, ID")
         .navigationDestination(for: Vehicle.self) { VehicleDetailView(vehicle: $0) }
         .refreshable { await store.refresh() }
@@ -102,16 +116,27 @@ struct VehicleDetailView: View {
             Section {
                 HStack {
                     Spacer()
-                    AsyncImage(url: URL(string: vehicle.photoUrl)) { image in
-                        image.resizable().scaledToFit()
-                    } placeholder: {
-                        Image(systemName: "truck.box.fill").font(.system(size: 55))
+                    AsyncImage(url: URL(string: vehicle.photoUrl)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFit()
+                        case .empty:
+                            ProgressView()
+                        case .failure:
+                            Image(systemName: "truck.box.fill").font(.system(size: 55))
+                        @unknown default:
+                            Image(systemName: "truck.box.fill").font(.system(size: 55))
+                        }
                     }
-                    .frame(maxWidth: 220, maxHeight: 130)
+                    .frame(maxWidth: 260, maxHeight: 160)
                     Spacer()
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(vehicle.spz).font(.largeTitle.bold())
+                    if !vehicle.vehicleNumber.isEmpty {
+                        Text("ID vozidla: \(vehicle.vehicleNumber)")
+                            .font(.headline)
+                    }
                     Text("\(vehicle.brand) \(vehicle.model)")
                     Text("VIN: \(vehicle.vin)").font(.caption).foregroundStyle(.secondary)
                 }
