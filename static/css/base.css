@@ -1,15 +1,17 @@
 :root{
-  --bg:#0b0b0b;
-  --card:#151515;
-  --card2:#202020;
+  --bg:#06182d;
+  --card:#0b223d;
+  --card2:#102f52;
   --txt:#ffffff;
-  --muted:#b7b7b7;
-  --blue:#f2b705;
-  --blue2:#d89f00;
+  --muted:#a9bdd4;
+  --blue:#1374c9;
+  --blue2:#07579f;
+  --navy:#002f63;
+  --cyan:#64c6f2;
   --green:#2fbd68;
   --orange:#f59e0b;
   --red:#ef4444;
-  --line:rgba(255,255,255,.10);
+  --line:rgba(127,181,231,.20);
 }
 
 *{box-sizing:border-box}
@@ -17,7 +19,11 @@
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:radial-gradient(circle at top,#252525 0,#111111 46%,#050505 100%);
+  background:
+    radial-gradient(circle at 18% -10%,rgba(31,116,190,.24),transparent 34%),
+    radial-gradient(circle at 88% 8%,rgba(100,198,242,.10),transparent 30%),
+    linear-gradient(180deg,#0b223d 0,#071a31 48%,#041222 100%);
+  background-attachment:fixed;
   color:var(--txt);
 }
 
@@ -34,27 +40,32 @@ a{
 }
 
 .brand span{
-  color:var(--blue);
+  color:var(--cyan);
   font-weight:800;
 }
 
 .btn{
-  border:0;
+  border:1px solid rgba(100,198,242,.20);
   background:linear-gradient(135deg,var(--blue),var(--blue2));
-  color:#111;
+  color:#fff;
   border-radius:14px;
   padding:13px 18px;
   font-weight:900;
   cursor:pointer;
   display:inline-block;
+  box-shadow:0 10px 24px rgba(0,61,120,.22);
+}
+
+.btn:hover{
+  filter:brightness(1.08);
 }
 
 .btn.small{padding:10px 14px}
 
 .muted-btn{
-  background:rgba(255,255,255,.08);
-  border:1px solid var(--line);
-  color:#fff;
+  background:rgba(13,47,82,.68);
+  border:1px solid rgba(127,181,231,.24);
+  color:#eaf5ff;
 }
 
 .danger{
@@ -68,12 +79,14 @@ a{
   height:13px;
   border-radius:50%;
   background:#6b7280;
-  border:2px solid rgba(255,255,255,.8);
+  border:2px solid rgba(235,247,255,.88);
+  box-shadow:0 0 0 2px rgba(4,18,34,.30);
 }
 
 .dot.ok{background:var(--green)}
 .dot.soon{background:var(--orange)}
 .dot.bad{background:var(--red)}
+.dot.inactive{background:#6b7280}
 .dot.unknown{background:#6b7280}
 
 .pill{
