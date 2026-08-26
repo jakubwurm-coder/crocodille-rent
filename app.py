@@ -23,8 +23,9 @@ def _vehicle_by_spz(spz):
     return None
 
 
-def _public_vehicle_url(spz):
-    return f"https://vansrenting-crocodille.onrender.com/v/{str(spz or '').strip().upper()}"
+def _public_vehicle_url(vehicle):
+    public_id = str(vehicle.get("id") or vehicle.get("spz") or "").strip()
+    return f"https://vansrenting-crocodille.onrender.com/v/{public_id}"
 
 
 @app.route("/qr-code/<spz>.svg", endpoint="vehicle_qr_svg")
@@ -33,7 +34,7 @@ def vehicle_qr_svg(spz):
     if not vehicle:
         return core.jsonify({"error": "Vozidlo nenalezeno"}), 404
 
-    target_url = _public_vehicle_url(vehicle.get("spz"))
+    target_url = _public_vehicle_url(vehicle)
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
