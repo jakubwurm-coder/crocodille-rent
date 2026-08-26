@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-box">
+  <div class="brand">Vans <span>Centre</span></div>
+  <h1>Služební vozidla</h1>
+  <p>Přihlášení do neveřejné části.</p>
+
+  {% with messages=get_flashed_messages() %}
+    {% if messages %}<div class="flashbox">{{ messages[0] }}</div>{% endif %}
+  {% endwith %}
+
+  <form method="post" class="login-form">
+    <input type="text" name="username" placeholder="Uživatel" autocomplete="username" required>
+    <input type="password" name="password" placeholder="Heslo" autocomplete="current-password" required>
+    <button class="btn" type="submit">Přihlásit</button>
+  </form>
+  <a href="/">Zpět na Crocodille</a>
+</div>
+{% endblock %}

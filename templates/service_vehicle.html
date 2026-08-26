@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <div class="brand">Vans <span>Centre</span></div>
+    <h1>{{ v.spz or 'Služební vozidlo' }}</h1>
+    <p>{{ v.brand }} {{ v.model or v.name }}</p>
+  </div>
+  <div class="top-actions">
+    <a class="btn small muted-btn" href="/sluzebni">Služební vozidla</a>
+    <a class="btn small muted-btn" href="/sluzebni/odhlasit">Odhlásit</a>
+  </div>
+</header>
+
+<section class="admin-panel">
+  <h2>Základní údaje</h2>
+  <div class="dashboard-grid">
+    <div class="dashboard-card"><span>SPZ</span><strong>{{ v.spz or 'nezadáno' }}</strong></div>
+    <div class="dashboard-card"><span>VIN</span><strong style="font-size:16px">{{ v.vin }}</strong></div>
+    <div class="dashboard-card"><span>Značka</span><strong>{{ v.brand or '—' }}</strong></div>
+    <div class="dashboard-card"><span>Model</span><strong>{{ v.model or v.name or '—' }}</strong></div>
+    <div class="dashboard-card"><span>Rok</span><strong>{{ v.year or '—' }}</strong></div>
+    <div class="dashboard-card"><span>Stav</span><strong>{{ v.status or 'V provozu' }}</strong></div>
+  </div>
+</section>
+
+<section class="admin-panel">
+  <h2>Termíny</h2>
+  <div class="dashboard-grid">
+    <div class="dashboard-card"><span>STK do</span><strong>{{ v.stk_until|czdate if v.stk_until else '—' }}</strong></div>
+    <div class="dashboard-card"><span>Dálniční známka</span><strong>{{ v.vignette_until|czdate if v.vignette_until else '—' }}</strong></div>
+    <div class="dashboard-card"><span>Povinné ručení</span><strong>{{ v.liability_until|czdate if v.liability_until else '—' }}</strong></div>
+    <div class="dashboard-card"><span>Havarijní pojištění</span><strong>{{ v.casco_until|czdate if v.casco_until else '—' }}</strong></div>
+  </div>
+</section>
+
+{% if v.get('datova_kostka') %}
+<section class="admin-panel">
+  <h2>Datová kostka</h2>
+  <p class="admin-help">Technické údaje byly načteny automaticky podle VIN.</p>
+  <form method="post" action="/sluzebni/v/{{ v.id }}/obnovit"><button class="btn small" type="submit">Obnovit údaje</button></form>
+</section>
+{% endif %}
+{% endblock %}
