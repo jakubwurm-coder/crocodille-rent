@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="topbar">
+  <div>
+    <div class="brand">Vans <span>Centre</span></div>
+    <h1>Služební vozidla</h1>
+    <p>Neveřejná flotila · přihlášen {{ service_user }}</p>
+  </div>
+  <div class="top-actions">
+    <a class="btn small muted-btn" href="/">Crocodille</a>
+    <a class="btn small muted-btn" href="/sluzebni/odhlasit">Odhlásit</a>
+  </div>
+</header>
+
+<div class="grid vehicle-list">
+  {% for v in vehicles %}
+    <a class="vehicle-tile vehicle-row" href="/sluzebni/v/{{ v.id }}">
+      <div class="tile-main">
+        <strong>{{ v.spz or 'SPZ se načítá' }}</strong>
+        <small>{{ v.vin }}</small>
+        <span>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</span>
+        {% if v.year %}<em>Rok {{ v.year }}</em>{% endif %}
+      </div>
+      <div class="vehicle-status">
+        <div class="status-reasons"><span class="status-reason" style="color:#8de5ac">{{ v.status or 'V provozu' }}</span></div>
+        <i class="dot {{ vehicle_alert(v) }}"></i>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}
