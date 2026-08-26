@@ -1,0 +1,102 @@
+/* Tmavý vzhled podle barev VansRenting */
+body{
+  background:
+    radial-gradient(circle at 18% -10%,rgba(31,116,190,.24),transparent 34%),
+    radial-gradient(circle at 88% 8%,rgba(100,198,242,.10),transparent 30%),
+    linear-gradient(180deg,#0b223d 0,#071a31 48%,#041222 100%)!important;
+  color:#fff;
+}
+
+.search input{
+  background:#0a213b!important;
+  border-color:rgba(127,181,231,.22)!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 10px 30px rgba(0,20,45,.18);
+}
+.search input::placeholder{color:#8199b4}
+
+.vehicle-tile{
+  background:linear-gradient(160deg,#102f52 0%,#0b223d 58%,#081b31 100%)!important;
+  border-color:rgba(127,181,231,.19)!important;
+  box-shadow:0 15px 34px rgba(0,10,25,.28),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+.vehicle-tile:hover{
+  border-color:rgba(100,198,242,.50)!important;
+  box-shadow:0 18px 38px rgba(0,20,45,.36),0 0 0 1px rgba(100,198,242,.08)!important;
+}
+.vehicle-tile strong{color:#fff}
+.vehicle-tile small{color:#d7e9fb!important}
+.vehicle-tile span,
+.vehicle-tile em{color:#a9bdd4!important}
+
+.legend{color:#b9cce0!important}
+
+.topbar h1{color:#fff}
+.topbar p{color:#a9bdd4!important}
+.brand{color:#fff!important}
+.brand span{color:#64c6f2!important}
+
+.btn{
+  background:linear-gradient(135deg,#1374c9,#07579f)!important;
+  color:#fff!important;
+  border:1px solid rgba(100,198,242,.20)!important;
+  box-shadow:0 10px 24px rgba(0,61,120,.22)!important;
+}
+.muted-btn{
+  background:rgba(13,47,82,.72)!important;
+  color:#edf7ff!important;
+  border:1px solid rgba(127,181,231,.26)!important;
+}
+
+.vehicle-left,
+.panel,
+.status-card{
+  background:linear-gradient(155deg,rgba(16,47,82,.97),rgba(7,26,49,.98))!important;
+  border-color:rgba(127,181,231,.20)!important;
+  box-shadow:0 24px 70px rgba(0,10,25,.32),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+
+.row,
+.timeline div,
+.doc-card,
+.service-meta{
+  background:rgba(117,174,225,.055)!important;
+  border-color:rgba(127,181,231,.16)!important;
+}
+
+.ui-icon,
+.timeline-dot{color:#64c6f2!important}
+.timeline-dot{background:#1374c9!important}
+
+.bottom{
+  background:rgba(5,22,40,.94)!important;
+  border-color:rgba(100,198,242,.24)!important;
+}
+.bottom a{background:rgba(19,116,201,.10)!important}
+.bottom a:hover{background:rgba(19,116,201,.24)!important}
+
+/* Na bezchybném vozidle pouze zelená tečka. Text se vypisuje jen při upozornění. */
+.status-reason.soon{
+  color:#ffb13b!important;
+  background:rgba(245,158,11,.13);
+  border:1px solid rgba(245,158,11,.26);
+  padding:6px 9px;
+  border-radius:9px;
+}
+.status-reason.bad{
+  color:#ff6b6b!important;
+  background:rgba(239,68,68,.13);
+  border:1px solid rgba(239,68,68,.28);
+  padding:6px 9px;
+  border-radius:9px;
+}
+
+.dot.ok{background:#2fbd68!important}
+.dot.soon{background:#f59e0b!important}
+.dot.bad{background:#ef4444!important}
+.dot.inactive,.dot.unknown{background:#6b7280!important}
+
+@media(max-width:700px){
+  .vehicle-status{max-width:58%}
+  .status-reason{white-space:normal;text-align:right}
+}
