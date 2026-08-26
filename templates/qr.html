@@ -2,19 +2,62 @@
 {% block content %}
 <header class="topbar">
   <div>
-    <h1>QR odkazy</h1>
-    <p>Tyto URL použij pro QR kódy na vozidla.</p>
+    <div class="brand">CROCODILLE <span>RENT</span></div>
+    <h1>QR kódy vozidel</h1>
+    <p>Každý QR kód otevře veřejnou kartu konkrétního vozidla.</p>
   </div>
-  <a class="btn small" href="/admin">Admin</a>
+  <div class="top-actions no-print">
+    <button class="btn small muted-btn" type="button" onclick="window.print()">Vytisknout vše</button>
+    <a class="btn small" href="/admin">Administrace</a>
+  </div>
 </header>
 
-<div class="table">
+<div class="qr-grid">
   {% for v in vehicles %}
-    <a href="{{ base }}/v/{{ v.id }}">
-      <strong>{{ v.spz }}</strong>
-      <span>{{ base }}/v/{{ v.id }}</span>
-      <em>otevřít</em>
-    </a>
+    {% if v.spz %}
+      <article class="qr-card">
+        <div class="qr-code-wrap">
+          <img src="/qr-code/{{ v.spz }}.svg" alt="QR kód pro vozidlo {{ v.spz }}">
+        </div>
+        <div class="qr-card-info">
+          <div class="qr-brand">CROCODILLE RENT</div>
+          <h2>{{ v.spz }}</h2>
+          <p>{{ v.brand or v.name or v.model or v.type or 'Vozidlo' }}</p>
+          {% if v.vehicle_id %}<div class="qr-id">ID: {{ v.vehicle_id }}</div>{% endif %}
+          <div class="qr-help">Naskenujte QR kód pro otevření karty vozidla</div>
+          <div class="qr-url">{{ base }}/v/{{ v.id }}</div>
+        </div>
+        <div class="qr-actions no-print">
+          <a class="btn small muted-btn" href="/v/{{ v.id }}" target="_blank">Otevřít kartu</a>
+          <a class="btn small" href="/qr-code/{{ v.spz }}.svg?download=1">Stáhnout QR</a>
+        </div>
+      </article>
+    {% endif %}
   {% endfor %}
 </div>
+
+<style>
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.qr-card{background:#fff;color:#0a2f5e;border-radius:22px;padding:22px;border:1px solid #dce4ee;display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:center;break-inside:avoid}
+.qr-code-wrap{background:#fff;border-radius:16px;padding:8px;border:1px solid #e3e8ef}
+.qr-code-wrap img{display:block;width:100%;height:auto}
+.qr-card-info{min-width:0}
+.qr-brand{font-size:12px;font-weight:900;letter-spacing:.08em;color:#0b65bd}
+.qr-card h2{font-size:30px;line-height:1;margin:8px 0 7px;color:#082f5f}
+.qr-card p{margin:0 0 7px;color:#536276;font-weight:700}
+.qr-id{font-size:14px;font-weight:800;color:#082f5f}
+.qr-help{margin-top:13px;font-size:13px;color:#536276;line-height:1.35}
+.qr-url{margin-top:7px;font-size:10px;color:#8491a2;overflow-wrap:anywhere}
+.qr-actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:650px){.qr-card{grid-template-columns:105px 1fr;padding:16px}.qr-card h2{font-size:25px}.qr-actions{justify-content:stretch;flex-direction:column}.qr-actions .btn{text-align:center}}
+@media print{
+  body{background:#fff!important}
+  .topbar{margin-bottom:15px}
+  .topbar p,.brand,.no-print{display:none!important}
+  .qr-grid{grid-template-columns:repeat(2,1fr);gap:10mm}
+  .qr-card{border:1px solid #bbb;border-radius:8px;padding:8mm;grid-template-columns:42mm 1fr;box-shadow:none;page-break-inside:avoid}
+  .qr-card h2{font-size:22pt}
+  .qr-help{font-size:9pt}
+}
+</style>
 {% endblock %}
