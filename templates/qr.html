@@ -20,12 +20,14 @@
           <img src="/qr-code/{{ v.spz }}.svg" alt="QR kód pro vozidlo {{ v.spz }}">
         </div>
         <div class="qr-card-info">
-          <div class="qr-brand">CROCODILLE RENT</div>
+          <div class="qr-company">
+            <img class="qr-company-logo" src="https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg" alt="Vans Centre">
+            <div class="qr-brand">Vans Centre s.r.o.</div>
+          </div>
           <h2>{{ v.spz }}</h2>
           <p>{{ v.brand or v.name or v.model or v.type or 'Vozidlo' }}</p>
           {% if v.vehicle_id %}<div class="qr-id">ID: {{ v.vehicle_id }}</div>{% endif %}
           <div class="qr-help">Naskenujte QR kód pro otevření karty vozidla</div>
-          <div class="qr-url">{{ base }}/v/{{ v.id }}</div>
         </div>
         <div class="qr-actions no-print">
           <a class="btn small muted-btn" href="/v/{{ v.id }}" target="_blank">Otevřít kartu</a>
@@ -42,20 +44,22 @@
 .qr-code-wrap{background:#fff;border-radius:16px;padding:8px;border:1px solid #e3e8ef}
 .qr-code-wrap img{display:block;width:100%;height:auto}
 .qr-card-info{min-width:0}
-.qr-brand{font-size:12px;font-weight:900;letter-spacing:.08em;color:#0b65bd}
+.qr-company{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.qr-company-logo{display:block;width:76px;height:58px;object-fit:contain;border-radius:6px}
+.qr-brand{font-size:12px;font-weight:900;letter-spacing:.04em;color:#0b65bd}
 .qr-card h2{font-size:30px;line-height:1;margin:8px 0 7px;color:#082f5f}
 .qr-card p{margin:0 0 7px;color:#536276;font-weight:700}
 .qr-id{font-size:14px;font-weight:800;color:#082f5f}
 .qr-help{margin-top:13px;font-size:13px;color:#536276;line-height:1.35}
-.qr-url{margin-top:7px;font-size:10px;color:#8491a2;overflow-wrap:anywhere}
 .qr-actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
-@media(max-width:650px){.qr-card{grid-template-columns:105px 1fr;padding:16px}.qr-card h2{font-size:25px}.qr-actions{justify-content:stretch;flex-direction:column}.qr-actions .btn{text-align:center}}
+@media(max-width:650px){.qr-card{grid-template-columns:105px 1fr;padding:16px}.qr-card h2{font-size:25px}.qr-company{align-items:flex-start;flex-direction:column;gap:4px}.qr-company-logo{width:66px;height:50px}.qr-actions{justify-content:stretch;flex-direction:column}.qr-actions .btn{text-align:center}}
 @media print{
   body{background:#fff!important}
   .topbar{margin-bottom:15px}
   .topbar p,.brand,.no-print{display:none!important}
   .qr-grid{grid-template-columns:repeat(2,1fr);gap:10mm}
   .qr-card{border:1px solid #bbb;border-radius:8px;padding:8mm;grid-template-columns:42mm 1fr;box-shadow:none;page-break-inside:avoid}
+  .qr-company-logo{width:28mm;height:20mm}
   .qr-card h2{font-size:22pt}
   .qr-help{font-size:9pt}
 }
