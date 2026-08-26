@@ -16,10 +16,10 @@ VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671
 
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
-    # The original endpoint exposed complete database records, including
-    # documents, service history and raw Datova kostka responses. Keep the
-    # URL working for older clients, but only serve the versioned mobile API.
-    return core.redirect(core.url_for("api_vehicles"), code=308)
+    # Backward-compatible endpoint for older iOS builds. Return the same
+    # top-level JSON array they originally decoded, but only with the
+    # sanitized mobile fields (no documents, service history or raw data).
+    return core.jsonify([core._api_vehicle(vehicle) for vehicle in core.load_vehicles()])
 
 
 def _vehicle_by_spz(spz):
@@ -46,7 +46,7 @@ def _vehicle_label(vehicle):
 def _font(size, bold=False):
     paths = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ]
     for path in paths:
         try:
