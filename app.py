@@ -16,7 +16,10 @@ VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671
 
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
-    return core.jsonify(core.load_vehicles())
+    # The original endpoint exposed complete database records, including
+    # documents, service history and raw Datova kostka responses. Keep the
+    # URL working for older clients, but only serve the versioned mobile API.
+    return core.redirect(core.url_for("api_vehicles"), code=308)
 
 
 def _vehicle_by_spz(spz):
