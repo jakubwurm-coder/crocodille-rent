@@ -14,12 +14,26 @@ app = core.app
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
 
 
+def _mobile_vehicle(vehicle):
+    data = core._api_vehicle(vehicle)
+    if not data.get("photo_url"):
+        label = " ".join(
+            str(vehicle.get(key) or "")
+            for key in ("brand", "model", "name", "type")
+        ).upper()
+        if "IVECO" in label or "DAILY" in label:
+            data["photo_url"] = core.url_for("static", filename="images/iveco_daily.png", _external=True)
+        elif "RENAULT" in label or "MASTER" in label:
+            data["photo_url"] = core.url_for("static", filename="images/renault_master.png", _external=True)
+    return data
+
+
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
     # Backward-compatible endpoint for older iOS builds. Return the same
     # top-level JSON array they originally decoded, but only with the
     # sanitized mobile fields (no documents, service history or raw data).
-    return core.jsonify([core._api_vehicle(vehicle) for vehicle in core.load_vehicles()])
+    return core.jsonify([_mobile_vehicle(vehicle) for vehicle in core.load_vehicles()])
 
 
 def _vehicle_by_spz(spz):
