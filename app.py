@@ -5,8 +5,8 @@ register(core)
 app = core.app
 
 
-@app.route("/api/vehicles")
-def api_vehicles():
+@app.route("/api/vehicles", endpoint="api_vehicles_compat")
+def api_vehicles_compat():
     return core.jsonify(core.load_vehicles())
 
 
