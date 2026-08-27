@@ -180,5 +180,20 @@ def vehicle_qr_card_png(spz):
     return app.response_class(png, mimetype="image/png", headers=headers)
 
 
+@app.route("/healthz", endpoint="healthz")
+def healthz():
+    """Production health check used by Render and external monitoring."""
+    try:
+        vehicles = core.load_vehicles()
+        return core.jsonify({
+            "status": "ok",
+            "database": "postgresql" if core.db_storage.enabled() else "fallback",
+            "vehicle_count": len(vehicles),
+        }), 200
+    except Exception as exc:
+        app.logger.exception("Health check failed")
+        return core.jsonify({"status": "error", "error": type(exc).__name__}), 503
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(core.os.environ.get("PORT", 5000)), debug=False)
