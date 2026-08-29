@@ -1,66 +1,93 @@
 {% extends 'base.html' %}
 {% block content %}
-<header class="topbar">
+{% set ns = namespace(active=0, inactive=0) %}
+{% for v in vehicles %}
+  {% set raw_status = (v.get('status','') or '')|lower %}
+  {% set is_out = 'mimo provoz' in raw_status or 'vráceno' in raw_status or 'vraceno' in raw_status %}
+  {% if is_out %}{% set ns.inactive = ns.inactive + 1 %}{% else %}{% set ns.active = ns.active + 1 %}{% endif %}
+{% endfor %}
+
+<header class="topbar fleet-topbar">
   <div>
     <div class="brand">Vans <span>Centre - Crocodille</span></div>
     <h1>Přehled vozidel</h1>
-    <p>Celkem vozidel: 25</p>
+    <p>Rychlý přehled dostupnosti a termínů vozidel</p>
   </div>
-  <div class="top-actions">
+  <div class="top-actions fleet-top-actions">
     <a class="btn small muted-btn" href="/sluzebni">Služební vozidla</a>
-    <a class="btn small" href="/admin">Admin</a>
+    <a class="fleet-settings" href="/admin" aria-label="Administrace" title="Administrace">⚙</a>
   </div>
 </header>
+
+<section class="fleet-summary" aria-label="Souhrn vozidel">
+  <button class="summary-card active-filter" type="button" data-filter="all">
+    <small>CELKEM</small><strong>{{ vehicles|length }}</strong><span>vozidel</span>
+  </button>
+  <button class="summary-card" type="button" data-filter="active">
+    <small>V PROVOZU</small><strong>{{ ns.active }}</strong><span>půjčená vozidla</span>
+  </button>
+  <button class="summary-card" type="button" data-filter="inactive">
+    <small>MIMO PROVOZ</small><strong>{{ ns.inactive }}</strong><span>nepůjčená vozidla</span>
+  </button>
+</section>
 
 <form class="search" method="get">
   <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
 </form>
 
-<div class="legend">
-  <span><i class="dot ok"></i> OK</span>
-  <span><i class="dot soon"></i> blíží se</span>
-  <span><i class="dot bad"></i> nutno řešit</span>
+<div class="overview-help">
+  <span><i class="dot status-active-dot"></i> provozní stav určuje půjčení vozidla</span>
+  <span><b class="warning-chip soon">Termín</b> upozornění nemění stav vozidla</span>
 </div>
 
-<div class="grid vehicle-list">
+<div class="grid vehicle-list fleet-list">
   {% for v in vehicles %}
     {% set raw_status = (v.get('status','') or '')|lower %}
-    {% set is_returned = 'vráceno' in raw_status or 'vraceno' in raw_status %}
-    <a class="vehicle-tile vehicle-row" href="/v/{{ v.id }}">
-      <div class="tile-main">
-        <strong>{{ v.spz }}</strong>
-
-        {% if v.vehicle_id %}
-          <small>ID: {{ v.vehicle_id }}</small>
-        {% else %}
-          <small>ID: nezadáno</small>
-        {% endif %}
-
-        {% if v.brand %}
-          <span>{{ v.brand }}</span>
-        {% endif %}
-
-        {% if v.name %}
-          <em>{{ v.name }}</em>
-        {% endif %}
+    {% set is_out = 'mimo provoz' in raw_status or 'vráceno' in raw_status or 'vraceno' in raw_status %}
+    {% set alerts = vehicle_alert_items(v) %}
+    <a class="vehicle-tile vehicle-row fleet-row" href="/v/{{ v.id }}" data-availability="{% if is_out %}inactive{% else %}active{% endif %}">
+      <div class="tile-main fleet-tile-main">
+        <div class="fleet-spz-line">
+          <strong>{{ v.spz }}</strong>
+          <span class="availability-badge {% if is_out %}inactive{% else %}active{% endif %}">
+            <i></i>{% if is_out %}Mimo provoz{% else %}V provozu{% endif %}
+          </span>
+        </div>
+        <div class="fleet-meta">
+          <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
+          <small>ID {{ v.vehicle_id or '—' }}</small>
+        </div>
       </div>
 
-      <div class="vehicle-status">
-        <div class="status-reasons">
-          {% if is_returned %}
-            <span class="status-reason bad">Vráceno{% if v.status[-10:]|length == 10 %} · {{ v.status[-10:]|czdate }}{% endif %}</span>
-          {% else %}
-            {% set alerts = vehicle_alert_items(v) %}
-            {% for a in alerts %}
-              <span class="status-reason {{ a.state }}">
-                {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} {{ a.text|replace(' dní',' d') }}
-              </span>
-            {% endfor %}
-          {% endif %}
-        </div>
-        <i class="dot {% if is_returned %}inactive{% else %}{{ vehicle_alert(v) }}{% endif %}"></i>
+      <div class="fleet-alerts">
+        {% if alerts %}
+          {% for a in alerts %}
+            <span class="warning-chip {{ a.state }}">
+              {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} {{ a.text|replace(' dní',' d') }}
+            </span>
+          {% endfor %}
+        {% else %}
+          <span class="all-clear">Termíny bez upozornění</span>
+        {% endif %}
+        <span class="row-arrow">›</span>
       </div>
     </a>
   {% endfor %}
 </div>
+
+<style>
+.fleet-topbar{margin-bottom:18px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.045);font-size:20px;text-decoration:none;color:#dce7f6}.fleet-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}.summary-card{appearance:none;text-align:left;color:inherit;background:linear-gradient(155deg,rgba(25,39,59,.96),rgba(10,22,36,.96));border:1px solid var(--line);border-radius:20px;padding:17px 19px;cursor:pointer}.summary-card:hover,.summary-card.active-filter{border-color:rgba(88,166,255,.55)}.summary-card small{display:block;color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.65px}.summary-card strong{display:inline-block;margin-top:5px;font-size:31px;color:#fff}.summary-card span{margin-left:7px;color:var(--muted);font-size:13px}.overview-help{display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin:2px 0 16px}.overview-help>span{display:flex;align-items:center;gap:7px}.status-active-dot{background:var(--green)!important}.fleet-list{gap:10px}.fleet-row{padding:17px 19px;min-height:94px;border-radius:20px}.fleet-tile-main{flex:1}.fleet-spz-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.fleet-spz-line>strong{font-size:25px}.availability-badge{display:inline-flex!important;align-items:center;gap:7px!important;width:max-content;padding:6px 10px;border-radius:999px;font-size:12px!important;font-weight:900!important}.availability-badge i{width:8px;height:8px;border-radius:999px}.availability-badge.active{color:#9cf2b7;background:rgba(47,189,104,.12);border:1px solid rgba(47,189,104,.28)}.availability-badge.active i{background:var(--green)}.availability-badge.inactive{color:#bac5d4;background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.22)}.availability-badge.inactive i{background:#7e8b9c}.fleet-meta{display:flex;align-items:center;gap:10px;margin-top:8px}.fleet-meta span{font-size:15px!important;color:#cbd7e7!important}.fleet-meta small{font-size:13px!important;margin:0!important;color:var(--muted)!important;font-weight:750!important}.fleet-alerts{margin-left:auto;display:flex;justify-content:flex-end;align-items:center;gap:7px;flex-wrap:wrap;max-width:52%}.warning-chip{display:inline-flex;padding:6px 9px;border-radius:9px;font-size:12px;font-weight:900;white-space:nowrap}.warning-chip.soon{color:#ffd08a;background:rgba(245,158,11,.11);border:1px solid rgba(245,158,11,.24)}.warning-chip.bad{color:#ffaaaa;background:rgba(239,68,68,.11);border:1px solid rgba(239,68,68,.25)}.all-clear{font-size:12px!important;color:#6f8299!important}.row-arrow{font-size:30px!important;line-height:1;color:#71839a!important;margin-left:5px}.fleet-row[hidden]{display:none!important}@media(max-width:700px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card:first-child{grid-column:1/-1}.fleet-row{align-items:flex-start;flex-direction:column}.fleet-alerts{margin-left:0;justify-content:flex-start;max-width:100%;width:100%}.row-arrow{margin-left:auto}.overview-help{display:none}.fleet-meta{flex-wrap:wrap}}
+</style>
+
+<script>
+(function(){
+  const buttons=[...document.querySelectorAll('[data-filter]')];
+  const rows=[...document.querySelectorAll('[data-availability]')];
+  buttons.forEach(btn=>btn.addEventListener('click',()=>{
+    const filter=btn.dataset.filter;
+    buttons.forEach(b=>b.classList.toggle('active-filter',b===btn));
+    rows.forEach(row=>row.hidden=filter!=='all' && row.dataset.availability!==filter);
+  }));
+})();
+</script>
 {% endblock %}
