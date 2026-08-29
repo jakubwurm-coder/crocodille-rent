@@ -4,13 +4,156 @@
 {% set service_next_text = (last_service.next_service if last_service and last_service.next_service else v.next_service_note) %}
 {% set icon_sprite = url_for('static', filename='icons/fleet-icons.svg') %}
 {% set status_items = [('stk','STK',v.stk_until),('vignette','DÁLNIČNÍ ZNÁMKA',v.vignette_until),('liability','POVINNÉ RUČENÍ',v.liability_until),('casco','HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('assistance','ASISTENCE',v.assistance_until)] %}
+{% set raw_status = (v.get('status','') or '')|lower %}
+{% set is_out = 'mimo provoz' in raw_status or 'vráceno' in raw_status or 'vraceno' in raw_status %}
+{% set dk=v.get('datova_kostka',{}) %}
+{% set b=dk.get('basic',{}) %}
+
 {% with messages=get_flashed_messages() %}{% if messages %}<div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>{% endif %}{% endwith %}
-<div class="vehicle-screen pro-detail"><aside class="vehicle-left"><a class="back pro-back" href="/">← <span>Zpět</span></a><div class="vehicle-status-badge"><i class="status-light {{ vehicle_alert(v) }}"></i><span>{{ v.status or 'V provozu' }}</span></div><div class="wide-hero pro-hero">{% if v.get('photo') %}<img src="{{ url_for('static', filename='images/' + v.photo) }}" alt="{{ v.spz }}">{% else %}<div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>{% endif %}</div><section class="main-info wide-main pro-main"><div><h1>{{ v.spz }}</h1><span><em>VIN:</em> {{ v.vin or 'nezadáno' }}</span></div></section><section class="stats wide-stats pro-stats"><div><svg class="ui-icon"><use href="{{ icon_sprite }}#truck"></use></svg><small>ZNAČKA / MODEL</small><strong>{{ v.brand or 'nezadáno' }}</strong></div><div><svg class="ui-icon"><use href="{{ icon_sprite }}#id"></use></svg><small>ID VOZIDLA</small><strong>{{ v.vehicle_id or 'nezadáno' }}</strong></div><div><svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg><small>ROK VÝROBY</small><strong>{{ v.year or 'nezadáno' }}</strong></div></section></aside>
-<main class="vehicle-right"><section class="status-grid">{% for icon,label,value in status_items %}{% set s=status_for(value) %}<article class="status-card"><svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg><div><strong>{{ label }}</strong><span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span></div><b class="pill {{ s[0] }}">{{ s[1] }}</b></article>{% endfor %}{% set next_date_status=status_for(v.next_service_date) %}{% set service_has_value=v.next_service_km or service_next_text or v.next_service_date %}<article class="status-card service-card"><svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg><div><strong>PŘÍŠTÍ SERVIS</strong>{% if v.next_service_km %}<span class="service-km">{{ v.next_service_km|km }}</span>{% endif %}<small>{% if service_next_text %}{{ service_next_text }}{% elif v.next_service_date %}{{ v.next_service_date|czdate }}{% else %}nezadáno{% endif %}</small></div>{% if service_has_value and next_date_status[0]=='unknown' %}<b class="pill ok">OK</b>{% else %}<b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>{% endif %}</article></section>
-<section class="panel registry-panel"><div class="registry-head"><h2 style="border:0;padding:0"><svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg> Technické údaje z registru</h2>{% if admin_logged %}<form method="post" action="/admin/{{ v.id }}/datova-kostka"><button class="btn small" type="submit">{% if v.get('datova_kostka') %}Obnovit podle VIN{% else %}Načíst podle VIN{% endif %}</button></form>{% endif %}</div>
-{% set dk=v.get('datova_kostka',{}) %}{% set b=dk.get('basic',{}) %}{% if dk %}{% set ns=namespace(provozni='',maximalni='') %}{% for item in dk.get('details',[]) %}{% if item.label == 'HmotnostiProvozni' %}{% set ns.provozni=item.value %}{% elif item.label == 'HmotnostiPripPov' %}{% set ns.maximalni=item.value.split('/')[0]|trim %}{% endif %}{% endfor %}<div class="registry-meta">Načteno {{ dk.get('loaded_at','') }} · VIN {{ dk.get('vin',v.vin) }}</div><div class="registry-grid">
-{% for label,value,suffix,dateformat,uppercase in [('Značka',b.get('brand'),'',false,false),('Model',b.get('model'),'',false,false),('Rok / první registrace',b.get('year'),'',false,false),('Palivo',b.get('fuel'),'',false,true),('Typ motoru',b.get('engine_type'),'',false,false),('Objem motoru',b.get('engine_capacity'),' cm³',false,false),('Výkon',b.get('power_kw'),' kW',false,false),('Emisní úroveň',b.get('emission'),'',false,false),('Technická prohlídka do',b.get('inspection_until'),'',true,false)] %}{% if value %}<div class="registry-item"><small>{{ label }}</small><strong>{% if dateformat %}{{ value|czdate_short }}{% elif uppercase %}{{ value|upper }}{{ suffix }}{% else %}{{ value }}{{ suffix }}{% endif %}</strong></div>{% endif %}{% endfor %}
-{% if ns.provozni %}<div class="registry-item"><small>Provozní hmotnost</small><strong>{{ ns.provozni|int }} kg</strong></div>{% endif %}{% if ns.maximalni %}<div class="registry-item"><small>Max. hmotnost</small><strong>{{ ns.maximalni|int }} kg</strong></div>{% endif %}{% if ns.provozni and ns.maximalni %}<div class="registry-item payload-item"><small>Užitečná hmotnost</small><strong>{{ (ns.maximalni|int)-(ns.provozni|int) }} kg</strong></div>{% endif %}</div>
-{% if dk.get('details') %}<details class="registry-details"><summary>Další údaje z registru</summary><div class="registry-detail-grid">{% for item in dk.get('details',[]) %}<div class="registry-detail-item"><small>{{ item.label }}</small><span>{{ item.value }}</span></div>{% endfor %}</div></details>{% endif %}{% else %}<p class="empty">Údaje z Datové kostky zatím nejsou načtené.{% if admin_logged %} Klikni na „Načíst podle VIN“.{% endif %}</p>{% endif %}</section>
-<section class="panel service-panel"><h2><svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg> Servisní úkony</h2>{% if v.service_records %}<div class="timeline wide-timeline pro-timeline">{% for s in v.service_records %}<article class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content">{% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}<strong>{{ s.title }}</strong><div class="service-meta">{% if s.km %}<span><svg class="ui-icon"><use href="{{ icon_sprite }}#speed"></use></svg>{{ s.km|km }}</span>{% endif %}{% if s.next_service %}<span><svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg>Příště: {{ s.next_service }}</span>{% endif %}</div></div></article>{% endfor %}</div>{% else %}<p class="empty">Zatím nejsou zadané servisní úkony.</p>{% endif %}</section>{% if v.note %}<section class="panel"><h2>Poznámka</h2><p class="wide-note">{{ v.note }}</p></section>{% endif %}</main></div>
-<style>.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}}</style><nav class="bottom"><a href="/">Přehled</a>{% if admin_logged %}<a href="/admin/{{ v.id }}">Upravit</a>{% endif %}<a href="/qr">QR</a></nav>{% endblock %}
+
+<div class="vehicle-screen pro-detail">
+  <aside class="vehicle-left">
+    <a class="back pro-back" href="/">← <span>Zpět</span></a>
+
+    <div class="vehicle-status-badge operational-status {% if is_out %}inactive{% else %}active{% endif %}">
+      <i class="operational-light"></i>
+      <span>{% if is_out %}Mimo provoz{% else %}V provozu{% endif %}</span>
+    </div>
+
+    <div class="wide-hero pro-hero">
+      {% if v.get('photo') %}
+        <img src="{{ url_for('static', filename='images/' + v.photo) }}" alt="{{ v.spz }}">
+      {% else %}
+        <div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>
+      {% endif %}
+    </div>
+
+    <section class="main-info wide-main pro-main">
+      <div>
+        <h1>{{ v.spz }}</h1>
+        <div class="vin-line"><span><em>VIN:</em> <b id="vehicle-vin">{{ v.vin or 'nezadáno' }}</b></span>{% if v.vin %}<button class="copy-vin" type="button" data-vin="{{ v.vin }}">Kopírovat</button>{% endif %}</div>
+      </div>
+    </section>
+
+    <section class="stats wide-stats pro-stats">
+      <div><svg class="ui-icon"><use href="{{ icon_sprite }}#truck"></use></svg><small>ZNAČKA / MODEL</small><strong>{{ v.brand or 'nezadáno' }}{% if b.get('model') and b.get('model')|upper not in (v.brand or '')|upper %} {{ b.get('model') }}{% endif %}</strong></div>
+      <div><svg class="ui-icon"><use href="{{ icon_sprite }}#id"></use></svg><small>ID VOZIDLA</small><strong>{{ v.vehicle_id or 'nezadáno' }}</strong></div>
+      <div><svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg><small>ROK VÝROBY</small><strong>{{ v.year or b.get('year') or 'nezadáno' }}</strong></div>
+    </section>
+  </aside>
+
+  <main class="vehicle-right">
+    <section class="section-lead">
+      <div><small>PROVOZNÍ PŘEHLED</small><h2>Termíny a kontroly</h2></div>
+      <p>Upozornění níže jsou informační a nemění stav „V provozu / Mimo provoz“.</p>
+    </section>
+
+    <section class="status-grid">
+      {% for icon,label,value in status_items %}
+        {% set s=status_for(value) %}
+        <article class="status-card">
+          <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg>
+          <div><strong>{{ label }}</strong><span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span></div>
+          <b class="pill {{ s[0] }}">{{ s[1] }}</b>
+        </article>
+      {% endfor %}
+
+      {% set next_date_status=status_for(v.next_service_date) %}
+      {% set service_has_value=v.next_service_km or service_next_text or v.next_service_date %}
+      <article class="status-card service-card">
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg>
+        <div><strong>PŘÍŠTÍ SERVIS</strong>{% if v.next_service_km %}<span class="service-km">{{ v.next_service_km|km }}</span>{% endif %}<small>{% if service_next_text %}{{ service_next_text }}{% elif v.next_service_date %}{{ v.next_service_date|czdate }}{% else %}nezadáno{% endif %}</small></div>
+        {% if service_has_value and next_date_status[0]=='unknown' %}<b class="pill ok">OK</b>{% else %}<b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>{% endif %}
+      </article>
+    </section>
+
+    {% if v.get('issues') %}
+    <section class="panel issue-panel">
+      <h2>🔧 Aktuální závady</h2>
+      <div class="issue-list">
+        {% for issue in v.get('issues',[]) %}
+          <div class="issue-row"><span class="issue-dot"></span><div><strong>{{ issue.title if issue is mapping else issue }}</strong>{% if issue is mapping and issue.get('note') %}<small>{{ issue.note }}</small>{% endif %}</div></div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="panel service-panel">
+      <h2><svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg> Servisní historie</h2>
+      {% if v.service_records %}
+        <div class="timeline wide-timeline pro-timeline">
+          {% for s in v.service_records %}
+            <article class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                {% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}
+                <strong>{{ s.title }}</strong>
+                <div class="service-meta">
+                  {% if s.km %}<span><svg class="ui-icon"><use href="{{ icon_sprite }}#speed"></use></svg>{{ s.km|km }}</span>{% endif %}
+                  {% if s.next_service %}<span><svg class="ui-icon"><use href="{{ icon_sprite }}#calendar"></use></svg>Příště: {{ s.next_service }}</span>{% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}<p class="empty">Zatím nejsou zadané servisní úkony.</p>{% endif %}
+    </section>
+
+    {% if v.get('cooling_unit') or v.get('refrigeration') or v.get('cooling') %}
+    {% set cooling = v.get('cooling_unit') or v.get('refrigeration') or v.get('cooling') %}
+    <section class="panel cooling-panel">
+      <h2>❄️ Chladicí nástavba</h2>
+      {% if cooling is mapping %}
+      <div class="registry-grid">
+        {% for key,label in [('manufacturer','Výrobce'),('unit','Agregát'),('model','Model'),('refrigerant','Chladivo'),('serial','Výrobní číslo'),('atp_until','ATP do')] %}
+          {% if cooling.get(key) %}<div class="registry-item"><small>{{ label }}</small><strong>{{ cooling.get(key) }}</strong></div>{% endif %}
+        {% endfor %}
+      </div>
+      {% else %}<p class="wide-note">{{ cooling }}</p>{% endif %}
+    </section>
+    {% endif %}
+
+    <section class="panel registry-panel">
+      <div class="registry-head">
+        <div><small class="panel-kicker">TECHNICKÁ DATA</small><h2 style="border:0;padding:0"><svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg> Základní technické údaje</h2></div>
+        {% if admin_logged %}<form method="post" action="/admin/{{ v.id }}/datova-kostka"><button class="btn small" type="submit">{% if v.get('datova_kostka') %}Obnovit podle VIN{% else %}Načíst podle VIN{% endif %}</button></form>{% endif %}
+      </div>
+
+      {% if dk %}
+        {% set ns=namespace(provozni='',maximalni='') %}
+        {% for item in dk.get('details',[]) %}
+          {% if item.label == 'HmotnostiProvozni' %}{% set ns.provozni=item.value %}{% elif item.label == 'HmotnostiPripPov' %}{% set ns.maximalni=item.value.split('/')[0]|trim %}{% endif %}
+        {% endfor %}
+        <div class="registry-meta">Načteno {{ dk.get('loaded_at','') }} · VIN {{ dk.get('vin',v.vin) }}</div>
+        <div class="registry-grid">
+          {% for label,value,suffix,dateformat,uppercase in [('Značka',b.get('brand'),'',false,false),('Model',b.get('model'),'',false,false),('Rok / první registrace',b.get('year'),'',false,false),('Palivo',b.get('fuel'),'',false,true),('Typ motoru',b.get('engine_type'),'',false,false),('Objem motoru',b.get('engine_capacity'),' cm³',false,false),('Výkon',b.get('power_kw'),' kW',false,false),('Emisní úroveň',b.get('emission'),'',false,false),('Technická prohlídka do',b.get('inspection_until'),'',true,false)] %}
+            {% if value %}<div class="registry-item"><small>{{ label }}</small><strong>{% if dateformat %}{{ value|czdate_short }}{% elif uppercase %}{{ value|upper }}{{ suffix }}{% else %}{{ value }}{{ suffix }}{% endif %}</strong></div>{% endif %}
+          {% endfor %}
+          {% if ns.provozni %}<div class="registry-item"><small>Provozní hmotnost</small><strong>{{ ns.provozni|int }} kg</strong></div>{% endif %}
+          {% if ns.maximalni %}<div class="registry-item"><small>Max. hmotnost</small><strong>{{ ns.maximalni|int }} kg</strong></div>{% endif %}
+          {% if ns.provozni and ns.maximalni %}<div class="registry-item payload-item"><small>Užitečná hmotnost</small><strong>{{ (ns.maximalni|int)-(ns.provozni|int) }} kg</strong></div>{% endif %}
+        </div>
+        {% if dk.get('details') %}<details class="registry-details"><summary>Zobrazit kompletní údaje z registru</summary><div class="registry-detail-grid">{% for item in dk.get('details',[]) %}<div class="registry-detail-item"><small>{{ item.label }}</small><span>{{ item.value }}</span></div>{% endfor %}</div></details>{% endif %}
+      {% else %}<p class="empty">Údaje z Datové kostky zatím nejsou načtené.{% if admin_logged %} Klikni na „Načíst podle VIN“.{% endif %}</p>{% endif %}
+    </section>
+
+    {% if v.note %}<section class="panel"><h2>Poznámka</h2><p class="wide-note">{{ v.note }}</p></section>{% endif %}
+  </main>
+</div>
+
+<style>
+.operational-status{background:rgba(47,189,104,.15);border-color:rgba(47,189,104,.35);color:#99f6b7}.operational-status.inactive{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.28);color:#c0cad7}.operational-light{width:11px;height:11px;border-radius:999px;background:var(--green);box-shadow:0 0 16px rgba(47,189,104,.75)}.operational-status.inactive .operational-light{background:#7e8b9c;box-shadow:none}.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.section-lead h2{margin:0;color:#fff;font-size:28px}.section-lead p{max-width:430px;margin:0;color:var(--muted);font-size:13px;line-height:1.45;text-align:right}.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}.section-lead p{text-align:left}.vehicle-status-badge{top:72px;left:22px}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.section-lead h2{font-size:23px}}
+</style>
+
+<script>
+(function(){
+  const btn=document.querySelector('.copy-vin');
+  if(!btn) return;
+  btn.addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
+  });
+})();
+</script>
+
+<nav class="bottom"><a href="/">Přehled</a>{% if admin_logged %}<a href="/admin/{{ v.id }}">Upravit</a>{% endif %}<a href="/qr">QR</a></nav>
+{% endblock %}
