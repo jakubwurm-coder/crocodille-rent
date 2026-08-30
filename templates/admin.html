@@ -93,6 +93,9 @@
         {% if v.spz %}<a class="btn small muted-btn" href="/qr-code/{{ v.spz }}.svg?download=1">QR</a>{% endif %}
         <a class="btn small muted-btn" href="/v/{{ v.id }}">Karta</a>
         <a class="btn small" href="/admin/{{ v.id }}">Upravit</a>
+        <form action="/admin/{{ v.id }}/delete" method="post" class="delete-vehicle-form" onsubmit="return confirm('Opravdu chcete trvale smazat vozidlo {{ v.spz or v.vehicle_id or v.id }}? Tuto akci nelze vrátit zpět.');">
+          <button class="btn small delete-btn" type="submit">Smazat</button>
+        </form>
       </div>
     </div>
   {% endfor %}
@@ -104,8 +107,11 @@
 .add-vin-form{display:flex;gap:10px;align-items:center}
 .add-vin-form input{min-width:330px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#0d1724;color:#fff;font-size:16px;text-transform:uppercase;letter-spacing:.6px}
 .admin-card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.delete-vehicle-form{margin:0}
+.delete-btn{background:#b42318;border-color:#b42318;color:#fff}
+.delete-btn:hover{background:#d92d20;border-color:#d92d20}
 .dk-state{margin-top:8px;font-size:12px;font-weight:850}
 .dk-state.ok{color:#8de5ac}.dk-state.pending{color:#ffd08a}
-@media(max-width:800px){.add-vin-panel{grid-template-columns:1fr}.add-vin-form{align-items:stretch;flex-direction:column}.add-vin-form input{min-width:0;width:100%}.admin-card-actions{flex-direction:column;align-items:stretch}.admin-card-actions .btn{text-align:center}}
+@media(max-width:800px){.add-vin-panel{grid-template-columns:1fr}.add-vin-form{align-items:stretch;flex-direction:column}.add-vin-form input{min-width:0;width:100%}.admin-card-actions{flex-direction:column;align-items:stretch}.admin-card-actions .btn{text-align:center}.delete-vehicle-form,.delete-vehicle-form .btn{width:100%}}
 </style>
 {% endblock %}
