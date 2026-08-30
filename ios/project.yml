@@ -12,15 +12,14 @@ targets:
     type: application
     platform: iOS
     sources:
-      - CrocodilleFleet
+      - path: CrocodilleFleet
+        excludes:
+          - Info.plist
     settings:
       base:
-        PRODUCT_NAME: Vans Renting
+        PRODUCT_NAME: VansRenting
         PRODUCT_BUNDLE_IDENTIFIER: cz.vanscentre.vansrenting
-        INFOPLIST_KEY_CFBundleDisplayName: Vans Renting
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: CrocodilleFleet/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     scheme:
       testTargets: []
