@@ -1,5 +1,7 @@
 import SwiftUI
 
+private let productionBaseURL = URL(string: "https://vansrenting-crocodille.onrender.com")!
+
 struct ContentView: View {
     @EnvironmentObject var store: FleetStore
 
@@ -31,19 +33,7 @@ struct VehiclesView: View {
         List(filtered) { vehicle in
             NavigationLink(value: vehicle) {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: vehicle.photoUrl)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().scaledToFit()
-                        case .empty:
-                            ProgressView()
-                        case .failure:
-                            Image(systemName: "truck.box.fill").font(.title2)
-                        @unknown default:
-                            Image(systemName: "truck.box.fill").font(.title2)
-                        }
-                    }
-                    .frame(width: 74, height: 56)
+                    VehicleThumbnail(vehicle: vehicle, width: 82, height: 58)
 
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 8) {
@@ -54,8 +44,12 @@ struct VehiclesView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        Text("\(vehicle.brand) \(vehicle.model)").font(.subheadline)
-                        Text(vehicle.status).font(.caption).foregroundStyle(.secondary)
+                        Text("\(vehicle.brand) \(vehicle.model)")
+                            .font(.subheadline)
+                            .lineLimit(1)
+                        Text(vehicle.status)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     Spacer()
                     if !vehicle.alerts.isEmpty {
@@ -65,6 +59,7 @@ struct VehiclesView: View {
                             .background(.orange.opacity(0.18), in: Circle())
                     }
                 }
+                .padding(.vertical, 3)
             }
         }
         .navigationTitle("Vans Renting")
@@ -72,7 +67,15 @@ struct VehiclesView: View {
         .navigationDestination(for: Vehicle.self) { VehicleDetailView(vehicle: $0) }
         .refreshable { await store.refresh() }
         .overlay {
-            if store.isLoading && store.vehicles.isEmpty { ProgressView("Načítám vozidla…") }
+            if store.isLoading && store.vehicles.isEmpty {
+                ProgressView("Načítám vozidla…")
+            } else if let error = store.errorMessage, store.vehicles.isEmpty {
+                ContentUnavailableView(
+                    "Vozidla se nepodařilo načíst",
+                    systemImage: "wifi.exclamationmark",
+                    description: Text(error)
+                )
+            }
         }
     }
 }
@@ -116,19 +119,7 @@ struct VehicleDetailView: View {
             Section {
                 HStack {
                     Spacer()
-                    AsyncImage(url: URL(string: vehicle.photoUrl)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().scaledToFit()
-                        case .empty:
-                            ProgressView()
-                        case .failure:
-                            Image(systemName: "truck.box.fill").font(.system(size: 55))
-                        @unknown default:
-                            Image(systemName: "truck.box.fill").font(.system(size: 55))
-                        }
-                    }
-                    .frame(maxWidth: 260, maxHeight: 160)
+                    VehicleThumbnail(vehicle: vehicle, width: 280, height: 170)
                     Spacer()
                 }
                 VStack(alignment: .leading, spacing: 4) {
@@ -188,5 +179,59 @@ struct VehicleDetailView: View {
         let output = DateFormatter(); output.dateFormat = "d.M.yyyy"
         if let d = input.date(from: String(raw.prefix(10))) { return output.string(from: d) }
         return raw
+    }
+}
+
+private struct VehicleThumbnail: View {
+    let vehicle: Vehicle
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        AsyncImage(url: imageURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .padding(4)
+            case .empty:
+                ProgressView()
+            case .failure:
+                fallbackIcon
+            @unknown default:
+                fallbackIcon
+            }
+        }
+        .frame(width: width, height: height)
+        .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private var imageURL: URL? {
+        let raw = vehicle.photoUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !raw.isEmpty {
+            if let absolute = URL(string: raw), absolute.scheme != nil {
+                return absolute
+            }
+            if let relative = URL(string: raw, relativeTo: productionBaseURL) {
+                return relative.absoluteURL
+            }
+        }
+
+        let label = "\(vehicle.brand) \(vehicle.model)".uppercased()
+        if label.contains("IVECO") || label.contains("DAILY") {
+            return productionBaseURL.appending(path: "static/images/iveco_daily.png")
+        }
+        if label.contains("RENAULT") || label.contains("MASTER") {
+            return productionBaseURL.appending(path: "static/images/renault_master.png")
+        }
+        return nil
+    }
+
+    private var fallbackIcon: some View {
+        Image(systemName: "truck.box.fill")
+            .font(.system(size: max(24, min(width, height) * 0.42)))
+            .foregroundStyle(.secondary)
     }
 }
