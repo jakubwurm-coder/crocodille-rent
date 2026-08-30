@@ -181,6 +181,36 @@ def vehicle_qr_card_png(spz):
     return app.response_class(png, mimetype="image/png", headers=headers)
 
 
+@app.route("/admin/<vehicle_id>/delete", methods=["POST"], endpoint="delete_vehicle")
+def delete_vehicle(vehicle_id):
+    if not core.require_admin():
+        return core.redirect(core.url_for("login"))
+
+    vehicles = core.load_vehicles()
+    vehicle = next(
+        (item for item in vehicles if str(item.get("id")) == str(vehicle_id)),
+        None,
+    )
+    if not vehicle:
+        core.flash("Vozidlo už neexistuje nebo bylo mezitím smazáno.")
+        return core.redirect(core.url_for("admin"))
+
+    remaining = [
+        item for item in vehicles if str(item.get("id")) != str(vehicle_id)
+    ]
+    label = str(vehicle.get("spz") or vehicle.get("vehicle_id") or vehicle_id)
+
+    try:
+        core.save_vehicles(remaining, f"Smazáno vozidlo {label}")
+    except Exception as exc:
+        app.logger.exception("Vehicle delete failed")
+        core.flash(f"Vozidlo se nepodařilo smazat: {exc}")
+        return core.redirect(core.url_for("admin"))
+
+    core.flash(f"Vozidlo {label} bylo trvale smazáno.")
+    return core.redirect(core.url_for("admin"))
+
+
 @app.route("/healthz", endpoint="healthz")
 def healthz():
     """Production health check used by Render and external monitoring."""
