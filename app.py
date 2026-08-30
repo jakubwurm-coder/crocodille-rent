@@ -12,6 +12,7 @@ register(core)
 app = core.app
 
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
+PUBLIC_BASE_URL = "https://vansrenting-crocodille.onrender.com"
 
 
 def _mobile_vehicle(vehicle):
@@ -22,9 +23,9 @@ def _mobile_vehicle(vehicle):
             for key in ("brand", "model", "name", "type")
         ).upper()
         if "IVECO" in label or "DAILY" in label:
-            data["photo_url"] = core.url_for("static", filename="images/iveco_daily.png", _external=True)
+            data["photo_url"] = f"{PUBLIC_BASE_URL}/static/images/iveco_daily.png"
         elif "RENAULT" in label or "MASTER" in label:
-            data["photo_url"] = core.url_for("static", filename="images/renault_master.png", _external=True)
+            data["photo_url"] = f"{PUBLIC_BASE_URL}/static/images/renault_master.png"
     return data
 
 
@@ -46,7 +47,7 @@ def _vehicle_by_spz(spz):
 
 def _public_vehicle_url(vehicle):
     public_id = str(vehicle.get("id") or vehicle.get("spz") or "").strip()
-    return f"https://vansrenting-crocodille.onrender.com/v/{public_id}"
+    return f"{PUBLIC_BASE_URL}/v/{public_id}"
 
 
 def _vehicle_label(vehicle):
