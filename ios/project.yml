@@ -1,20 +1,23 @@
-name: CrocodilleFleet
+name: VansRenting
 options:
   bundleIdPrefix: cz.vanscentre
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 17.0
     SWIFT_VERSION: 5.0
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: 1
 targets:
-  CrocodilleFleet:
+  VansRenting:
     type: application
     platform: iOS
     sources:
       - CrocodilleFleet
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: cz.vanscentre.crocodillefleet
-        INFOPLIST_KEY_CFBundleDisplayName: Crocodille Fleet
+        PRODUCT_NAME: Vans Renting
+        PRODUCT_BUNDLE_IDENTIFIER: cz.vanscentre.vansrenting
+        INFOPLIST_KEY_CFBundleDisplayName: Vans Renting
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
