@@ -42,56 +42,52 @@
   {% endif %}
 {% endfor %}
 
-<section class="fleet-summary" aria-label="Souhrn vozidel">
-  <div class="summary-card">
-    <small>CELKEM</small><strong>{{ vehicles|length }}</strong><span>vozidel</span>
-  </div>
-  <div class="summary-card attention-summary {% if attention.count %}has-alerts{% endif %}">
-    <small>K ŘEŠENÍ</small><strong>{{ attention.count }}</strong><span>vozidel</span>
-  </div>
+<section class="overview-bar" aria-label="Souhrn vozidel">
+  <div class="overview-item"><span>Vozidel</span><strong>{{ vehicles|length }}</strong></div>
+  <div class="overview-separator"></div>
+  <div class="overview-item {% if attention.count %}needs-attention{% endif %}"><span>K řešení</span><strong>{{ attention.count }}</strong></div>
 </section>
 
 {% if attention.count %}
-<section class="attention-compact" aria-label="Vozidla vyžadující pozornost">
-  <div class="attention-compact-title"><span class="attention-dot"></span><strong>Vyžaduje pozornost</strong></div>
-  <div class="attention-compact-list">
+<section class="attention-strip" aria-label="Vozidla vyžadující pozornost">
+  <div class="attention-strip-title">
+    <span class="attention-dot"></span>
+    <strong>Vyžaduje pozornost</strong>
+  </div>
+  <div class="attention-strip-items">
     {% for v, alerts in attention.items %}
-      <a class="attention-compact-row" href="/v/{{ v.id }}">
-        <div class="attention-compact-vehicle">
-          <strong>{{ v.spz }}</strong>
-          <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
-        </div>
-        <div class="attention-compact-alerts">
-          {% for label, state, text in alerts %}<span class="attention-chip {{ state }}">{{ label }} {{ text|replace(' dní',' d') }}</span>{% endfor %}
-          <span class="attention-arrow">›</span>
-        </div>
+      <a href="/v/{{ v.id }}" class="attention-strip-item">
+        <b>{{ v.spz }}</b>
+        {% for label, state, text in alerts %}
+          <span>{{ label }}: {{ text }}</span>{% if not loop.last %}<i>·</i>{% endif %}
+        {% endfor %}
       </a>
     {% endfor %}
   </div>
 </section>
 {% endif %}
 
-<form class="search" method="get">
+<form class="search fleet-search" method="get">
   <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
 </form>
 
-<div class="fleet-table-wrap">
-  <div class="fleet-status-head" aria-hidden="true">
+<div class="fleet-list-wrap">
+  <div class="fleet-list-head" aria-hidden="true">
     <span>VOZIDLO</span>
-    <strong>STK</strong>
-    <strong>DÁLNIČNÍ ZNÁMKA</strong>
-    <strong>POVINNÉ RUČENÍ</strong>
-    <strong>HAVARIJNÍ POJIŠTĚNÍ</strong>
-    <strong>ASISTENCE</strong>
+    <span>STK</span>
+    <span>ZNÁMKA</span>
+    <span>POVINNÉ RUČENÍ</span>
+    <span>HAVARIJNÍ POJIŠTĚNÍ</span>
+    <span>ASISTENCE</span>
     <span></span>
   </div>
 
-  <div class="fleet-list">
+  <div class="fleet-list-clean">
     {% for v in vehicles %}
-      <a class="fleet-row" href="/v/{{ v.id }}">
-        <div class="fleet-tile-main">
-          <strong class="fleet-spz">{{ v.spz }}</strong>
-          <div class="fleet-meta">
+      <a class="fleet-clean-row" href="/v/{{ v.id }}">
+        <div class="vehicle-ident">
+          <strong>{{ v.spz }}</strong>
+          <div>
             <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
             <small>ID {{ v.vehicle_id or '—' }}</small>
           </div>
@@ -106,18 +102,20 @@
         ] %}
           {% if v.get(key) %}
             {% set state, text = status_for(v.get(key)) %}
-            <div class="fleet-status-cell {{ state }}">
-              <span class="mobile-status-label">{{ label }}</span>
+            <div class="status-inline {{ state }}">
+              <span class="mobile-label">{{ label }}</span>
+              <i></i>
               {% if state == 'ok' %}<strong>OK</strong>
               {% elif state in ['bad', 'soon'] %}<strong>{{ text }}</strong>
               {% else %}<strong>—</strong>{% endif %}
             </div>
           {% else %}
-            <div class="fleet-status-cell unknown">
-              <span class="mobile-status-label">{{ label }}</span><strong>—</strong>
+            <div class="status-inline unknown">
+              <span class="mobile-label">{{ label }}</span><i></i><strong>—</strong>
             </div>
           {% endif %}
         {% endfor %}
+
         <span class="row-arrow">›</span>
       </a>
     {% endfor %}
@@ -125,11 +123,17 @@
 </div>
 
 <style>
-.fleet-topbar{margin-bottom:18px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.045);font-size:20px;text-decoration:none;color:#dce7f6}.client-mode{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#9fc8ff;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.10);padding:8px 10px;border-radius:999px}
-.fleet-summary{display:grid;grid-template-columns:repeat(2,minmax(220px,360px));gap:12px;margin:0 0 12px}.summary-card{text-align:left;color:inherit;background:linear-gradient(155deg,rgba(25,39,59,.96),rgba(10,22,36,.96));border:1px solid var(--line);border-radius:20px;padding:17px 19px}.summary-card small{display:block;color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.65px}.summary-card strong{display:inline-block;margin-top:5px;font-size:31px;color:#fff}.summary-card span{margin-left:7px;color:var(--muted);font-size:13px}.attention-summary.has-alerts{border-color:rgba(245,158,11,.28);background:linear-gradient(155deg,rgba(42,35,24,.75),rgba(20,24,31,.96))}.attention-summary.has-alerts strong{color:#ffd08a}
-.attention-compact{margin:0 0 16px;border:1px solid rgba(245,158,11,.20);border-radius:16px;background:rgba(18,28,41,.76);overflow:hidden}.attention-compact-title{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#c8d4e3}.attention-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10)}.attention-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;padding:8px 14px;text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.045)}.attention-compact-row:first-child{border-top:0}.attention-compact-row:hover{background:rgba(255,255,255,.025)}.attention-compact-vehicle{display:flex;align-items:baseline;gap:9px;min-width:180px}.attention-compact-vehicle strong{font-size:17px;color:#fff}.attention-compact-vehicle span{font-size:12px;color:#8ea0b5}.attention-compact-alerts{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.attention-chip{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:850;white-space:nowrap}.attention-chip.bad,.attention-chip.soon{color:#ffb7b7;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.24)}.attention-arrow{font-size:24px;line-height:1;color:#6f8197;margin-left:2px}
-.fleet-table-wrap{width:100%;overflow-x:auto;padding-bottom:4px}.fleet-status-head,.fleet-row{display:grid;grid-template-columns:minmax(220px,1.55fr) repeat(5,minmax(115px,.85fr)) 24px;column-gap:10px;align-items:center}.fleet-status-head{min-width:1050px;padding:0 18px 7px;color:#73879f}.fleet-status-head>span:first-child{font-size:10px;font-weight:850;letter-spacing:.45px}.fleet-status-head strong{text-align:center;font-size:10px;line-height:1.15;text-transform:uppercase;letter-spacing:.35px;font-weight:850}.fleet-list{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;min-width:1050px}.fleet-row{width:100%;box-sizing:border-box;min-height:74px;padding:12px 18px;border:1px solid rgba(90,147,204,.22);border-radius:15px;background:linear-gradient(145deg,rgba(14,49,79,.78),rgba(9,31,53,.84));text-decoration:none;color:inherit;transition:.15s ease}.fleet-row:hover{border-color:rgba(90,147,204,.38);background:linear-gradient(145deg,rgba(18,58,92,.84),rgba(10,36,61,.9))}.fleet-tile-main{min-width:0}.fleet-spz{display:block;font-size:21px;line-height:1.1;color:#fff}.fleet-meta{display:flex;align-items:center;gap:8px;margin-top:5px;min-width:0}.fleet-meta span{font-size:13px!important;color:#cbd7e7!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fleet-meta small{font-size:11px!important;margin:0!important;color:#8ea0b5!important;font-weight:750!important;white-space:nowrap}.fleet-status-cell{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.018);padding:5px 7px;text-align:center}.fleet-status-cell strong{font-size:10px;line-height:1.1;color:#7e93aa;white-space:nowrap}.fleet-status-cell.ok{background:rgba(34,197,94,.025);border-color:rgba(34,197,94,.08)}.fleet-status-cell.ok strong{color:#80ae91;font-weight:850}.fleet-status-cell.bad,.fleet-status-cell.soon{background:rgba(239,68,68,.11);border-color:rgba(239,68,68,.28)}.fleet-status-cell.bad strong,.fleet-status-cell.soon strong{color:#ffabab;font-size:11px;font-weight:900}.fleet-status-cell.unknown strong{color:#55677d}.mobile-status-label{display:none}.row-arrow{font-size:25px!important;line-height:1;color:#6e8198!important;text-align:right}
-@media(max-width:760px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card{padding:14px 15px}.summary-card strong{font-size:27px}.attention-compact-row{align-items:flex-start;flex-direction:column;gap:7px}.attention-compact-alerts{justify-content:flex-start;width:100%}.attention-arrow{margin-left:auto}.fleet-table-wrap{overflow:visible}.fleet-status-head{display:none}.fleet-list{min-width:0!important}.fleet-row{min-width:0;display:grid;grid-template-columns:1fr 22px;gap:8px;padding:13px 14px}.fleet-tile-main{grid-column:1}.fleet-status-cell{grid-column:1 / -1;min-height:34px;justify-content:space-between;padding:7px 9px}.mobile-status-label{display:inline;font-size:9px;text-transform:uppercase;letter-spacing:.25px;color:#71859d;font-weight:850}.fleet-status-cell.bad .mobile-status-label,.fleet-status-cell.soon .mobile-status-label{color:#df8f8f}.row-arrow{grid-column:2;grid-row:1;align-self:center}.fleet-meta{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
-@media(max-width:440px){.fleet-summary{grid-template-columns:1fr}.attention-compact{border-radius:14px}}
+.fleet-topbar{margin-bottom:16px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.035);font-size:20px;text-decoration:none;color:#dce7f6}.client-mode{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#9fc8ff;border:1px solid rgba(88,166,255,.22);background:rgba(88,166,255,.07);padding:8px 10px;border-radius:999px}
+
+.overview-bar{display:flex;align-items:center;gap:18px;margin:0 0 14px;padding:10px 2px;color:#8fa3bb}.overview-item{display:flex;align-items:baseline;gap:8px}.overview-item span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px}.overview-item strong{font-size:24px;color:#fff}.overview-item.needs-attention strong{color:#ffb0b0}.overview-separator{width:1px;height:24px;background:rgba(255,255,255,.11)}
+
+.attention-strip{display:flex;align-items:flex-start;gap:16px;margin:0 0 14px;padding:11px 14px;border:1px solid rgba(239,68,68,.18);border-radius:12px;background:rgba(239,68,68,.035)}.attention-strip-title{display:flex;align-items:center;gap:8px;white-space:nowrap;padding-top:2px;color:#d6dde7;font-size:12px}.attention-dot{width:7px;height:7px;border-radius:50%;background:#ef6464}.attention-strip-items{display:flex;flex-wrap:wrap;gap:7px 12px}.attention-strip-item{display:flex;align-items:center;gap:5px;text-decoration:none;color:#aebdce;font-size:12px}.attention-strip-item b{color:#fff;font-size:13px}.attention-strip-item span{color:#ffb0b0}.attention-strip-item i{font-style:normal;color:#60758d}.attention-strip-item:hover b{text-decoration:underline}
+
+.fleet-search{margin-bottom:12px}.fleet-list-wrap{width:100%;overflow-x:auto}.fleet-list-head,.fleet-clean-row{display:grid;grid-template-columns:minmax(230px,1.55fr) repeat(5,minmax(118px,.82fr)) 22px;column-gap:12px;align-items:center}.fleet-list-head{min-width:1080px;padding:0 16px 7px;color:#667d97;border-bottom:1px solid rgba(255,255,255,.07)}.fleet-list-head span{font-size:10px;font-weight:850;letter-spacing:.35px;text-transform:uppercase;text-align:center}.fleet-list-head span:first-child{text-align:left}
+.fleet-list-clean{min-width:1080px}.fleet-clean-row{min-height:68px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.065);text-decoration:none;color:inherit;transition:background .12s ease}.fleet-clean-row:hover{background:rgba(255,255,255,.025)}.fleet-clean-row:last-child{border-bottom:0}.vehicle-ident{min-width:0}.vehicle-ident>strong{display:block;font-size:20px;line-height:1.1;color:#fff}.vehicle-ident>div{display:flex;align-items:center;gap:8px;margin-top:5px}.vehicle-ident span{font-size:13px;color:#b9c7d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vehicle-ident small{font-size:11px;color:#758aa2;font-weight:750;white-space:nowrap}
+.status-inline{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}.status-inline i{width:6px;height:6px;border-radius:50%;background:#5f7186;flex:0 0 auto}.status-inline strong{font-size:11px;color:#788ea6;font-weight:800;white-space:nowrap}.status-inline.ok i{background:#69a17c}.status-inline.ok strong{color:#7fa991}.status-inline.bad i,.status-inline.soon i{background:#ef6464}.status-inline.bad strong,.status-inline.soon strong{color:#ff9f9f}.status-inline.unknown i{background:#46586b}.status-inline.unknown strong{color:#576a7f}.mobile-label{display:none}.row-arrow{font-size:24px;color:#61758d;text-align:right}
+
+@media(max-width:760px){.overview-bar{gap:13px}.overview-item strong{font-size:21px}.attention-strip{flex-direction:column;gap:7px}.fleet-list-wrap{overflow:visible}.fleet-list-head{display:none}.fleet-list-clean{min-width:0}.fleet-clean-row{display:grid;grid-template-columns:1fr 22px;gap:7px 10px;padding:13px 12px;min-height:0}.vehicle-ident{grid-column:1}.row-arrow{grid-column:2;grid-row:1;align-self:center}.status-inline{grid-column:1 / -1;justify-content:flex-start;padding:3px 0}.mobile-label{display:inline;min-width:138px;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:#6f849c;font-weight:850}.status-inline strong{font-size:11px}.vehicle-ident>div{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:440px){.overview-bar{flex-wrap:wrap}.overview-separator{height:20px}.attention-strip-items{display:grid;gap:6px}.attention-strip-item{flex-wrap:wrap}.mobile-label{min-width:125px}}
 </style>
 {% endblock %}
