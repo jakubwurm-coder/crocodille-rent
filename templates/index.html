@@ -5,7 +5,7 @@
   <div>
     <div class="brand">Vans <span>Renting - Crocodille</span></div>
     <h1>Přehled vozidel</h1>
-    <p>Rychlý přehled termínů vozidel</p>
+    <p>Rychlý přehled vozového parku</p>
   </div>
   <div class="top-actions fleet-top-actions">
     {% if admin_logged %}
@@ -71,69 +71,54 @@
   <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
 </form>
 
-<div class="fleet-list-wrap">
-  <div class="fleet-list-head" aria-hidden="true">
-    <span>VOZIDLO</span>
-    <span>STK</span>
-    <span>ZNÁMKA</span>
-    <span>POVINNÉ RUČENÍ</span>
-    <span>HAVARIJNÍ POJIŠTĚNÍ</span>
-    <span>ASISTENCE</span>
-    <span></span>
-  </div>
-
-  <div class="fleet-list-clean">
-    {% for v in vehicles %}
-      <a class="fleet-clean-row" href="/v/{{ v.id }}">
-        <div class="vehicle-ident">
-          <strong>{{ v.spz }}</strong>
-          <div>
-            <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
-            <small>ID {{ v.vehicle_id or '—' }}</small>
-          </div>
-        </div>
-
-        {% for key, label in [
-          ('stk_until', 'STK'),
-          ('vignette_until', 'Dálniční známka'),
-          ('liability_until', 'Povinné ručení'),
-          ('casco_until', 'Havarijní pojištění'),
-          ('assistance_until', 'Asistence')
-        ] %}
-          {% if v.get(key) %}
-            {% set state, text = status_for(v.get(key)) %}
-            <div class="status-inline {{ state }}">
-              <span class="mobile-label">{{ label }}</span>
-              <i></i>
-              {% if state == 'ok' %}<strong>OK</strong>
-              {% elif state in ['bad', 'soon'] %}<strong>{{ text }}</strong>
-              {% else %}<strong>—</strong>{% endif %}
-            </div>
-          {% else %}
-            <div class="status-inline unknown">
-              <span class="mobile-label">{{ label }}</span><i></i><strong>—</strong>
-            </div>
-          {% endif %}
-        {% endfor %}
-
-        <span class="row-arrow">›</span>
-      </a>
+<div class="fleet-list-clean">
+  {% for v in vehicles %}
+    {% set row_alerts = namespace(items=[]) %}
+    {% for key, label in [
+      ('stk_until', 'STK'),
+      ('vignette_until', 'Známka'),
+      ('liability_until', 'Povinné ručení'),
+      ('casco_until', 'Havarijní pojištění'),
+      ('assistance_until', 'Asistence')
+    ] %}
+      {% if v.get(key) %}
+        {% set state, text = status_for(v.get(key)) %}
+        {% if state in ['bad', 'soon'] %}
+          {% set row_alerts.items = row_alerts.items + [(label, text)] %}
+        {% endif %}
+      {% endif %}
     {% endfor %}
-  </div>
+
+    <a class="fleet-clean-row" href="/v/{{ v.id }}">
+      <div class="vehicle-ident">
+        <strong>{{ v.spz }}</strong>
+        <div>
+          <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
+          <small>ID {{ v.vehicle_id or '—' }}</small>
+        </div>
+      </div>
+
+      <div class="row-state {% if row_alerts.items %}has-alert{% else %}is-ok{% endif %}">
+        {% if row_alerts.items %}
+          {% for label, text in row_alerts.items %}
+            <span class="row-alert">{{ label }} · {{ text }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="row-ok">OK</span>
+        {% endif %}
+      </div>
+
+      <span class="row-arrow">›</span>
+    </a>
+  {% endfor %}
 </div>
 
 <style>
 .fleet-topbar{margin-bottom:16px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.035);font-size:20px;text-decoration:none;color:#dce7f6}.client-mode{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#9fc8ff;border:1px solid rgba(88,166,255,.22);background:rgba(88,166,255,.07);padding:8px 10px;border-radius:999px}
-
 .overview-bar{display:flex;align-items:center;gap:18px;margin:0 0 14px;padding:10px 2px;color:#8fa3bb}.overview-item{display:flex;align-items:baseline;gap:8px}.overview-item span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px}.overview-item strong{font-size:24px;color:#fff}.overview-item.needs-attention strong{color:#ffb0b0}.overview-separator{width:1px;height:24px;background:rgba(255,255,255,.11)}
-
 .attention-strip{display:flex;align-items:flex-start;gap:16px;margin:0 0 14px;padding:11px 14px;border:1px solid rgba(239,68,68,.18);border-radius:12px;background:rgba(239,68,68,.035)}.attention-strip-title{display:flex;align-items:center;gap:8px;white-space:nowrap;padding-top:2px;color:#d6dde7;font-size:12px}.attention-dot{width:7px;height:7px;border-radius:50%;background:#ef6464}.attention-strip-items{display:flex;flex-wrap:wrap;gap:7px 12px}.attention-strip-item{display:flex;align-items:center;gap:5px;text-decoration:none;color:#aebdce;font-size:12px}.attention-strip-item b{color:#fff;font-size:13px}.attention-strip-item span{color:#ffb0b0}.attention-strip-item i{font-style:normal;color:#60758d}.attention-strip-item:hover b{text-decoration:underline}
-
-.fleet-search{margin-bottom:12px}.fleet-list-wrap{width:100%;overflow-x:auto}.fleet-list-head,.fleet-clean-row{display:grid;grid-template-columns:minmax(230px,1.55fr) repeat(5,minmax(118px,.82fr)) 22px;column-gap:12px;align-items:center}.fleet-list-head{min-width:1080px;padding:0 16px 7px;color:#667d97;border-bottom:1px solid rgba(255,255,255,.07)}.fleet-list-head span{font-size:10px;font-weight:850;letter-spacing:.35px;text-transform:uppercase;text-align:center}.fleet-list-head span:first-child{text-align:left}
-.fleet-list-clean{min-width:1080px}.fleet-clean-row{min-height:68px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.065);text-decoration:none;color:inherit;transition:background .12s ease}.fleet-clean-row:hover{background:rgba(255,255,255,.025)}.fleet-clean-row:last-child{border-bottom:0}.vehicle-ident{min-width:0}.vehicle-ident>strong{display:block;font-size:20px;line-height:1.1;color:#fff}.vehicle-ident>div{display:flex;align-items:center;gap:8px;margin-top:5px}.vehicle-ident span{font-size:13px;color:#b9c7d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vehicle-ident small{font-size:11px;color:#758aa2;font-weight:750;white-space:nowrap}
-.status-inline{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}.status-inline i{width:6px;height:6px;border-radius:50%;background:#5f7186;flex:0 0 auto}.status-inline strong{font-size:11px;color:#788ea6;font-weight:800;white-space:nowrap}.status-inline.ok i{background:#69a17c}.status-inline.ok strong{color:#7fa991}.status-inline.bad i,.status-inline.soon i{background:#ef6464}.status-inline.bad strong,.status-inline.soon strong{color:#ff9f9f}.status-inline.unknown i{background:#46586b}.status-inline.unknown strong{color:#576a7f}.mobile-label{display:none}.row-arrow{font-size:24px;color:#61758d;text-align:right}
-
-@media(max-width:760px){.overview-bar{gap:13px}.overview-item strong{font-size:21px}.attention-strip{flex-direction:column;gap:7px}.fleet-list-wrap{overflow:visible}.fleet-list-head{display:none}.fleet-list-clean{min-width:0}.fleet-clean-row{display:grid;grid-template-columns:1fr 22px;gap:7px 10px;padding:13px 12px;min-height:0}.vehicle-ident{grid-column:1}.row-arrow{grid-column:2;grid-row:1;align-self:center}.status-inline{grid-column:1 / -1;justify-content:flex-start;padding:3px 0}.mobile-label{display:inline;min-width:138px;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:#6f849c;font-weight:850}.status-inline strong{font-size:11px}.vehicle-ident>div{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
-@media(max-width:440px){.overview-bar{flex-wrap:wrap}.overview-separator{height:20px}.attention-strip-items{display:grid;gap:6px}.attention-strip-item{flex-wrap:wrap}.mobile-label{min-width:125px}}
+.fleet-search{margin-bottom:12px}.fleet-list-clean{display:grid;gap:0;border-top:1px solid rgba(255,255,255,.07)}.fleet-clean-row{display:grid;grid-template-columns:minmax(260px,1fr) minmax(220px,auto) 24px;align-items:center;gap:16px;min-height:70px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.065);text-decoration:none;color:inherit;transition:background .12s ease}.fleet-clean-row:hover{background:rgba(255,255,255,.025)}.vehicle-ident{min-width:0}.vehicle-ident>strong{display:block;font-size:20px;line-height:1.1;color:#fff}.vehicle-ident>div{display:flex;align-items:center;gap:8px;margin-top:5px}.vehicle-ident span{font-size:13px;color:#b9c7d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vehicle-ident small{font-size:11px;color:#758aa2;font-weight:750;white-space:nowrap}.row-state{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.row-ok{font-size:11px;font-weight:850;color:#78a88b}.row-alert{display:inline-flex;padding:5px 8px;border-radius:8px;background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.20);color:#ff9f9f;font-size:11px;font-weight:850;white-space:nowrap}.row-arrow{font-size:24px;color:#61758d;text-align:right}
+@media(max-width:760px){.overview-bar{gap:13px}.overview-item strong{font-size:21px}.attention-strip{flex-direction:column;gap:7px}.fleet-clean-row{grid-template-columns:1fr 22px;gap:8px 10px;padding:13px 12px}.vehicle-ident{grid-column:1}.row-state{grid-column:1 / -1;justify-content:flex-start}.row-arrow{grid-column:2;grid-row:1;align-self:center}.vehicle-ident>div{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:440px){.overview-bar{flex-wrap:wrap}.overview-separator{height:20px}.attention-strip-items{display:grid;gap:6px}.attention-strip-item{flex-wrap:wrap}.row-alert{white-space:normal}}
 </style>
 {% endblock %}
