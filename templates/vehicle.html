@@ -4,8 +4,6 @@
 {% set service_next_text = (last_service.next_service if last_service and last_service.next_service else v.next_service_note) %}
 {% set icon_sprite = url_for('static', filename='icons/fleet-icons.svg') %}
 {% set status_items = [('stk','STK',v.stk_until),('vignette','DÁLNIČNÍ ZNÁMKA',v.vignette_until),('liability','POVINNÉ RUČENÍ',v.liability_until),('casco','HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('assistance','ASISTENCE',v.assistance_until)] %}
-{% set raw_status = (v.get('status','') or '')|lower %}
-{% set is_out = 'mimo provoz' in raw_status or 'vráceno' in raw_status or 'vraceno' in raw_status %}
 {% set dk=v.get('datova_kostka',{}) %}
 {% set b=dk.get('basic',{}) %}
 
@@ -14,11 +12,6 @@
 <div class="vehicle-screen pro-detail">
   <aside class="vehicle-left">
     <a class="back pro-back" href="/">← <span>Zpět</span></a>
-
-    <div class="vehicle-status-badge operational-status {% if is_out %}inactive{% else %}active{% endif %}">
-      <i class="operational-light"></i>
-      <span>{% if is_out %}Mimo provoz{% else %}V provozu{% endif %}</span>
-    </div>
 
     <div class="wide-hero pro-hero">
       {% if v.get('photo') %}
@@ -45,7 +38,6 @@
   <main class="vehicle-right">
     <section class="section-lead">
       <div><small>PROVOZNÍ PŘEHLED</small><h2>Termíny a kontroly</h2></div>
-      <p>Upozornění níže jsou informační a nemění stav „V provozu / Mimo provoz“.</p>
     </section>
 
     <section class="status-grid">
@@ -78,6 +70,7 @@
     </section>
     {% endif %}
 
+    {% if admin_logged %}
     <section class="panel service-panel">
       <h2><svg class="ui-icon"><use href="{{ icon_sprite }}#clipboard"></use></svg> Servisní historie</h2>
       {% if v.service_records %}
@@ -98,6 +91,7 @@
         </div>
       {% else %}<p class="empty">Zatím nejsou zadané servisní úkony.</p>{% endif %}
     </section>
+    {% endif %}
 
     {% if v.get('cooling_unit') or v.get('refrigeration') or v.get('cooling') %}
     {% set cooling = v.get('cooling_unit') or v.get('refrigeration') or v.get('cooling') %}
@@ -142,7 +136,7 @@
 </div>
 
 <style>
-.operational-status{background:rgba(47,189,104,.15);border-color:rgba(47,189,104,.35);color:#99f6b7}.operational-status.inactive{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.28);color:#c0cad7}.operational-light{width:11px;height:11px;border-radius:999px;background:var(--green);box-shadow:0 0 16px rgba(47,189,104,.75)}.operational-status.inactive .operational-light{background:#7e8b9c;box-shadow:none}.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.section-lead h2{margin:0;color:#fff;font-size:28px}.section-lead p{max-width:430px;margin:0;color:var(--muted);font-size:13px;line-height:1.45;text-align:right}.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}.section-lead p{text-align:left}.vehicle-status-badge{top:72px;left:22px}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.section-lead h2{font-size:23px}}
+.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.section-lead h2{margin:0;color:#fff;font-size:28px}.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.section-lead h2{font-size:23px}}
 </style>
 
 <script>
