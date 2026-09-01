@@ -17,7 +17,7 @@ app = core.app
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
 PUBLIC_BASE_URL = "https://vansrenting-crocodille.onrender.com"
 CLIENT_USERNAME = os.environ.get("CLIENT_USERNAME", "crocodille").strip() or "crocodille"
-CLIENT_PASSWORD = os.environ.get("CLIENT_PASSWORD", "").strip()
+CLIENT_PASSWORD = os.environ.get("CLIENT_PASSWORD", "Crocodille2026!").strip() or "Crocodille2026!"
 
 
 def _safe_next_url(value):
