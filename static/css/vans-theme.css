@@ -1,100 +1,150 @@
-/* Tmavý vzhled podle barev VansRenting */
-body{
-  background:
-    radial-gradient(circle at 18% -10%,rgba(31,116,190,.24),transparent 34%),
-    radial-gradient(circle at 88% 8%,rgba(100,198,242,.10),transparent 30%),
-    linear-gradient(180deg,#0b223d 0,#071a31 48%,#041222 100%)!important;
-  color:#fff;
+/* Světlý vzhled kombinující Vans Renting + Crocodille */
+:root{
+  --bg:#f5f7f9;
+  --card:#ffffff;
+  --card2:#f9fbfc;
+  --txt:#22242a;
+  --muted:#6d7885;
+  --blue:#004688;
+  --blue2:#0062ad;
+  --navy:#003767;
+  --cyan:#2787c8;
+  --green:#41b649;
+  --orange:#f59e0b;
+  --red:#dc2626;
+  --line:#e2e7ec;
 }
+
+body{
+  background:linear-gradient(180deg,#f8fafb 0,#f4f6f8 100%)!important;
+  color:var(--txt)!important;
+}
+
+.shell{background:transparent}
+
+.topbar h1{color:#20252b!important}
+.topbar p{color:#77818c!important}
+.brand{color:#004688!important}
+.brand span{color:#004688!important}
+.brand .client-brand{color:#41b649!important;font-style:normal;font-weight:900}
 
 .search input{
-  background:#0a213b!important;
-  border-color:rgba(127,181,231,.22)!important;
-  color:#fff!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 10px 30px rgba(0,20,45,.18);
+  background:#fff!important;
+  border-color:#dfe5ea!important;
+  color:#22242a!important;
+  box-shadow:0 5px 18px rgba(28,48,68,.05)!important;
 }
-.search input::placeholder{color:#8199b4}
+.search input::placeholder{color:#98a3ad!important}
 
-.vehicle-tile{
-  background:linear-gradient(160deg,#102f52 0%,#0b223d 58%,#081b31 100%)!important;
-  border-color:rgba(127,181,231,.19)!important;
-  box-shadow:0 15px 34px rgba(0,10,25,.28),inset 0 1px 0 rgba(255,255,255,.025)!important;
-}
-.vehicle-tile:hover{
-  border-color:rgba(100,198,242,.50)!important;
-  box-shadow:0 18px 38px rgba(0,20,45,.36),0 0 0 1px rgba(100,198,242,.08)!important;
-}
-.vehicle-tile strong{color:#fff}
-.vehicle-tile small{color:#d7e9fb!important}
-.vehicle-tile span,
-.vehicle-tile em{color:#a9bdd4!important}
-
-.legend{color:#b9cce0!important}
-
-.topbar h1{color:#fff}
-.topbar p{color:#a9bdd4!important}
-.brand{color:#fff!important}
-.brand span{color:#64c6f2!important}
-
-.btn{
-  background:linear-gradient(135deg,#1374c9,#07579f)!important;
-  color:#fff!important;
-  border:1px solid rgba(100,198,242,.20)!important;
-  box-shadow:0 10px 24px rgba(0,61,120,.22)!important;
-}
-.muted-btn{
-  background:rgba(13,47,82,.72)!important;
-  color:#edf7ff!important;
-  border:1px solid rgba(127,181,231,.26)!important;
-}
-
+.vehicle-tile,
 .vehicle-left,
 .panel,
 .status-card{
-  background:linear-gradient(155deg,rgba(16,47,82,.97),rgba(7,26,49,.98))!important;
-  border-color:rgba(127,181,231,.20)!important;
-  box-shadow:0 24px 70px rgba(0,10,25,.32),inset 0 1px 0 rgba(255,255,255,.035)!important;
+  background:#fff!important;
+  border-color:#e1e6eb!important;
+  box-shadow:0 12px 34px rgba(22,44,66,.08)!important;
+}
+.vehicle-tile:hover{
+  border-color:rgba(0,70,136,.30)!important;
+  box-shadow:0 15px 34px rgba(22,44,66,.11)!important;
+}
+.vehicle-tile strong{color:#20252b!important}
+.vehicle-tile small{color:#004688!important}
+.vehicle-tile span,.vehicle-tile em{color:#707b86!important}
+.legend{color:#7a8590!important}
+
+.btn{
+  background:linear-gradient(135deg,#075a9f,#004688)!important;
+  color:#fff!important;
+  border:1px solid rgba(0,70,136,.12)!important;
+  box-shadow:0 8px 20px rgba(0,70,136,.16)!important;
+}
+.btn:hover{filter:brightness(1.04)}
+.muted-btn{
+  background:#fff!important;
+  color:#004688!important;
+  border:1px solid #ccd8e2!important;
+  box-shadow:none!important;
 }
 
-.row,
-.timeline div,
-.doc-card,
-.service-meta{
-  background:rgba(117,174,225,.055)!important;
-  border-color:rgba(127,181,231,.16)!important;
+.row,.timeline div,.doc-card,.service-meta{
+  background:#f8fafb!important;
+  border-color:#e5e9ed!important;
 }
 
-.ui-icon,
-.timeline-dot{color:#64c6f2!important}
-.timeline-dot{background:#1374c9!important}
+.ui-icon,.timeline-dot{color:#004688!important}
+.timeline-dot{background:#004688!important;box-shadow:0 0 0 7px rgba(0,70,136,.10)!important}
+.timeline-item::before{background:rgba(0,70,136,.14)!important}
+
+.vehicle-left::before{
+  background:radial-gradient(circle,rgba(0,70,136,.10),rgba(0,70,136,0) 68%)!important;
+}
+.wide-hero{
+  background:linear-gradient(145deg,rgba(0,70,136,.05),rgba(65,182,73,.035))!important;
+}
+.wide-hero img{filter:drop-shadow(0 18px 26px rgba(26,48,70,.16))!important}
+.wide-main h1{color:#20252b!important;text-shadow:none!important}
+.wide-main span{color:#3c4650!important}
+.wide-main span em{color:#87919b!important}
+.stats{border-top-color:#e6eaee!important}
+.stats div + div{border-left-color:#e6eaee!important}
+.stats strong{color:#20252b!important}
+.stats small{color:#7d8791!important}
+
+.status-card strong,.timeline strong,.panel h2{color:#20252b!important}
+.status-card span,.status-card small,.timeline time{color:#74808b!important}
+.status-card .service-km{color:#004688!important}
+.panel h2{border-bottom-color:#e6eaee!important}
+.service-meta span{color:#32404c!important}
+.service-meta span + span{border-left-color:#dde4e9!important;color:#77828d!important}
+.service-meta .ui-icon{color:#647b90!important}
+.wide-note{color:#3e4b56!important}
+
+.pro-back{
+  background:rgba(255,255,255,.90)!important;
+  border-color:#dde4e9!important;
+  color:#004688!important;
+  box-shadow:0 5px 18px rgba(22,44,66,.08)!important;
+}
+.pro-back span{color:#64717d!important}
+
+.vehicle-status-badge{
+  background:rgba(65,182,73,.10)!important;
+  border-color:rgba(65,182,73,.26)!important;
+  color:#268732!important;
+}
 
 .bottom{
-  background:rgba(5,22,40,.94)!important;
-  border-color:rgba(100,198,242,.24)!important;
+  background:rgba(255,255,255,.96)!important;
+  border-color:#dde4e9!important;
+  box-shadow:0 12px 35px rgba(28,48,68,.14)!important;
 }
-.bottom a{background:rgba(19,116,201,.10)!important}
-.bottom a:hover{background:rgba(19,116,201,.24)!important}
+.bottom a{background:rgba(0,70,136,.06)!important;color:#004688!important}
+.bottom a:hover{background:rgba(0,70,136,.11)!important}
 
-/* Na bezchybném vozidle pouze zelená tečka. Text se vypisuje jen při upozornění. */
+/* Crocodille zelená je sekundární akcent pro pozitivní stav. */
+.dot.ok{background:#41b649!important}
+.dot.soon{background:#f59e0b!important}
+.dot.bad{background:#dc2626!important}
+.dot.inactive,.dot.unknown{background:#9aa4ad!important}
+
+.pill.ok{background:rgba(65,182,73,.11)!important;color:#268732!important}
+.pill.soon{background:rgba(245,158,11,.12)!important;color:#a86500!important}
+.pill.bad{background:rgba(220,38,38,.09)!important;color:#bc1f1f!important}
+.pill.unknown{background:#eef1f3!important;color:#6f7a84!important}
+
 .status-reason.soon{
-  color:#ffb13b!important;
-  background:rgba(245,158,11,.13);
-  border:1px solid rgba(245,158,11,.26);
-  padding:6px 9px;
-  border-radius:9px;
+  color:#a86500!important;
+  background:rgba(245,158,11,.09)!important;
+  border:1px solid rgba(245,158,11,.22)!important;
 }
 .status-reason.bad{
-  color:#ff6b6b!important;
-  background:rgba(239,68,68,.13);
-  border:1px solid rgba(239,68,68,.28);
-  padding:6px 9px;
-  border-radius:9px;
+  color:#bc1f1f!important;
+  background:rgba(220,38,38,.07)!important;
+  border:1px solid rgba(220,38,38,.18)!important;
 }
 
-.dot.ok{background:#2fbd68!important}
-.dot.soon{background:#f59e0b!important}
-.dot.bad{background:#ef4444!important}
-.dot.inactive,.dot.unknown{background:#6b7280!important}
+.danger{background:linear-gradient(135deg,#dc2626,#991b1b)!important;color:#fff!important}
 
 @media(max-width:700px){
   .vehicle-status{max-width:58%}
