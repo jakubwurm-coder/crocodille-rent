@@ -37,7 +37,7 @@
 
   <main class="vehicle-right">
     <section class="section-lead">
-      <div><small>PROVOZNÍ PŘEHLED</small><h2>Termíny a kontroly</h2></div>
+      <div><small>PROVOZNÍ PŘEHLED</small></div>
     </section>
 
     <section class="status-grid">
@@ -46,16 +46,15 @@
         <article class="status-card">
           <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg>
           <div><strong>{{ label }}</strong><span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span></div>
-          <b class="pill {{ s[0] }}"{% if value and s[0] == 'ok' %} data-countdown-date="{{ value }}"{% endif %}>{{ s[1] }}</b>
+          <b class="pill {{ s[0] }}">{{ s[1] }}</b>
         </article>
       {% endfor %}
 
       {% set next_date_status=status_for(v.next_service_date) %}
-      {% set service_has_value=v.next_service_km or service_next_text or v.next_service_date %}
-      <article class="status-card service-card">
+      <article class="status-card service-card service-card-separated">
         <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg>
         <div><strong>PŘÍŠTÍ SERVIS</strong>{% if v.next_service_km %}<span class="service-km">{{ v.next_service_km|km }}</span>{% endif %}<small>{% if service_next_text %}{{ service_next_text }}{% elif v.next_service_date %}{{ v.next_service_date|czdate }}{% else %}nezadáno{% endif %}</small></div>
-        {% if service_has_value and next_date_status[0]=='unknown' %}<b class="pill ok">OK</b>{% else %}<b class="pill {{ next_date_status[0] }}"{% if v.next_service_date and next_date_status[0] == 'ok' %} data-countdown-date="{{ v.next_service_date }}"{% endif %}>{{ next_date_status[1] }}</b>{% endif %}
+        {% if v.next_service_date and next_date_status[0] in ['bad','soon'] %}<b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>{% endif %}
       </article>
     </section>
 
@@ -136,28 +135,15 @@
 </div>
 
 <style>
-.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.section-lead h2{margin:0;color:#fff;font-size:28px}.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.section-lead h2{font-size:23px}}
+.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.service-card-separated{margin-top:8px;border-color:rgba(88,166,255,.22)!important;background:linear-gradient(145deg,rgba(21,39,60,.78),rgba(15,27,41,.92))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}.registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item strong{font-size:21px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}}
 </style>
 
 <script>
 (function(){
   const btn=document.querySelector('.copy-vin');
-  if(btn){
-    btn.addEventListener('click',async()=>{
-      try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
-    });
-  }
-
-  document.querySelectorAll('.pill.ok[data-countdown-date]').forEach((pill)=>{
-    const raw=pill.dataset.countdownDate;
-    if(!raw) return;
-    const parts=raw.slice(0,10).split('-').map(Number);
-    if(parts.length!==3 || parts.some(Number.isNaN)) return;
-    const target=new Date(parts[0],parts[1]-1,parts[2]);
-    const now=new Date();
-    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    const days=Math.ceil((target-today)/86400000);
-    if(days>=0) pill.textContent=`OK · ${days} ${days===1?'den':days>=2&&days<=4?'dny':'dní'}`;
+  if(!btn) return;
+  btn.addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
   });
 })();
 </script>
