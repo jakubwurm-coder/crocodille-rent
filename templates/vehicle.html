@@ -46,7 +46,7 @@
         <article class="status-card">
           <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg>
           <div><strong>{{ label }}</strong><span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span></div>
-          <b class="pill {{ s[0] }}">{{ s[1] }}</b>
+          <b class="pill {{ s[0] }}"{% if value and s[0] == 'ok' %} data-countdown-date="{{ value }}"{% endif %}>{{ s[1] }}</b>
         </article>
       {% endfor %}
 
@@ -55,7 +55,7 @@
       <article class="status-card service-card">
         <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#service"></use></svg>
         <div><strong>PŘÍŠTÍ SERVIS</strong>{% if v.next_service_km %}<span class="service-km">{{ v.next_service_km|km }}</span>{% endif %}<small>{% if service_next_text %}{{ service_next_text }}{% elif v.next_service_date %}{{ v.next_service_date|czdate }}{% else %}nezadáno{% endif %}</small></div>
-        {% if service_has_value and next_date_status[0]=='unknown' %}<b class="pill ok">OK</b>{% else %}<b class="pill {{ next_date_status[0] }}">{{ next_date_status[1] }}</b>{% endif %}
+        {% if service_has_value and next_date_status[0]=='unknown' %}<b class="pill ok">OK</b>{% else %}<b class="pill {{ next_date_status[0] }}"{% if v.next_service_date and next_date_status[0] == 'ok' %} data-countdown-date="{{ v.next_service_date }}"{% endif %}>{{ next_date_status[1] }}</b>{% endif %}
       </article>
     </section>
 
@@ -142,9 +142,22 @@
 <script>
 (function(){
   const btn=document.querySelector('.copy-vin');
-  if(!btn) return;
-  btn.addEventListener('click',async()=>{
-    try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
+  if(btn){
+    btn.addEventListener('click',async()=>{
+      try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
+    });
+  }
+
+  document.querySelectorAll('.pill.ok[data-countdown-date]').forEach((pill)=>{
+    const raw=pill.dataset.countdownDate;
+    if(!raw) return;
+    const parts=raw.slice(0,10).split('-').map(Number);
+    if(parts.length!==3 || parts.some(Number.isNaN)) return;
+    const target=new Date(parts[0],parts[1]-1,parts[2]);
+    const now=new Date();
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const days=Math.ceil((target-today)/86400000);
+    if(days>=0) pill.textContent=`OK · ${days} ${days===1?'den':days>=2&&days<=4?'dny':'dní'}`;
   });
 })();
 </script>
