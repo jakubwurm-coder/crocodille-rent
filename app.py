@@ -56,10 +56,15 @@ def inject_client_auth():
 def protect_client_area():
     path = request.path or "/"
 
-    # Veřejně musí zůstat pouze přihlášení, health-check a mobilní API.
+    # Veřejné technické cesty a přihlášení.
     if path in ("/login", "/logout", "/admin/login", "/admin/logout", "/healthz"):
         return None
     if path.startswith("/api/"):
+        return None
+
+    # Karta konkrétního vozidla je veřejná kvůli QR kódům.
+    # Nezpřístupňuje administraci ani dokumenty; ty zůstávají chráněné.
+    if path.startswith("/v/"):
         return None
 
     # Admin má plný přístup jako doposud.
