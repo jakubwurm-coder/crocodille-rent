@@ -20,9 +20,24 @@
 
 {% set attention = namespace(items=[], count=0) %}
 {% for v in vehicles %}
-  {% set alerts = vehicle_alert_items(v) %}
-  {% if alerts %}
-    {% set attention.items = attention.items + [(v, alerts)] %}
+  {% set vehicle_attention = namespace(has=false, alerts=[]) %}
+  {% for key, label in [
+    ('stk_until', 'STK'),
+    ('vignette_until', 'Známka'),
+    ('liability_until', 'Povinné ručení'),
+    ('casco_until', 'Havarijní pojištění'),
+    ('assistance_until', 'Asistence')
+  ] %}
+    {% if v.get(key) %}
+      {% set state, text = status_for(v.get(key)) %}
+      {% if state in ['bad', 'soon'] %}
+        {% set vehicle_attention.has = true %}
+        {% set vehicle_attention.alerts = vehicle_attention.alerts + [(label, state, text)] %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if vehicle_attention.has %}
+    {% set attention.items = attention.items + [(v, vehicle_attention.alerts)] %}
     {% set attention.count = attention.count + 1 %}
   {% endif %}
 {% endfor %}
@@ -50,10 +65,8 @@
           <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
         </div>
         <div class="attention-compact-alerts">
-          {% for a in alerts %}
-            <span class="attention-chip {{ a.state }}">
-              {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} {{ a.text|replace(' dní',' d') }}
-            </span>
+          {% for label, state, text in alerts %}
+            <span class="attention-chip {{ state }}">{{ label }} {{ text|replace(' dní',' d') }}</span>
           {% endfor %}
           <span class="attention-arrow">›</span>
         </div>
@@ -67,9 +80,18 @@
   <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
 </form>
 
+<div class="fleet-status-head" aria-hidden="true">
+  <span></span>
+  <strong>STK</strong>
+  <strong>Dálniční známka</strong>
+  <strong>Povinné ručení</strong>
+  <strong>Havarijní pojištění</strong>
+  <strong>Asistence</strong>
+  <span></span>
+</div>
+
 <div class="grid vehicle-list fleet-list">
   {% for v in vehicles %}
-    {% set alerts = vehicle_alert_items(v) %}
     <a class="vehicle-tile vehicle-row fleet-row" href="/v/{{ v.id }}">
       <div class="tile-main fleet-tile-main">
         <div class="fleet-spz-line">
@@ -81,18 +103,35 @@
         </div>
       </div>
 
-      <div class="fleet-alerts">
-        {% if alerts %}
-          {% for a in alerts %}
-            <span class="warning-chip {{ a.state }}">
-              {% if a.key == 'vignette_until' %}Známka{% else %}{{ a.label }}{% endif %} {{ a.text|replace(' dní',' d') }}
-            </span>
-          {% endfor %}
-        {% else %}
-          <span class="all-clear">Bez nutnosti pozornosti</span>
-        {% endif %}
-        <span class="row-arrow">›</span>
+      <div class="fleet-statuses">
+        {% for key, label in [
+          ('stk_until', 'STK'),
+          ('vignette_until', 'Dálniční známka'),
+          ('liability_until', 'Povinné ručení'),
+          ('casco_until', 'Havarijní pojištění'),
+          ('assistance_until', 'Asistence')
+        ] %}
+          {% if v.get(key) %}
+            {% set state, text = status_for(v.get(key)) %}
+            <div class="fleet-status-cell {{ state }}">
+              <span class="mobile-status-label">{{ label }}</span>
+              {% if state == 'ok' %}
+                <strong>OK</strong>
+              {% elif state in ['bad', 'soon'] %}
+                <strong>{{ text }}</strong>
+              {% else %}
+                <strong>—</strong>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="fleet-status-cell unknown">
+              <span class="mobile-status-label">{{ label }}</span>
+              <strong>—</strong>
+            </div>
+          {% endif %}
+        {% endfor %}
       </div>
+      <span class="row-arrow">›</span>
     </a>
   {% endfor %}
 </div>
@@ -100,9 +139,10 @@
 <style>
 .fleet-topbar{margin-bottom:18px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.045);font-size:20px;text-decoration:none;color:#dce7f6}.client-mode{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#9fc8ff;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.10);padding:8px 10px;border-radius:999px}
 .fleet-summary{display:grid;grid-template-columns:repeat(2,minmax(220px,360px));gap:12px;margin:0 0 12px}.summary-card{text-align:left;color:inherit;background:linear-gradient(155deg,rgba(25,39,59,.96),rgba(10,22,36,.96));border:1px solid var(--line);border-radius:20px;padding:17px 19px}.summary-card small{display:block;color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.65px}.summary-card strong{display:inline-block;margin-top:5px;font-size:31px;color:#fff}.summary-card span{margin-left:7px;color:var(--muted);font-size:13px}.attention-summary.has-alerts{border-color:rgba(245,158,11,.28);background:linear-gradient(155deg,rgba(42,35,24,.75),rgba(20,24,31,.96))}.attention-summary.has-alerts strong{color:#ffd08a}
-.attention-compact{margin:0 0 16px;border:1px solid rgba(245,158,11,.20);border-radius:16px;background:rgba(18,28,41,.76);overflow:hidden}.attention-compact-title{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#c8d4e3}.attention-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10)}.attention-compact-list{display:grid}.attention-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;padding:9px 14px;text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.045)}.attention-compact-row:first-child{border-top:0}.attention-compact-row:hover{background:rgba(255,255,255,.025)}.attention-compact-vehicle{display:flex;align-items:baseline;gap:9px;min-width:180px}.attention-compact-vehicle strong{font-size:17px;color:#fff}.attention-compact-vehicle span{font-size:12px;color:#8ea0b5}.attention-compact-alerts{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.attention-chip{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:850;white-space:nowrap}.attention-chip.bad{color:#ffb7b7;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.24)}.attention-chip.soon{color:#ffd593;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.22)}.attention-arrow{font-size:24px;line-height:1;color:#6f8197;margin-left:2px}
-.fleet-list{gap:10px}.fleet-row{padding:17px 19px;min-height:94px;border-radius:20px}.fleet-tile-main{flex:1}.fleet-spz-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.fleet-spz-line>strong{font-size:25px}.fleet-meta{display:flex;align-items:center;gap:10px;margin-top:8px}.fleet-meta span{font-size:15px!important;color:#cbd7e7!important}.fleet-meta small{font-size:13px!important;margin:0!important;color:var(--muted)!important;font-weight:750!important}.fleet-alerts{margin-left:auto;display:flex;justify-content:flex-end;align-items:center;gap:7px;flex-wrap:wrap;max-width:52%}.warning-chip{display:inline-flex;padding:6px 9px;border-radius:9px;font-size:12px;font-weight:900;white-space:nowrap}.warning-chip.soon{color:#ffd08a;background:rgba(245,158,11,.11);border:1px solid rgba(245,158,11,.24)}.warning-chip.bad{color:#ffaaaa;background:rgba(239,68,68,.11);border:1px solid rgba(239,68,68,.25)}.all-clear{font-size:12px!important;color:#7f93ac!important}.row-arrow{font-size:30px!important;line-height:1;color:#71839a!important;margin-left:5px}
-@media(max-width:700px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card{padding:14px 15px}.summary-card strong{font-size:27px}.attention-compact-row{align-items:flex-start;flex-direction:column;gap:7px}.attention-compact-alerts{justify-content:flex-start;width:100%}.attention-arrow{margin-left:auto}.fleet-row{align-items:flex-start;flex-direction:column}.fleet-alerts{margin-left:0;justify-content:flex-start;max-width:100%;width:100%}.row-arrow{margin-left:auto}.fleet-meta{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
-@media(max-width:440px){.fleet-summary{grid-template-columns:1fr}.attention-compact{border-radius:14px}}
+.attention-compact{margin:0 0 16px;border:1px solid rgba(245,158,11,.20);border-radius:16px;background:rgba(18,28,41,.76);overflow:hidden}.attention-compact-title{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#c8d4e3}.attention-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10)}.attention-compact-list{display:grid}.attention-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;padding:9px 14px;text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.045)}.attention-compact-row:first-child{border-top:0}.attention-compact-row:hover{background:rgba(255,255,255,.025)}.attention-compact-vehicle{display:flex;align-items:baseline;gap:9px;min-width:180px}.attention-compact-vehicle strong{font-size:17px;color:#fff}.attention-compact-vehicle span{font-size:12px;color:#8ea0b5}.attention-compact-alerts{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.attention-chip{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:850;white-space:nowrap}.attention-chip.bad,.attention-chip.soon{color:#ffb7b7;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.24)}.attention-arrow{font-size:24px;line-height:1;color:#6f8197;margin-left:2px}
+.fleet-status-head{display:grid;grid-template-columns:minmax(230px,1.4fr) repeat(5,minmax(105px,.72fr)) 26px;gap:8px;align-items:end;padding:0 18px 7px;color:#758aa3}.fleet-status-head strong{text-align:center;font-size:10px;line-height:1.2;text-transform:uppercase;letter-spacing:.35px;font-weight:850}.fleet-list{gap:8px}.fleet-row{display:grid;grid-template-columns:minmax(230px,1.4fr) minmax(0,3.6fr) 26px;align-items:center;gap:8px;padding:13px 18px;min-height:78px;border-radius:16px}.fleet-tile-main{min-width:0}.fleet-spz-line>strong{font-size:21px}.fleet-meta{display:flex;align-items:center;gap:8px;margin-top:5px}.fleet-meta span{font-size:13px!important;color:#cbd7e7!important}.fleet-meta small{font-size:11px!important;margin:0!important;color:var(--muted)!important;font-weight:750!important}.fleet-statuses{display:grid;grid-template-columns:repeat(5,minmax(105px,1fr));gap:8px;align-items:stretch}.fleet-status-cell{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.025);padding:5px 7px;text-align:center}.fleet-status-cell strong{font-size:11px;color:#7790aa;white-space:nowrap}.fleet-status-cell.ok strong{font-size:10px;color:#79a48c;font-weight:850}.fleet-status-cell.bad,.fleet-status-cell.soon{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.28)}.fleet-status-cell.bad strong,.fleet-status-cell.soon strong{color:#ffaaaa;font-size:11px;font-weight:900}.fleet-status-cell.unknown strong{color:#5f7085}.mobile-status-label{display:none}.row-arrow{font-size:26px!important;line-height:1;color:#71839a!important;text-align:right}
+@media(max-width:1050px){.fleet-status-head{display:none}.fleet-row{grid-template-columns:190px minmax(0,1fr) 22px}.fleet-statuses{grid-template-columns:repeat(5,minmax(90px,1fr))}.fleet-status-cell{padding:5px 4px}.fleet-status-cell strong{font-size:10px}}
+@media(max-width:760px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card{padding:14px 15px}.summary-card strong{font-size:27px}.attention-compact-row{align-items:flex-start;flex-direction:column;gap:7px}.attention-compact-alerts{justify-content:flex-start;width:100%}.attention-arrow{margin-left:auto}.fleet-row{display:grid;grid-template-columns:1fr 22px;gap:10px}.fleet-tile-main{grid-column:1}.fleet-statuses{grid-column:1 / -1;grid-template-columns:repeat(2,1fr);gap:6px}.fleet-status-cell{justify-content:space-between;padding:7px 9px}.mobile-status-label{display:inline;font-size:9px;text-transform:uppercase;letter-spacing:.25px;color:#71859d;font-weight:850;text-align:left}.fleet-status-cell.bad .mobile-status-label,.fleet-status-cell.soon .mobile-status-label{color:#df8f8f}.row-arrow{grid-column:2;grid-row:1;align-self:center}.fleet-meta{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:440px){.fleet-summary{grid-template-columns:1fr}.attention-compact{border-radius:14px}.fleet-statuses{grid-template-columns:1fr}.fleet-status-cell{min-height:34px}}
 </style>
 {% endblock %}
