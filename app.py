@@ -1,6 +1,7 @@
 import hmac
 import io
 import os
+import re
 
 import qrcode
 import qrcode.image.svg
@@ -84,6 +85,29 @@ def protect_client_area():
     if request.query_string:
         next_url += "?" + request.query_string.decode("utf-8", errors="ignore")
     return core.redirect(core.url_for("client_login", next=_safe_next_url(next_url)))
+
+
+@app.after_request
+def hide_service_history_from_client(response):
+    """Klientská role nevidí panel servisní historie, admin ano."""
+    if (
+        _client_logged()
+        and not core.require_admin()
+        and request.path.startswith("/v/")
+        and response.status_code == 200
+        and response.mimetype == "text/html"
+    ):
+        html = response.get_data(as_text=True)
+        html = re.sub(
+            r'<section class="panel service-panel">.*?</section>',
+            '',
+            html,
+            count=1,
+            flags=re.DOTALL,
+        )
+        response.set_data(html)
+        response.headers["Content-Length"] = str(len(response.get_data()))
+    return response
 
 
 @app.route("/login", methods=["GET", "POST"], endpoint="client_login")
