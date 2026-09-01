@@ -53,10 +53,7 @@
 
 {% if attention.count %}
 <section class="attention-compact" aria-label="Vozidla vyžadující pozornost">
-  <div class="attention-compact-title">
-    <span class="attention-dot"></span>
-    <strong>Vyžaduje pozornost</strong>
-  </div>
+  <div class="attention-compact-title"><span class="attention-dot"></span><strong>Vyžaduje pozornost</strong></div>
   <div class="attention-compact-list">
     {% for v, alerts in attention.items %}
       <a class="attention-compact-row" href="/v/{{ v.id }}">
@@ -65,9 +62,7 @@
           <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
         </div>
         <div class="attention-compact-alerts">
-          {% for label, state, text in alerts %}
-            <span class="attention-chip {{ state }}">{{ label }} {{ text|replace(' dní',' d') }}</span>
-          {% endfor %}
+          {% for label, state, text in alerts %}<span class="attention-chip {{ state }}">{{ label }} {{ text|replace(' dní',' d') }}</span>{% endfor %}
           <span class="attention-arrow">›</span>
         </div>
       </a>
@@ -80,30 +75,28 @@
   <input name="q" value="{{ q }}" placeholder="Hledat SPZ, VIN, ID nebo vozidlo">
 </form>
 
-<div class="fleet-status-head" aria-hidden="true">
-  <span></span>
-  <strong>STK</strong>
-  <strong>Dálniční známka</strong>
-  <strong>Povinné ručení</strong>
-  <strong>Havarijní pojištění</strong>
-  <strong>Asistence</strong>
-  <span></span>
-</div>
+<div class="fleet-table-wrap">
+  <div class="fleet-status-head" aria-hidden="true">
+    <span>VOZIDLO</span>
+    <strong>STK</strong>
+    <strong>DÁLNIČNÍ ZNÁMKA</strong>
+    <strong>POVINNÉ RUČENÍ</strong>
+    <strong>HAVARIJNÍ POJIŠTĚNÍ</strong>
+    <strong>ASISTENCE</strong>
+    <span></span>
+  </div>
 
-<div class="grid vehicle-list fleet-list">
-  {% for v in vehicles %}
-    <a class="vehicle-tile vehicle-row fleet-row" href="/v/{{ v.id }}">
-      <div class="tile-main fleet-tile-main">
-        <div class="fleet-spz-line">
-          <strong>{{ v.spz }}</strong>
+  <div class="fleet-list">
+    {% for v in vehicles %}
+      <a class="fleet-row" href="/v/{{ v.id }}">
+        <div class="fleet-tile-main">
+          <strong class="fleet-spz">{{ v.spz }}</strong>
+          <div class="fleet-meta">
+            <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
+            <small>ID {{ v.vehicle_id or '—' }}</small>
+          </div>
         </div>
-        <div class="fleet-meta">
-          <span>{{ v.brand or 'Vozidlo' }}{% if v.name %} · {{ v.name }}{% endif %}</span>
-          <small>ID {{ v.vehicle_id or '—' }}</small>
-        </div>
-      </div>
 
-      <div class="fleet-statuses">
         {% for key, label in [
           ('stk_until', 'STK'),
           ('vignette_until', 'Dálniční známka'),
@@ -115,34 +108,28 @@
             {% set state, text = status_for(v.get(key)) %}
             <div class="fleet-status-cell {{ state }}">
               <span class="mobile-status-label">{{ label }}</span>
-              {% if state == 'ok' %}
-                <strong>OK</strong>
-              {% elif state in ['bad', 'soon'] %}
-                <strong>{{ text }}</strong>
-              {% else %}
-                <strong>—</strong>
-              {% endif %}
+              {% if state == 'ok' %}<strong>OK</strong>
+              {% elif state in ['bad', 'soon'] %}<strong>{{ text }}</strong>
+              {% else %}<strong>—</strong>{% endif %}
             </div>
           {% else %}
             <div class="fleet-status-cell unknown">
-              <span class="mobile-status-label">{{ label }}</span>
-              <strong>—</strong>
+              <span class="mobile-status-label">{{ label }}</span><strong>—</strong>
             </div>
           {% endif %}
         {% endfor %}
-      </div>
-      <span class="row-arrow">›</span>
-    </a>
-  {% endfor %}
+        <span class="row-arrow">›</span>
+      </a>
+    {% endfor %}
+  </div>
 </div>
 
 <style>
 .fleet-topbar{margin-bottom:18px}.fleet-top-actions{align-items:center}.fleet-settings{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);display:grid;place-items:center;background:rgba(255,255,255,.045);font-size:20px;text-decoration:none;color:#dce7f6}.client-mode{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#9fc8ff;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.10);padding:8px 10px;border-radius:999px}
 .fleet-summary{display:grid;grid-template-columns:repeat(2,minmax(220px,360px));gap:12px;margin:0 0 12px}.summary-card{text-align:left;color:inherit;background:linear-gradient(155deg,rgba(25,39,59,.96),rgba(10,22,36,.96));border:1px solid var(--line);border-radius:20px;padding:17px 19px}.summary-card small{display:block;color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.65px}.summary-card strong{display:inline-block;margin-top:5px;font-size:31px;color:#fff}.summary-card span{margin-left:7px;color:var(--muted);font-size:13px}.attention-summary.has-alerts{border-color:rgba(245,158,11,.28);background:linear-gradient(155deg,rgba(42,35,24,.75),rgba(20,24,31,.96))}.attention-summary.has-alerts strong{color:#ffd08a}
-.attention-compact{margin:0 0 16px;border:1px solid rgba(245,158,11,.20);border-radius:16px;background:rgba(18,28,41,.76);overflow:hidden}.attention-compact-title{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#c8d4e3}.attention-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10)}.attention-compact-list{display:grid}.attention-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;padding:9px 14px;text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.045)}.attention-compact-row:first-child{border-top:0}.attention-compact-row:hover{background:rgba(255,255,255,.025)}.attention-compact-vehicle{display:flex;align-items:baseline;gap:9px;min-width:180px}.attention-compact-vehicle strong{font-size:17px;color:#fff}.attention-compact-vehicle span{font-size:12px;color:#8ea0b5}.attention-compact-alerts{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.attention-chip{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:850;white-space:nowrap}.attention-chip.bad,.attention-chip.soon{color:#ffb7b7;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.24)}.attention-arrow{font-size:24px;line-height:1;color:#6f8197;margin-left:2px}
-.fleet-status-head{display:grid;grid-template-columns:minmax(230px,1.4fr) repeat(5,minmax(105px,.72fr)) 26px;gap:8px;align-items:end;padding:0 18px 7px;color:#758aa3}.fleet-status-head strong{text-align:center;font-size:10px;line-height:1.2;text-transform:uppercase;letter-spacing:.35px;font-weight:850}.fleet-list{gap:8px}.fleet-row{display:grid;grid-template-columns:minmax(230px,1.4fr) minmax(0,3.6fr) 26px;align-items:center;gap:8px;padding:13px 18px;min-height:78px;border-radius:16px}.fleet-tile-main{min-width:0}.fleet-spz-line>strong{font-size:21px}.fleet-meta{display:flex;align-items:center;gap:8px;margin-top:5px}.fleet-meta span{font-size:13px!important;color:#cbd7e7!important}.fleet-meta small{font-size:11px!important;margin:0!important;color:var(--muted)!important;font-weight:750!important}.fleet-statuses{display:grid;grid-template-columns:repeat(5,minmax(105px,1fr));gap:8px;align-items:stretch}.fleet-status-cell{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.025);padding:5px 7px;text-align:center}.fleet-status-cell strong{font-size:11px;color:#7790aa;white-space:nowrap}.fleet-status-cell.ok strong{font-size:10px;color:#79a48c;font-weight:850}.fleet-status-cell.bad,.fleet-status-cell.soon{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.28)}.fleet-status-cell.bad strong,.fleet-status-cell.soon strong{color:#ffaaaa;font-size:11px;font-weight:900}.fleet-status-cell.unknown strong{color:#5f7085}.mobile-status-label{display:none}.row-arrow{font-size:26px!important;line-height:1;color:#71839a!important;text-align:right}
-@media(max-width:1050px){.fleet-status-head{display:none}.fleet-row{grid-template-columns:190px minmax(0,1fr) 22px}.fleet-statuses{grid-template-columns:repeat(5,minmax(90px,1fr))}.fleet-status-cell{padding:5px 4px}.fleet-status-cell strong{font-size:10px}}
-@media(max-width:760px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card{padding:14px 15px}.summary-card strong{font-size:27px}.attention-compact-row{align-items:flex-start;flex-direction:column;gap:7px}.attention-compact-alerts{justify-content:flex-start;width:100%}.attention-arrow{margin-left:auto}.fleet-row{display:grid;grid-template-columns:1fr 22px;gap:10px}.fleet-tile-main{grid-column:1}.fleet-statuses{grid-column:1 / -1;grid-template-columns:repeat(2,1fr);gap:6px}.fleet-status-cell{justify-content:space-between;padding:7px 9px}.mobile-status-label{display:inline;font-size:9px;text-transform:uppercase;letter-spacing:.25px;color:#71859d;font-weight:850;text-align:left}.fleet-status-cell.bad .mobile-status-label,.fleet-status-cell.soon .mobile-status-label{color:#df8f8f}.row-arrow{grid-column:2;grid-row:1;align-self:center}.fleet-meta{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
-@media(max-width:440px){.fleet-summary{grid-template-columns:1fr}.attention-compact{border-radius:14px}.fleet-statuses{grid-template-columns:1fr}.fleet-status-cell{min-height:34px}}
+.attention-compact{margin:0 0 16px;border:1px solid rgba(245,158,11,.20);border-radius:16px;background:rgba(18,28,41,.76);overflow:hidden}.attention-compact-title{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px;color:#c8d4e3}.attention-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10)}.attention-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;padding:8px 14px;text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.045)}.attention-compact-row:first-child{border-top:0}.attention-compact-row:hover{background:rgba(255,255,255,.025)}.attention-compact-vehicle{display:flex;align-items:baseline;gap:9px;min-width:180px}.attention-compact-vehicle strong{font-size:17px;color:#fff}.attention-compact-vehicle span{font-size:12px;color:#8ea0b5}.attention-compact-alerts{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.attention-chip{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:850;white-space:nowrap}.attention-chip.bad,.attention-chip.soon{color:#ffb7b7;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.24)}.attention-arrow{font-size:24px;line-height:1;color:#6f8197;margin-left:2px}
+.fleet-table-wrap{width:100%;overflow-x:auto;padding-bottom:4px}.fleet-status-head,.fleet-row{display:grid;grid-template-columns:minmax(220px,1.55fr) repeat(5,minmax(115px,.85fr)) 24px;column-gap:10px;align-items:center}.fleet-status-head{min-width:1050px;padding:0 18px 7px;color:#73879f}.fleet-status-head>span:first-child{font-size:10px;font-weight:850;letter-spacing:.45px}.fleet-status-head strong{text-align:center;font-size:10px;line-height:1.15;text-transform:uppercase;letter-spacing:.35px;font-weight:850}.fleet-list{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;min-width:1050px}.fleet-row{width:100%;box-sizing:border-box;min-height:74px;padding:12px 18px;border:1px solid rgba(90,147,204,.22);border-radius:15px;background:linear-gradient(145deg,rgba(14,49,79,.78),rgba(9,31,53,.84));text-decoration:none;color:inherit;transition:.15s ease}.fleet-row:hover{border-color:rgba(90,147,204,.38);background:linear-gradient(145deg,rgba(18,58,92,.84),rgba(10,36,61,.9))}.fleet-tile-main{min-width:0}.fleet-spz{display:block;font-size:21px;line-height:1.1;color:#fff}.fleet-meta{display:flex;align-items:center;gap:8px;margin-top:5px;min-width:0}.fleet-meta span{font-size:13px!important;color:#cbd7e7!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fleet-meta small{font-size:11px!important;margin:0!important;color:#8ea0b5!important;font-weight:750!important;white-space:nowrap}.fleet-status-cell{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.018);padding:5px 7px;text-align:center}.fleet-status-cell strong{font-size:10px;line-height:1.1;color:#7e93aa;white-space:nowrap}.fleet-status-cell.ok{background:rgba(34,197,94,.025);border-color:rgba(34,197,94,.08)}.fleet-status-cell.ok strong{color:#80ae91;font-weight:850}.fleet-status-cell.bad,.fleet-status-cell.soon{background:rgba(239,68,68,.11);border-color:rgba(239,68,68,.28)}.fleet-status-cell.bad strong,.fleet-status-cell.soon strong{color:#ffabab;font-size:11px;font-weight:900}.fleet-status-cell.unknown strong{color:#55677d}.mobile-status-label{display:none}.row-arrow{font-size:25px!important;line-height:1;color:#6e8198!important;text-align:right}
+@media(max-width:760px){.fleet-summary{grid-template-columns:1fr 1fr}.summary-card{padding:14px 15px}.summary-card strong{font-size:27px}.attention-compact-row{align-items:flex-start;flex-direction:column;gap:7px}.attention-compact-alerts{justify-content:flex-start;width:100%}.attention-arrow{margin-left:auto}.fleet-table-wrap{overflow:visible}.fleet-status-head{display:none}.fleet-list{min-width:0!important}.fleet-row{min-width:0;display:grid;grid-template-columns:1fr 22px;gap:8px;padding:13px 14px}.fleet-tile-main{grid-column:1}.fleet-status-cell{grid-column:1 / -1;min-height:34px;justify-content:space-between;padding:7px 9px}.mobile-status-label{display:inline;font-size:9px;text-transform:uppercase;letter-spacing:.25px;color:#71859d;font-weight:850}.fleet-status-cell.bad .mobile-status-label,.fleet-status-cell.soon .mobile-status-label{color:#df8f8f}.row-arrow{grid-column:2;grid-row:1;align-self:center}.fleet-meta{flex-wrap:wrap}.fleet-top-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:440px){.fleet-summary{grid-template-columns:1fr}.attention-compact{border-radius:14px}}
 </style>
 {% endblock %}
