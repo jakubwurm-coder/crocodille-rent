@@ -1,9 +1,12 @@
+import hmac
 import io
+import os
 
 import qrcode
 import qrcode.image.svg
 import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from flask import request, session
 
 import legacy_app as core
 from service_fleet import register
@@ -13,6 +16,104 @@ app = core.app
 
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
 PUBLIC_BASE_URL = "https://vansrenting-crocodille.onrender.com"
+CLIENT_USERNAME = os.environ.get("CLIENT_USERNAME", "crocodille").strip() or "crocodille"
+CLIENT_PASSWORD = os.environ.get("CLIENT_PASSWORD", "").strip()
+
+
+def _safe_next_url(value):
+    value = str(value or "").strip()
+    if value.startswith("/") and not value.startswith("//"):
+        return value
+    return "/"
+
+
+def _client_logged():
+    return session.get("client") is True
+
+
+def _client_route_allowed(path):
+    if path == "/":
+        return True
+    if path.startswith("/v/"):
+        return True
+    if path.startswith("/static/"):
+        return True
+    if path.startswith("/qr-code/"):
+        return True
+    return False
+
+
+@app.context_processor
+def inject_client_auth():
+    return {
+        "client_logged": _client_logged(),
+        "client_username": session.get("client_username", ""),
+    }
+
+
+@app.before_request
+def protect_client_area():
+    path = request.path or "/"
+
+    # Veřejně musí zůstat pouze přihlášení, health-check a mobilní API.
+    if path in ("/login", "/logout", "/admin/login", "/admin/logout", "/healthz"):
+        return None
+    if path.startswith("/api/"):
+        return None
+
+    # Admin má plný přístup jako doposud.
+    if core.require_admin():
+        return None
+
+    # Administrační cesty si dál hlídá stávající admin přihlášení.
+    if path.startswith("/admin"):
+        return None
+
+    # Klient má pouze read-only část s 25 vozidly a jejich podklady.
+    if _client_logged():
+        if _client_route_allowed(path):
+            return None
+        return core.app.response_class("Nemáte oprávnění k této části webu.", status=403, mimetype="text/plain")
+
+    # Statické CSS/obrázky přihlašovací stránky musí být dostupné,
+    # dokumenty ale bez přihlášení veřejně nevystavujeme.
+    if path.startswith("/static/") and not path.startswith("/static/documents/"):
+        return None
+
+    next_url = path
+    if request.query_string:
+        next_url += "?" + request.query_string.decode("utf-8", errors="ignore")
+    return core.redirect(core.url_for("client_login", next=_safe_next_url(next_url)))
+
+
+@app.route("/login", methods=["GET", "POST"], endpoint="client_login")
+def client_login():
+    if core.require_admin() or _client_logged():
+        return core.redirect(core.url_for("index"))
+
+    next_url = _safe_next_url(request.values.get("next"))
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        if not CLIENT_PASSWORD:
+            core.flash("Klientské heslo zatím není nastavené na serveru.")
+        elif hmac.compare_digest(username, CLIENT_USERNAME) and hmac.compare_digest(password, CLIENT_PASSWORD):
+            session["client"] = True
+            session["client_username"] = CLIENT_USERNAME
+            return core.redirect(next_url)
+        else:
+            core.flash("Nesprávné přihlašovací údaje.")
+
+    return core.render_template("client_login.html", next_url=next_url)
+
+
+@app.route("/logout", endpoint="client_logout")
+def client_logout():
+    session.pop("client", None)
+    session.pop("client_username", None)
+    return core.redirect(core.url_for("client_login"))
 
 
 def _mobile_vehicle(vehicle):
