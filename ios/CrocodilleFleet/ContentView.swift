@@ -82,32 +82,78 @@ struct VehiclesView: View {
 
 struct AlertsView: View {
     @EnvironmentObject var store: FleetStore
+    @State private var isSchedulingTest = false
+    @State private var notificationTestMessage: String?
 
     var body: some View {
-        List(store.alerts) { alert in
-            NavigationLink {
-                if let vehicle = store.vehicles.first(where: { $0.id == alert.vehicleId }) {
-                    VehicleDetailView(vehicle: vehicle)
+        List {
+            Section {
+                Button {
+                    scheduleNotificationTest()
+                } label: {
+                    Label(
+                        isSchedulingTest ? "Plánuji test…" : "Test notifikace za 10 sekund",
+                        systemImage: "bell.and.waves.left.and.right.fill"
+                    )
+                }
+                .disabled(isSchedulingTest)
+
+                if let notificationTestMessage {
+                    Text(notificationTestMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } footer: {
+                Text("Po spuštění testu může aplikace zůstat otevřená. Banner i zvuk se mají zobrazit za 10 sekund.")
+            }
+
+            Section("Aktuální upozornění") {
+                if store.alerts.isEmpty {
+                    Text("Žádná upozornění v následujících 30 dnech.")
+                        .foregroundStyle(.secondary)
                 } else {
-                    Text("Vozidlo nebylo nalezeno")
-                }
-            } label: {
-                VStack(alignment: .leading, spacing: 5) {
-                    HStack {
-                        Text(alert.spz).font(.headline)
-                        Spacer()
-                        Text(alert.days < 0 ? "PO TERMÍNU" : alert.days == 0 ? "DNES" : "\(alert.days) dní")
-                            .font(.caption.bold())
-                            .foregroundStyle(alert.days <= 7 ? .red : .orange)
+                    ForEach(store.alerts) { alert in
+                        NavigationLink {
+                            if let vehicle = store.vehicles.first(where: { $0.id == alert.vehicleId }) {
+                                VehicleDetailView(vehicle: vehicle)
+                            } else {
+                                Text("Vozidlo nebylo nalezeno")
+                            }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack {
+                                    Text(alert.spz).font(.headline)
+                                    Spacer()
+                                    Text(alert.days < 0 ? "PO TERMÍNU" : alert.days == 0 ? "DNES" : "\(alert.days) dní")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(alert.days <= 7 ? .red : .orange)
+                                }
+                                Text(alert.title).font(.subheadline.bold())
+                                Text(alert.message).font(.caption).foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
-                    Text(alert.title).font(.subheadline.bold())
-                    Text(alert.message).font(.caption).foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 4)
             }
         }
         .navigationTitle("Upozornění")
         .refreshable { await store.refresh() }
+    }
+
+    private func scheduleNotificationTest() {
+        isSchedulingTest = true
+        notificationTestMessage = nil
+
+        Task {
+            do {
+                try await NotificationManager.shared.scheduleTest(after: 10)
+                notificationTestMessage = "Test je naplánovaný. Vyčkej 10 sekund."
+            } catch {
+                notificationTestMessage = error.localizedDescription
+            }
+            isSchedulingTest = false
+        }
     }
 }
 
