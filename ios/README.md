@@ -25,10 +25,21 @@ Na Macu:
 brew install xcodegen
 cd ios
 xcodegen generate
-open CrocodilleFleet.xcodeproj
+open VansRenting.xcodeproj
 ```
 
 V Xcode zvol vlastní Team v Signing & Capabilities a spusť aplikaci na iPhonu.
 
-## Notifikace
-Aktuální první verze používá lokální notifikace. Po načtení dat aplikace naplánuje upozornění podle termínů z backendu. Další krok je serverový APNs push, který umožní upozornění i bez předchozího otevření aplikace po změně dat.
+## Notifikace – verze 1.1
+- aplikace požádá o oprávnění při prvním spuštění
+- upozornění plánuje na 30, 14, 7 a 1 den před termínem a v den termínu
+- běžná upozornění se zobrazí i po zavření aplikace
+- banner a zvuk se zobrazí také při otevřené aplikaci
+- na kartě Upozornění je vidět stav oprávnění a počet naplánovaných oznámení
+- testovací tlačítko vytvoří oznámení za 10 sekund
+- Background App Refresh se pokouší průběžně stáhnout nové termíny z produkčního API
+
+Po instalaci je nutné aplikaci alespoň jednou otevřít, povolit oznámení a ponechat zapnuté:
+`Nastavení → Obecné → Aktualizace aplikací na pozadí → Vans Renting`.
+
+iOS určuje přesný čas aktualizace na pozadí. Naplánované lokální notifikace už ale dorazí bez nutnosti mít aplikaci otevřenou.
