@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private let productionBaseURL = URL(string: "https://vansrenting-crocodille.onrender.com")!
 
@@ -82,12 +83,39 @@ struct VehiclesView: View {
 
 struct AlertsView: View {
     @EnvironmentObject var store: FleetStore
+    @Environment(\.openURL) private var openURL
     @State private var isSchedulingTest = false
     @State private var notificationTestMessage: String?
 
     var body: some View {
         List {
-            Section {
+            Section("Stav notifikací") {
+                HStack {
+                    Label("Oprávnění", systemImage: "bell.badge")
+                    Spacer()
+                    Text(store.notificationAuthorization)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(notificationStatusColor)
+                }
+
+                HStack {
+                    Label("Naplánovaná upozornění", systemImage: "calendar.badge.clock")
+                    Spacer()
+                    Text("\(store.scheduledNotificationCount)")
+                        .font(.subheadline.bold())
+                }
+
+                Button {
+                    guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                        return
+                    }
+                    openURL(url)
+                } label: {
+                    Label("Otevřít nastavení iPhonu", systemImage: "gear")
+                }
+            }
+
+            Section("Kontrola funkčnosti") {
                 Button {
                     scheduleNotificationTest()
                 } label: {
@@ -139,6 +167,20 @@ struct AlertsView: View {
         }
         .navigationTitle("Upozornění")
         .refreshable { await store.refresh() }
+        .task {
+            await store.refreshNotificationStatus()
+        }
+    }
+
+    private var notificationStatusColor: Color {
+        switch store.notificationAuthorization {
+        case "Povolena":
+            return .green
+        case "Zakázána":
+            return .red
+        default:
+            return .orange
+        }
     }
 
     private func scheduleNotificationTest() {
@@ -149,6 +191,7 @@ struct AlertsView: View {
             do {
                 try await NotificationManager.shared.scheduleTest(after: 10)
                 notificationTestMessage = "Test je naplánovaný. Vyčkej 10 sekund."
+                await store.refreshNotificationStatus()
             } catch {
                 notificationTestMessage = error.localizedDescription
             }
