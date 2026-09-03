@@ -40,7 +40,9 @@ private struct NotificationCandidate {
 actor NotificationManager {
     static let shared = NotificationManager()
 
-    private let notificationDays = [30, 14, 7, 1, 0]
+    private let firstReminderDays = [30, 14]
+    private let dailyReminderDays = Array(stride(from: 13, through: 0, by: -1))
+    private let dailyReminderHours = [9, 16]
     private let maximumFleetNotifications = 60
 
     func authorizationState() async -> NotificationAuthorizationState {
@@ -171,37 +173,69 @@ actor NotificationManager {
                 continue
             }
 
-            for daysBefore in notificationDays {
-                guard let notificationDate = notificationDate(
+            for daysBefore in firstReminderDays {
+                if let candidate = candidate(
+                    for: alert,
                     dueDate: dueDate,
                     daysBefore: daysBefore,
+                    hour: 9,
                     now: now
-                ) else {
-                    continue
+                ) {
+                    candidates.append(candidate)
                 }
+            }
 
-                candidates.append(
-                    NotificationCandidate(
-                        identifier: "fleet-\(daysBefore)-\(alert.id)",
-                        title: "\(alert.spz) · \(alert.title)",
-                        body: notificationBody(
-                            title: alert.title,
-                            dueDate: dueDate,
-                            daysBefore: daysBefore
-                        ),
-                        date: notificationDate,
-                        threadIdentifier: alert.spz
-                    )
-                )
+            for daysBefore in dailyReminderDays {
+                for hour in dailyReminderHours {
+                    if let candidate = candidate(
+                        for: alert,
+                        dueDate: dueDate,
+                        daysBefore: daysBefore,
+                        hour: hour,
+                        now: now
+                    ) {
+                        candidates.append(candidate)
+                    }
+                }
             }
         }
 
         return candidates
     }
 
+    private func candidate(
+        for alert: FleetAlert,
+        dueDate: Date,
+        daysBefore: Int,
+        hour: Int,
+        now: Date
+    ) -> NotificationCandidate? {
+        guard let scheduledDate = notificationDate(
+            dueDate: dueDate,
+            daysBefore: daysBefore,
+            hour: hour,
+            now: now
+        ) else {
+            return nil
+        }
+
+        return NotificationCandidate(
+            identifier: "fleet-\(daysBefore)-\(hour)-\(alert.id)",
+            title: "\(alert.spz) · \(alert.title)",
+            body: notificationBody(
+                title: alert.title,
+                dueDate: dueDate,
+                daysBefore: daysBefore
+            ),
+            date: scheduledDate,
+            threadIdentifier: alert.spz
+        )
+    }
+
     private func notificationDate(
         dueDate: Date,
         daysBefore: Int,
+        hour: Int,
         now: Date
     ) -> Date? {
         var calendar = Calendar.autoupdatingCurrent
@@ -212,7 +246,7 @@ actor NotificationManager {
         }
 
         var components = calendar.dateComponents([.year, .month, .day], from: day)
-        components.hour = 9
+        components.hour = hour
         components.minute = 0
 
         guard let scheduledDate = calendar.date(from: components) else {
@@ -220,6 +254,7 @@ actor NotificationManager {
         }
 
         if daysBefore == 0,
+           hour == dailyReminderHours.last,
            calendar.isDate(dueDate, inSameDayAs: now),
            scheduledDate <= now {
             return now.addingTimeInterval(5)
