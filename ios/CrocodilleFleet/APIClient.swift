@@ -6,6 +6,8 @@ final class FleetStore: ObservableObject {
     @Published var alerts: [FleetAlert] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var notificationAuthorization = "Kontroluji…"
+    @Published var scheduledNotificationCount = 0
 
     private let baseURL = URL(string: "https://vansrenting-crocodille.onrender.com")!
 
@@ -25,11 +27,24 @@ final class FleetStore: ObservableObject {
         do {
             let alertsResponse: AlertsEnvelope = try await fetch("/api/v1/alerts?days=30")
             alerts = alertsResponse.alerts
-            await NotificationManager.shared.schedule(alerts: alertsResponse.alerts)
+            scheduledNotificationCount = await NotificationManager.shared.schedule(
+                alerts: alertsResponse.alerts
+            )
+            await refreshNotificationStatus()
         } catch {
             // Vozidla už jsou načtená, takže chyba upozornění nesmí shodit celý přehled.
             alerts = vehicles.flatMap(\.alerts)
-            await NotificationManager.shared.schedule(alerts: alerts)
+            scheduledNotificationCount = await NotificationManager.shared.schedule(alerts: alerts)
+            await refreshNotificationStatus()
+        }
+    }
+
+    func refreshNotificationStatus() async {
+        let state = await NotificationManager.shared.authorizationState()
+        notificationAuthorization = state.title
+
+        if state != .allowed {
+            scheduledNotificationCount = 0
         }
     }
 
