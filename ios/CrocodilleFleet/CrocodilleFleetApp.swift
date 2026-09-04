@@ -4,7 +4,7 @@ import UIKit
 import UserNotifications
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    private static let backgroundRefreshIdentifier = "cz.vanscentre.vansrenting.refresh"
+    private static let backgroundRefreshIdentifier = "cz.jakubwurm.vansrenting.crocodille.refresh"
 
     func application(
         _ application: UIApplication,
