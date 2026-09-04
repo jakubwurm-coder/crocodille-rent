@@ -127,19 +127,32 @@ struct FleetAlert: Decodable, Identifiable, Hashable {
 
 private extension KeyedDecodingContainer {
     func flexibleString(forKey key: Key, default defaultValue: String = "") -> String {
-        if let value = try? decodeIfPresent(String.self, forKey: key), let value { return value }
-        if let value = try? decodeIfPresent(Int.self, forKey: key), let value { return String(value) }
-        if let value = try? decodeIfPresent(Double.self, forKey: key), let value {
+        if let value = try? decode(String.self, forKey: key) {
+            return value
+        }
+        if let value = try? decode(Int.self, forKey: key) {
+            return String(value)
+        }
+        if let value = try? decode(Double.self, forKey: key) {
             return value.rounded() == value ? String(Int(value)) : String(value)
         }
-        if let value = try? decodeIfPresent(Bool.self, forKey: key), let value { return value ? "true" : "false" }
+        if let value = try? decode(Bool.self, forKey: key) {
+            return value ? "true" : "false"
+        }
         return defaultValue
     }
 
     func flexibleInt(forKey key: Key, default defaultValue: Int = 0) -> Int {
-        if let value = try? decodeIfPresent(Int.self, forKey: key), let value { return value }
-        if let value = try? decodeIfPresent(Double.self, forKey: key), let value { return Int(value) }
-        if let value = try? decodeIfPresent(String.self, forKey: key), let value, let intValue = Int(value) { return intValue }
+        if let value = try? decode(Int.self, forKey: key) {
+            return value
+        }
+        if let value = try? decode(Double.self, forKey: key) {
+            return Int(value)
+        }
+        if let value = try? decode(String.self, forKey: key),
+           let intValue = Int(value) {
+            return intValue
+        }
         return defaultValue
     }
 }
