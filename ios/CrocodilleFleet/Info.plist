@@ -4,7 +4,7 @@
 <dict>
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
-        <string>cz.vanscentre.vansrenting.refresh</string>
+        <string>cz.jakubwurm.vansrenting.crocodille.refresh</string>
     </array>
     <key>CFBundleDisplayName</key>
     <string>Vans Renting</string>
