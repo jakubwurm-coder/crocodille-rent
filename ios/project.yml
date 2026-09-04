@@ -1,6 +1,6 @@
 name: VansRenting
 options:
-  bundleIdPrefix: cz.vanscentre
+  bundleIdPrefix: cz.jakubwurm
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 17.0
@@ -20,7 +20,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: VansRenting
-        PRODUCT_BUNDLE_IDENTIFIER: cz.vanscentre.vansrenting
+        PRODUCT_BUNDLE_IDENTIFIER: cz.jakubwurm.vansrenting.crocodille
         INFOPLIST_FILE: CrocodilleFleet/Info.plist
         GENERATE_INFOPLIST_FILE: NO
     scheme:
