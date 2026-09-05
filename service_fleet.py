@@ -1,15 +1,41 @@
 import os
 import json
 import hmac
+import base64
+import re
+import threading
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import psycopg2
+import requests
 from psycopg2.extras import Json
 
 SERVICE_VINS = [
     ("vc-sm023709", "TMBAG8NX5SM023709"),
     ("vc-sm022935", "TMBAG8NX9SM022935"),
 ]
+
+# eDalnice – veřejné ověření platnosti podle země registrace + SPZ.
+# Česká republika má v API tento country ID.
+EDALNICE_COUNTRY_ID_CZ = "3906ba89-153c-4038-8e36-0ca1deb76076"
+EDALNICE_INDEX_URLS = (
+    "https://edalnice.gov.cz/",
+    "https://edalnice.cz/",
+)
+EDALNICE_AUTH_URL = "https://auth.edalnice.cz/auth/connect/token"
+EDALNICE_VALIDATION_URL = (
+    "https://eshop.edalnice.cz/api/v3/charge_registrations/"
+    + EDALNICE_COUNTRY_ID_CZ
+    + "/"
+)
+VIGNETTE_REFRESH_SECONDS = int(os.environ.get("VIGNETTE_REFRESH_SECONDS", "43200"))
+VIGNETTE_STALE_SECONDS = int(os.environ.get("VIGNETTE_STALE_SECONDS", "72000"))
+
+_edalnice_token_cache = {"token": "", "expires_at": 0.0}
+_vignette_refresh_lock = threading.Lock()
+_vignette_last_started = 0.0
 
 
 def _seed_vehicle(vehicle_id, vin):
@@ -157,8 +183,238 @@ def _find(core, vehicle_id):
     return next((v for v in _load(core) if str(v.get("id")) == str(vehicle_id)), None)
 
 
+def _parse_iso(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _edalnice_client_credentials():
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
+    }
+    last_error = None
+    patterns = [
+        (r'"REACT_APP_CLIENT_ID"\s*:\s*"([^"]+)"', r'"REACT_APP_CLIENT_SECRET"\s*:\s*"([^"]+)"'),
+        (r'REACT_APP_CLIENT_ID["\']?\s*[:=]\s*["\']([^"\']+)', r'REACT_APP_CLIENT_SECRET["\']?\s*[:=]\s*["\']([^"\']+)'),
+    ]
+    for url in EDALNICE_INDEX_URLS:
+        try:
+            response = requests.get(url, headers=headers, timeout=20)
+            response.raise_for_status()
+            text = response.text
+            for id_pattern, secret_pattern in patterns:
+                client_id = re.search(id_pattern, text)
+                client_secret = re.search(secret_pattern, text)
+                if client_id and client_secret:
+                    return client_id.group(1), client_secret.group(1)
+        except Exception as exc:
+            last_error = exc
+    raise RuntimeError(f"eDalnice: nepodařilo se načíst veřejné klientské údaje ({last_error or 'nenalezeny'}).")
+
+
+def _edalnice_token(force=False):
+    now = time.time()
+    if not force and _edalnice_token_cache["token"] and _edalnice_token_cache["expires_at"] > now + 60:
+        return _edalnice_token_cache["token"]
+
+    client_id, client_secret = _edalnice_client_credentials()
+    basic = base64.b64encode(f"{client_id}:{client_secret}".encode("utf-8")).decode("ascii")
+    response = requests.post(
+        EDALNICE_AUTH_URL,
+        data={"grant_type": "client_credentials", "Scope": "eshop.api eshoppayment.api"},
+        headers={
+            "Authorization": f"Basic {basic}",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    token = str(payload.get("access_token") or "").strip()
+    if not token:
+        raise RuntimeError("eDalnice: autentizace nevrátila access_token.")
+    expires_in = int(payload.get("expires_in") or 300)
+    _edalnice_token_cache["token"] = token
+    _edalnice_token_cache["expires_at"] = now + max(60, expires_in)
+    return token
+
+
+def _edalnice_lookup(spz):
+    plate = re.sub(r"\s+", "", str(spz or "").strip().upper())
+    if not plate:
+        raise ValueError("Chybí SPZ.")
+
+    def request_status(token):
+        return requests.get(
+            EDALNICE_VALIDATION_URL + plate,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json,text/json",
+                "Accept-Language": "cs",
+                "Origin": "https://edalnice.gov.cz",
+                "Referer": "https://edalnice.gov.cz/",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0 Safari/537.36",
+            },
+            timeout=20,
+        )
+
+    token = _edalnice_token()
+    response = request_status(token)
+    if response.status_code == 401:
+        token = _edalnice_token(force=True)
+        response = request_status(token)
+    response.raise_for_status()
+    payload = response.json()
+
+    now = datetime.now(timezone.utc)
+    current = []
+    future = []
+    for charge in payload.get("charges") or []:
+        valid_since = _parse_iso(charge.get("validSince"))
+        valid_until = _parse_iso(charge.get("validUntil"))
+        if valid_since and valid_since.tzinfo is None:
+            valid_since = valid_since.replace(tzinfo=timezone.utc)
+        if valid_until and valid_until.tzinfo is None:
+            valid_until = valid_until.replace(tzinfo=timezone.utc)
+        item = {
+            "valid_since": valid_since,
+            "valid_until": valid_until,
+            "is_currently_valid": bool(charge.get("isCurrentlyValid")),
+            "fuel_type": charge.get("fuelType"),
+        }
+        if item["is_currently_valid"] or (valid_since and valid_until and valid_since <= now <= valid_until):
+            current.append(item)
+        elif valid_since and valid_since > now:
+            future.append(item)
+
+    selected = None
+    if current:
+        selected = max(current, key=lambda x: x.get("valid_until") or datetime.min.replace(tzinfo=timezone.utc))
+    elif future:
+        selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
+
+    return {
+        "plate": plate,
+        "is_valid": bool(current),
+        "is_exempt": bool(payload.get("isGivenExemption")),
+        "valid_since": selected.get("valid_since") if selected else None,
+        "valid_until": selected.get("valid_until") if selected else None,
+        "future_vignette": bool(selected and not current and future),
+    }
+
+
+def _checked_recently(vehicle):
+    checked = _parse_iso(vehicle.get("vignette_checked_at"))
+    if not checked:
+        return False
+    if checked.tzinfo is None:
+        checked = checked.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - checked).total_seconds() < VIGNETTE_STALE_SECONDS
+
+
+def _refresh_main_vignettes(core, force=False):
+    if not _vignette_refresh_lock.acquire(blocking=False):
+        return {"updated": 0, "errors": ["Kontrola už právě běží."]}
+    try:
+        vehicles = core.load_vehicles()
+        changed = False
+        updated = 0
+        errors = []
+        for vehicle in vehicles:
+            spz = str(vehicle.get("spz") or "").strip().upper()
+            if not spz or not core.is_active_vehicle(vehicle):
+                continue
+            if not force and _checked_recently(vehicle):
+                continue
+            try:
+                result = _edalnice_lookup(spz)
+                now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                vehicle["vignette_checked_at"] = now_iso
+                vehicle["vignette_source"] = "edalnice"
+                vehicle["vignette_is_exempt"] = result["is_exempt"]
+                vehicle["vignette_future_from"] = (
+                    result["valid_since"].date().isoformat()
+                    if result.get("future_vignette") and result.get("valid_since")
+                    else ""
+                )
+
+                if result["is_exempt"]:
+                    vehicle["vignette_status"] = "exempt"
+                    vehicle["vignette_until"] = ""
+                elif result["is_valid"] and result.get("valid_until"):
+                    vehicle["vignette_status"] = "valid"
+                    vehicle["vignette_until"] = result["valid_until"].date().isoformat()
+                elif result.get("future_vignette"):
+                    vehicle["vignette_status"] = "future"
+                    # Budoucí známku neukazujeme jako právě platnou.
+                    vehicle["vignette_until"] = ""
+                else:
+                    vehicle["vignette_status"] = "missing"
+                    vehicle["vignette_until"] = ""
+                updated += 1
+                changed = True
+            except Exception as exc:
+                errors.append(f"{spz}: {type(exc).__name__}: {exc}")
+                vehicle["vignette_last_error"] = str(exc)[:300]
+                vehicle["vignette_checked_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                changed = True
+
+        if changed:
+            core.save_vehicles(vehicles, f"Automatická kontrola dálničních známek ({updated} vozidel)")
+        return {"updated": updated, "errors": errors}
+    finally:
+        _vignette_refresh_lock.release()
+
+
+def _maybe_start_vignette_refresh(core):
+    global _vignette_last_started
+    now = time.time()
+    if now - _vignette_last_started < VIGNETTE_REFRESH_SECONDS:
+        return
+    _vignette_last_started = now
+
+    def worker():
+        try:
+            result = _refresh_main_vignettes(core, force=False)
+            if result.get("errors"):
+                print("eDalnice refresh errors:", "; ".join(result["errors"]))
+            else:
+                print(f"eDalnice refresh OK: {result.get('updated', 0)} vozidel")
+        except Exception as exc:
+            print(f"eDalnice background refresh failed: {exc}")
+
+    threading.Thread(target=worker, name="edalnice-refresh", daemon=True).start()
+
+
 def register(core):
     app = core.app
+
+    # Automatická kontrola běží mimo obsluhu stránky, takže nebrzdí otevření webu.
+    @app.before_request
+    def auto_vignette_refresh():
+        _maybe_start_vignette_refresh(core)
+
+    @app.route("/admin/vignette-refresh", methods=["POST"])
+    def admin_vignette_refresh():
+        if not core.require_admin():
+            return core.redirect(core.url_for("login"))
+        result = _refresh_main_vignettes(core, force=True)
+        if result["errors"]:
+            core.flash(
+                f"Dálniční známky: aktualizováno {result['updated']} vozidel, chyb {len(result['errors'])}. "
+                + " | ".join(result["errors"][:3])
+            )
+        else:
+            core.flash(f"Dálniční známky byly ověřeny pro {result['updated']} vozidel.")
+        return core.redirect(core.url_for("admin"))
 
     def service_logged():
         return bool(core.session.get("service_user"))
