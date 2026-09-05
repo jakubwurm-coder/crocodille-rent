@@ -40,9 +40,9 @@ private struct NotificationCandidate {
 actor NotificationManager {
     static let shared = NotificationManager()
 
-    private let firstReminderDays = [30, 14]
-    private let dailyReminderDays = Array(stride(from: 13, through: 0, by: -1))
-    private let dailyReminderHours = [9, 16]
+    private let milestoneReminderDays = [30, 14, 7]
+    private let dailyReminderDays = Array(stride(from: 6, through: 0, by: -1))
+    private let reminderHour = 9
     private let maximumFleetNotifications = 60
 
     func authorizationState() async -> NotificationAuthorizationState {
@@ -173,12 +173,12 @@ actor NotificationManager {
                 continue
             }
 
-            for daysBefore in firstReminderDays {
+            for daysBefore in milestoneReminderDays {
                 if let candidate = candidate(
                     for: alert,
                     dueDate: dueDate,
                     daysBefore: daysBefore,
-                    hour: 9,
+                    hour: reminderHour,
                     now: now
                 ) {
                     candidates.append(candidate)
@@ -186,16 +186,14 @@ actor NotificationManager {
             }
 
             for daysBefore in dailyReminderDays {
-                for hour in dailyReminderHours {
-                    if let candidate = candidate(
-                        for: alert,
-                        dueDate: dueDate,
-                        daysBefore: daysBefore,
-                        hour: hour,
-                        now: now
-                    ) {
-                        candidates.append(candidate)
-                    }
+                if let candidate = candidate(
+                    for: alert,
+                    dueDate: dueDate,
+                    daysBefore: daysBefore,
+                    hour: reminderHour,
+                    now: now
+                ) {
+                    candidates.append(candidate)
                 }
             }
         }
@@ -254,7 +252,7 @@ actor NotificationManager {
         }
 
         if daysBefore == 0,
-           hour == dailyReminderHours.last,
+           hour == reminderHour,
            calendar.isDate(dueDate, inSameDayAs: now),
            scheduledDate <= now {
             return now.addingTimeInterval(5)
