@@ -32,8 +32,8 @@ V Xcode zvol vlastní Team v Signing & Capabilities a spusť aplikaci na iPhonu.
 
 ## Notifikace – verze 1.1
 - aplikace požádá o oprávnění při prvním spuštění
-- upozornění přijde 30 dní před termínem v 9:00 a 14 dní před termínem v 9:00
-- od 13. dne před termínem až do dne termínu přijde každý den dvakrát, v 9:00 a 16:00
+- upozornění přijde 30 dní, 14 dní a 7 dní před termínem, vždy v 9:00
+- od 6. dne před termínem až do dne termínu přijde každý den v 9:00
 - běžná upozornění se zobrazí i po zavření aplikace
 - banner a zvuk se zobrazí také při otevřené aplikaci
 - na kartě Upozornění je vidět stav oprávnění a počet naplánovaných oznámení
