@@ -2,6 +2,7 @@ import hmac
 import io
 import os
 import re
+import threading
 import time
 
 import qrcode
@@ -15,10 +16,33 @@ import service_fleet
 
 app = core.app
 
-# Dálniční známky se obnovují synchronně při otevření přehledu vozidel.
-# Periodický background refresh tímto vypínáme, aby se eDalnice nevolala dvakrát.
+# Dálniční známky obnovujeme po otevření přehledu vozidel,
+# ale na pozadí, aby se přehled neblokoval čekáním na eDalnice.
+# Původní periodický refresh vypínáme, aby se API nevolalo dvakrát.
 service_fleet.VIGNETTE_REFRESH_SECONDS = 10**9
 service_fleet._vignette_last_started = time.time()
+
+
+def _start_overview_vignette_refresh():
+    def worker():
+        try:
+            result = service_fleet._refresh_main_vignettes(core, force=True)
+            service_fleet._vignette_last_started = time.time()
+            if result.get("errors"):
+                app.logger.warning(
+                    "eDalnice overview refresh: updated=%s errors=%s",
+                    result.get("updated", 0),
+                    len(result.get("errors") or []),
+                )
+        except Exception:
+            # Výpadek eDalnice nesmí shodit web ani aplikaci.
+            app.logger.exception("eDalnice overview refresh failed")
+
+    threading.Thread(
+        target=worker,
+        name="edalnice-overview-refresh",
+        daemon=True,
+    ).start()
 
 
 @app.before_request
@@ -26,21 +50,8 @@ def refresh_vignettes_on_vehicle_overview():
     path = request.path or "/"
     web_overview = path == "/" and (core.require_admin() or session.get("client") is True)
     mobile_overview = path == "/api/vehicles"
-    if not (web_overview or mobile_overview):
-        return None
-
-    try:
-        result = service_fleet._refresh_main_vignettes(core, force=True)
-        service_fleet._vignette_last_started = time.time()
-        if result.get("errors"):
-            app.logger.warning(
-                "eDalnice overview refresh: updated=%s errors=%s",
-                result.get("updated", 0),
-                len(result.get("errors") or []),
-            )
-    except Exception:
-        # Výpadek eDalnice nesmí shodit přehled. Zobrazí se poslední uložená data.
-        app.logger.exception("eDalnice overview refresh failed")
+    if web_overview or mobile_overview:
+        _start_overview_vignette_refresh()
     return None
 
 
@@ -192,8 +203,8 @@ def _mobile_vehicle(vehicle):
 
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
-    # Před vstupem sem už proběhla synchronní kontrola eDalnice v before_request.
-    # iOS tedy dostane přehled s právě uloženými čerstvými údaji.
+    # Otevření přehledu iOS odstartuje obnovu eDalnice na pozadí,
+    # ale samotný seznam se vrátí okamžitě z PostgreSQL.
     return core.jsonify([_mobile_vehicle(vehicle) for vehicle in core.load_vehicles()])
 
 
