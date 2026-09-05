@@ -12,10 +12,42 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/vehicle-polish.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/vans-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vignette-status.css') }}">
 </head>
 <body>
   <div class="shell">
     {% block content %}{% endblock %}
   </div>
+
+  <div id="vignette-sync-data" hidden>
+    {% if v is defined and v %}
+      <span
+        data-vignette-record
+        data-id="{{ v.get('id','') }}"
+        data-spz="{{ v.get('spz','') }}"
+        data-status="{{ v.get('vignette_status','') }}"
+        data-until="{{ v.get('vignette_until','') }}"
+        data-checked-at="{{ v.get('vignette_checked_at','') }}"
+        data-future-from="{{ v.get('vignette_future_from','') }}"
+        data-source="{{ v.get('vignette_source','') }}"
+        data-exempt="{{ '1' if v.get('vignette_is_exempt') else '0' }}">
+      </span>
+    {% elif vehicles is defined %}
+      {% for item in vehicles %}
+        <span
+          data-vignette-record
+          data-id="{{ item.get('id','') }}"
+          data-spz="{{ item.get('spz','') }}"
+          data-status="{{ item.get('vignette_status','') }}"
+          data-until="{{ item.get('vignette_until','') }}"
+          data-checked-at="{{ item.get('vignette_checked_at','') }}"
+          data-future-from="{{ item.get('vignette_future_from','') }}"
+          data-source="{{ item.get('vignette_source','') }}"
+          data-exempt="{{ '1' if item.get('vignette_is_exempt') else '0' }}">
+        </span>
+      {% endfor %}
+    {% endif %}
+  </div>
+  <script src="{{ url_for('static', filename='js/vignette-status.js') }}" defer></script>
 </body>
 </html>
