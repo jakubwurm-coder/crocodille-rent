@@ -115,7 +115,7 @@ struct AlertsView: View {
                 }
             }
 
-            Section("Kontrola funkčnosti") {
+            Section {
                 Button {
                     scheduleNotificationTest()
                 } label: {
@@ -131,6 +131,8 @@ struct AlertsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("Kontrola funkčnosti")
             } footer: {
                 Text("Po spuštění testu může aplikace zůstat otevřená. Banner i zvuk se mají zobrazit za 10 sekund.")
             }
