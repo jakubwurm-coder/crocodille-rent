@@ -2,6 +2,7 @@ import hmac
 import io
 import os
 import re
+import time
 
 import qrcode
 import qrcode.image.svg
@@ -10,10 +11,40 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from flask import request, session
 
 import legacy_app as core
-from service_fleet import register
+import service_fleet
 
-register(core)
 app = core.app
+
+# Dálniční známky se obnovují synchronně při otevření přehledu vozidel.
+# Periodický background refresh tímto vypínáme, aby se eDalnice nevolala dvakrát.
+service_fleet.VIGNETTE_REFRESH_SECONDS = 10**9
+service_fleet._vignette_last_started = time.time()
+
+
+@app.before_request
+def refresh_vignettes_on_vehicle_overview():
+    path = request.path or "/"
+    web_overview = path == "/" and (core.require_admin() or session.get("client") is True)
+    mobile_overview = path == "/api/vehicles"
+    if not (web_overview or mobile_overview):
+        return None
+
+    try:
+        result = service_fleet._refresh_main_vignettes(core, force=True)
+        service_fleet._vignette_last_started = time.time()
+        if result.get("errors"):
+            app.logger.warning(
+                "eDalnice overview refresh: updated=%s errors=%s",
+                result.get("updated", 0),
+                len(result.get("errors") or []),
+            )
+    except Exception:
+        # Výpadek eDalnice nesmí shodit přehled. Zobrazí se poslední uložená data.
+        app.logger.exception("eDalnice overview refresh failed")
+    return None
+
+
+service_fleet.register(core)
 
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
 PUBLIC_BASE_URL = "https://vansrenting-crocodille.onrender.com"
@@ -161,9 +192,8 @@ def _mobile_vehicle(vehicle):
 
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
-    # Backward-compatible endpoint for older iOS builds. Return the same
-    # top-level JSON array they originally decoded, but only with the
-    # sanitized mobile fields (no documents, service history or raw data).
+    # Před vstupem sem už proběhla synchronní kontrola eDalnice v before_request.
+    # iOS tedy dostane přehled s právě uloženými čerstvými údaji.
     return core.jsonify([_mobile_vehicle(vehicle) for vehicle in core.load_vehicles()])
 
 
