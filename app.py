@@ -4,6 +4,7 @@ import os
 import re
 import threading
 import time
+from datetime import datetime, timezone
 
 import qrcode
 import qrcode.image.svg
@@ -16,42 +17,107 @@ import service_fleet
 
 app = core.app
 
-# Dálniční známky obnovujeme po otevření přehledu vozidel,
-# ale na pozadí, aby se přehled neblokoval čekáním na eDalnice.
-# Původní periodický refresh vypínáme, aby se API nevolalo dvakrát.
+# Dálniční známky i STK obnovujeme po otevření přehledu vozidel,
+# vždy na pozadí, aby se web ani iOS neblokovaly čekáním na externí API.
+# Původní periodický refresh eDalnice vypínáme, aby se API nevolalo dvakrát.
 service_fleet.VIGNETTE_REFRESH_SECONDS = 10**9
 service_fleet._vignette_last_started = time.time()
 
+OVERVIEW_REFRESH_MIN_SECONDS = int(os.environ.get("OVERVIEW_REFRESH_MIN_SECONDS", "120"))
+_overview_refresh_lock = threading.Lock()
+_overview_last_started = 0.0
 
-def _start_overview_vignette_refresh():
+
+def _refresh_main_stk_from_datova_kostka():
+    """Načte STK podle VIN z Datové kostky a uloží ji do hlavní databáze vozidel."""
+    vehicles = core.load_vehicles()
+    changed = False
+    updated = 0
+    errors = []
+
+    for vehicle in vehicles:
+        vin = str(vehicle.get("vin") or "").strip().upper()
+        if len(vin) != 17 or not core.is_active_vehicle(vehicle):
+            continue
+
+        try:
+            dk = core.make_datova_kostka(vin, core.fetch_datova_kostka(vin))
+            basic = dk.get("basic") or {}
+            inspection_until = str(basic.get("inspection_until") or "").strip()[:10]
+            now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+            vehicle["datova_kostka"] = dk
+            vehicle["stk_checked_at"] = now_iso
+            vehicle["stk_source"] = "datova_kostka"
+            vehicle.pop("stk_last_error", None)
+            if inspection_until:
+                vehicle["stk_until"] = inspection_until
+
+            updated += 1
+            changed = True
+        except Exception as exc:
+            errors.append(f"{vin}: {type(exc).__name__}: {exc}")
+            vehicle["stk_checked_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            vehicle["stk_last_error"] = str(exc)[:300]
+            changed = True
+
+    if changed:
+        core.save_vehicles(
+            vehicles,
+            f"Automatická kontrola STK z Datové kostky ({updated} vozidel)",
+        )
+
+    return {"updated": updated, "errors": errors}
+
+
+def _start_overview_background_refresh():
+    global _overview_last_started
+
+    now = time.time()
+    if now - _overview_last_started < OVERVIEW_REFRESH_MIN_SECONDS:
+        return
+    if not _overview_refresh_lock.acquire(blocking=False):
+        return
+
+    _overview_last_started = now
+
     def worker():
         try:
-            result = service_fleet._refresh_main_vignettes(core, force=True)
+            vignette_result = service_fleet._refresh_main_vignettes(core, force=True)
             service_fleet._vignette_last_started = time.time()
-            if result.get("errors"):
+            if vignette_result.get("errors"):
                 app.logger.warning(
                     "eDalnice overview refresh: updated=%s errors=%s",
-                    result.get("updated", 0),
-                    len(result.get("errors") or []),
+                    vignette_result.get("updated", 0),
+                    len(vignette_result.get("errors") or []),
+                )
+
+            stk_result = _refresh_main_stk_from_datova_kostka()
+            if stk_result.get("errors"):
+                app.logger.warning(
+                    "Datova kostka STK overview refresh: updated=%s errors=%s",
+                    stk_result.get("updated", 0),
+                    len(stk_result.get("errors") or []),
                 )
         except Exception:
-            # Výpadek eDalnice nesmí shodit web ani aplikaci.
-            app.logger.exception("eDalnice overview refresh failed")
+            app.logger.exception("Overview background refresh failed")
+        finally:
+            _overview_refresh_lock.release()
 
     threading.Thread(
         target=worker,
-        name="edalnice-overview-refresh",
+        name="vehicle-overview-refresh",
         daemon=True,
     ).start()
 
 
 @app.before_request
-def refresh_vignettes_on_vehicle_overview():
+def refresh_external_data_on_vehicle_overview():
     path = request.path or "/"
     web_overview = path == "/" and (core.require_admin() or session.get("client") is True)
     mobile_overview = path == "/api/vehicles"
     if web_overview or mobile_overview:
-        _start_overview_vignette_refresh()
+        _start_overview_background_refresh()
     return None
 
 
@@ -60,7 +126,7 @@ service_fleet.register(core)
 VANS_CENTRE_LOGO_URL = "https://img.classistatic.de/api/v1/mo-prod/images/67/671ecf7e-9971-4a73-928f-537b147fa761?rule=mo-640.jpg"
 PUBLIC_BASE_URL = "https://vansrenting-crocodille.onrender.com"
 CLIENT_USERNAME = os.environ.get("CLIENT_USERNAME", "crocodille").strip() or "crocodille"
-CLIENT_PASSWORD = os.environ.get("CLIENT_PASSWORD", "Crocodille2026!").strip() or "Crocodille2026!"
+CLIENT_PASSWORD = os.environ.get("CLIENT_PASSWORD", "").strip()
 
 
 def _safe_next_url(value):
@@ -98,33 +164,25 @@ def inject_client_auth():
 def protect_client_area():
     path = request.path or "/"
 
-    # Veřejné technické cesty a přihlášení.
     if path in ("/login", "/logout", "/admin/login", "/admin/logout", "/healthz"):
         return None
     if path.startswith("/api/"):
         return None
 
-    # Karta konkrétního vozidla je veřejná kvůli QR kódům.
-    # Nezpřístupňuje administraci ani dokumenty; ty zůstávají chráněné.
     if path.startswith("/v/"):
         return None
 
-    # Admin má plný přístup jako doposud.
     if core.require_admin():
         return None
 
-    # Administrační cesty si dál hlídá stávající admin přihlášení.
     if path.startswith("/admin"):
         return None
 
-    # Klient má pouze read-only část s 25 vozidly a jejich podklady.
     if _client_logged():
         if _client_route_allowed(path):
             return None
         return core.app.response_class("Nemáte oprávnění k této části webu.", status=403, mimetype="text/plain")
 
-    # Statické CSS/obrázky přihlašovací stránky musí být dostupné,
-    # dokumenty ale bez přihlášení veřejně nevystavujeme.
     if path.startswith("/static/") and not path.startswith("/static/documents/"):
         return None
 
@@ -203,8 +261,6 @@ def _mobile_vehicle(vehicle):
 
 @app.route("/api/vehicles", endpoint="api_vehicles_compat")
 def api_vehicles_compat():
-    # Otevření přehledu iOS odstartuje obnovu eDalnice na pozadí,
-    # ale samotný seznam se vrátí okamžitě z PostgreSQL.
     return core.jsonify([_mobile_vehicle(vehicle) for vehicle in core.load_vehicles()])
 
 
