@@ -20,6 +20,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: VansRenting
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_BUNDLE_IDENTIFIER: cz.jakubwurm.vansrenting.crocodille
         INFOPLIST_FILE: CrocodilleFleet/Info.plist
         GENERATE_INFOPLIST_FILE: NO
