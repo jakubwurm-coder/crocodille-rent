@@ -1,11 +1,13 @@
 import os
 import json
 import hmac
+import base64
 import re
 import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urljoin
 
 import psycopg2
 import requests
@@ -17,8 +19,10 @@ SERVICE_VINS = [
 ]
 
 # eDalnice – veřejné ověření platnosti podle země registrace + SPZ.
-# Aktuální frontend eDalnice (09/2026) volá tento endpoint přímo bez OAuth tokenu.
+# Aktuální frontend (09/2026) používá OAuth client_credentials a Bearer token.
 EDALNICE_COUNTRY_ID_CZ = "3906ba89-153c-4038-8e36-0ca1deb76076"
+EDALNICE_INDEX_URL = "https://edalnice.gov.cz/"
+EDALNICE_AUTH_URL = "https://auth.edalnice.gov.cz/auth/connect/token"
 EDALNICE_VALIDATION_URL = (
     "https://eshop.edalnice.gov.cz/api/v3/charge_registrations/"
     + EDALNICE_COUNTRY_ID_CZ
@@ -27,6 +31,8 @@ EDALNICE_VALIDATION_URL = (
 VIGNETTE_REFRESH_SECONDS = int(os.environ.get("VIGNETTE_REFRESH_SECONDS", "43200"))
 VIGNETTE_STALE_SECONDS = int(os.environ.get("VIGNETTE_STALE_SECONDS", "72000"))
 
+_edalnice_token_cache = {"token": "", "expires_at": 0.0}
+_edalnice_client_cache = {"client_id": "", "client_secret": "", "expires_at": 0.0}
 _vignette_refresh_lock = threading.Lock()
 _vignette_last_started = 0.0
 
@@ -186,6 +192,138 @@ def _parse_iso(value):
         return None
 
 
+def _edalnice_browser_headers(accept="*/*"):
+    return {
+        "Accept": accept,
+        "Accept-Language": "cs",
+        "Referer": "https://edalnice.gov.cz/",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    }
+
+
+def _edalnice_client_credentials(force=False):
+    """Načte veřejný OAuth client z aktuálního JS bundle eDalnice.
+
+    eDalnice už nevkládá REACT_APP_CLIENT_* do HTML. Aktuální frontend má
+    dvojici client_id:client_secret ve svém JS bundle a používá ji pro
+    client_credentials flow. Hodnota je tedy veřejná stejně jako ve webu.
+    """
+    now = time.time()
+    if (
+        not force
+        and _edalnice_client_cache["client_id"]
+        and _edalnice_client_cache["client_secret"]
+        and _edalnice_client_cache["expires_at"] > now
+    ):
+        return _edalnice_client_cache["client_id"], _edalnice_client_cache["client_secret"]
+
+    env_pair = os.environ.get("EDALNICE_CLIENT_BASIC", "").strip()
+    if ":" in env_pair:
+        client_id, client_secret = env_pair.split(":", 1)
+        if client_id and client_secret:
+            _edalnice_client_cache.update({
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "expires_at": now + 86400,
+            })
+            return client_id, client_secret
+
+    response = requests.get(
+        EDALNICE_INDEX_URL,
+        headers=_edalnice_browser_headers("text/html,application/xhtml+xml"),
+        timeout=20,
+    )
+    response.raise_for_status()
+
+    html = response.text
+    script_urls = []
+    for src in re.findall(r'<script[^>]+src=["\']([^"\']+)["\']', html, flags=re.IGNORECASE):
+        url = urljoin(EDALNICE_INDEX_URL, src)
+        if url not in script_urls:
+            script_urls.append(url)
+
+    # Bezpečnostní limit: aktuální stránka má řádově jednotky/desítky bundle souborů.
+    script_urls = script_urls[:80]
+
+    patterns = [
+        r'["\'](eshop\.client):([^"\']+)["\']',
+        r'\b(eshop\.client):([A-Za-z0-9._~!*()\-]+)',
+    ]
+
+    last_error = None
+    for script_url in script_urls:
+        try:
+            script = requests.get(
+                script_url,
+                headers=_edalnice_browser_headers("*/*"),
+                timeout=20,
+            )
+            script.raise_for_status()
+            text = script.text
+            if "auth.edalnice.gov.cz/auth/connect/token" not in text and "eshop.client" not in text:
+                continue
+            for pattern in patterns:
+                match = re.search(pattern, text)
+                if match:
+                    client_id = match.group(1)
+                    client_secret = match.group(2)
+                    _edalnice_client_cache.update({
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "expires_at": now + 21600,
+                    })
+                    return client_id, client_secret
+        except Exception as exc:
+            last_error = exc
+
+    raise RuntimeError(
+        "eDalnice: v aktuálních JS bundle nebyl nalezen veřejný OAuth klient"
+        + (f" ({last_error})" if last_error else "")
+    )
+
+
+def _edalnice_token(force=False):
+    now = time.time()
+    if (
+        not force
+        and _edalnice_token_cache["token"]
+        and _edalnice_token_cache["expires_at"] > now + 60
+    ):
+        return _edalnice_token_cache["token"]
+
+    client_id, client_secret = _edalnice_client_credentials(force=force)
+    basic = base64.b64encode(f"{client_id}:{client_secret}".encode("utf-8")).decode("ascii")
+
+    response = requests.post(
+        EDALNICE_AUTH_URL,
+        data={
+            "grant_type": "client_credentials",
+            "scope": "eshop.api",
+        },
+        headers={
+            "Authorization": f"Basic {basic}",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "User-Agent": _edalnice_browser_headers()["User-Agent"],
+        },
+        timeout=20,
+    )
+
+    if not response.ok:
+        body = (response.text or "")[:500].replace("\n", " ")
+        raise RuntimeError(f"eDalnice OAuth HTTP {response.status_code}: {body}")
+
+    payload = response.json()
+    token = str(payload.get("access_token") or "").strip()
+    if not token:
+        raise RuntimeError("eDalnice: OAuth odpověď neobsahuje access_token.")
+
+    expires_in = int(payload.get("expires_in") or 300)
+    _edalnice_token_cache["token"] = token
+    _edalnice_token_cache["expires_at"] = now + max(60, expires_in)
+    return token
+
+
 def _edalnice_collect_charge_dicts(node):
     """Najde všechny záznamy známek v odpovědi eDalnice, i když jsou v jiné vnořené sekci."""
     found = []
@@ -207,17 +345,26 @@ def _edalnice_lookup(spz):
     if not plate:
         raise ValueError("Chybí SPZ.")
 
-    response = requests.get(
-        EDALNICE_VALIDATION_URL + plate,
-        headers={
-            "Accept": "*/*",
-            "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
+    def request_status(token):
+        headers = _edalnice_browser_headers("*/*")
+        headers.update({
+            "Authorization": f"Bearer {token}",
             "Origin": "https://edalnice.gov.cz",
-            "Referer": "https://edalnice.gov.cz/",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
-        },
-        timeout=20,
-    )
+        })
+        return requests.get(
+            EDALNICE_VALIDATION_URL + plate,
+            headers=headers,
+            timeout=20,
+        )
+
+    token = _edalnice_token()
+    response = request_status(token)
+
+    if response.status_code == 401:
+        _edalnice_token_cache["token"] = ""
+        _edalnice_token_cache["expires_at"] = 0.0
+        token = _edalnice_token(force=True)
+        response = request_status(token)
 
     if not response.ok:
         body = (response.text or "")[:500].replace("\n", " ")
@@ -334,6 +481,10 @@ def _refresh_main_vignettes(core, force=False):
                     vehicle["vignette_until"] = ""
                 updated += 1
                 changed = True
+                print(
+                    f"eDalnice refresh OK: {spz} status={vehicle.get('vignette_status')} "
+                    f"until={vehicle.get('vignette_until') or '-'}"
+                )
             except Exception as exc:
                 error_text = f"{spz}: {type(exc).__name__}: {exc}"
                 errors.append(error_text)
@@ -361,7 +512,7 @@ def _maybe_start_vignette_refresh(core):
             if result.get("errors"):
                 print("eDalnice refresh errors:", "; ".join(result["errors"]))
             else:
-                print(f"eDalnice refresh OK: {result.get('updated', 0)} vozidel")
+                print(f"eDalnice refresh batch OK: {result.get('updated', 0)} vozidel")
         except Exception as exc:
             print(f"eDalnice background refresh failed: {exc}")
 
