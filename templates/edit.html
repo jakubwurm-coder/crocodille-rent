@@ -32,7 +32,6 @@
       ('vin','VIN','text'),
       ('year','Rok výroby','number'),
       ('stk_until','STK do','date'),
-      ('vignette_until','Dálniční známka do','date'),
       ('liability_until','Povinné ručení do','date'),
       ('casco_until','Havarijní pojištění do','date'),
       ('assistance_until','Asistence do','date'),
@@ -42,6 +41,12 @@
         <input type="{{ type }}" name="{{ name }}" value="{{ v.get(name,'') }}">
       </label>
     {% endfor %}
+
+    <input type="hidden" name="vignette_until" value="{{ v.get('vignette_until','') }}">
+
+    <label>Dálniční známka
+      <input type="text" value="Automaticky z edalnice.gov.cz" disabled>
+    </label>
 
     <label>Stav vozidla
       <select id="status-choice">
