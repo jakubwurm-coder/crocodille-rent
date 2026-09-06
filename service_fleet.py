@@ -7,6 +7,7 @@ import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import psycopg2
 import requests
@@ -193,30 +194,118 @@ def _parse_iso(value):
         return None
 
 
+def _edalnice_find_credentials(text):
+    """Najde veřejný OAuth client_id/client_secret v HTML nebo JS bundle eDalnice."""
+    patterns = [
+        (
+            r'"REACT_APP_CLIENT_ID"\s*:\s*"([^"]+)"',
+            r'"REACT_APP_CLIENT_SECRET"\s*:\s*"([^"]+)"',
+        ),
+        (
+            r'REACT_APP_CLIENT_ID["\']?\s*[:=]\s*["\']([^"\']+)',
+            r'REACT_APP_CLIENT_SECRET["\']?\s*[:=]\s*["\']([^"\']+)',
+        ),
+        (
+            r'["\']clientId["\']\s*:\s*["\']([^"\']+)',
+            r'["\']clientSecret["\']\s*:\s*["\']([^"\']+)',
+        ),
+        (
+            r'["\']client_id["\']\s*:\s*["\']([^"\']+)',
+            r'["\']client_secret["\']\s*:\s*["\']([^"\']+)',
+        ),
+        (
+            r'["\']CLIENT_ID["\']\s*[:=]\s*["\']([^"\']+)',
+            r'["\']CLIENT_SECRET["\']\s*[:=]\s*["\']([^"\']+)',
+        ),
+    ]
+    for id_pattern, secret_pattern in patterns:
+        client_id = re.search(id_pattern, text)
+        client_secret = re.search(secret_pattern, text)
+        if client_id and client_secret:
+            return client_id.group(1), client_secret.group(1)
+    return None
+
+
+def _edalnice_asset_urls(base_url, html):
+    """Vrátí JS/JSON assety odkazované hlavní stránkou eDalnice."""
+    candidates = []
+
+    for match in re.finditer(r'<script[^>]+src=["\']([^"\']+)["\']', html, flags=re.I):
+        candidates.append(match.group(1))
+    for match in re.finditer(r'<link[^>]+href=["\']([^"\']+)["\']', html, flags=re.I):
+        href = match.group(1)
+        if ".js" in href or ".json" in href:
+            candidates.append(href)
+    for match in re.finditer(r'https?://[^"\'\s<>]+\.(?:js|json)(?:\?[^"\'\s<>]*)?', html, flags=re.I):
+        candidates.append(match.group(0))
+
+    result = []
+    seen = set()
+    for raw in candidates:
+        url = urljoin(base_url, raw.replace("&amp;", "&"))
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        result.append(url)
+        if len(result) >= 60:
+            break
+    return result
+
+
 def _edalnice_client_credentials():
+    """
+    Načte veřejné klientské údaje eDalnice.
+
+    Dříve byly přímo v HTML. Novější frontend je může mít až v načítaném
+    JavaScript bundle, proto kontrolujeme hlavní HTML i odkazované JS/JSON assety.
+    """
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml",
+        "Accept": "text/html,application/xhtml+xml,application/javascript,text/javascript,application/json,*/*",
         "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
     }
     last_error = None
-    patterns = [
-        (r'"REACT_APP_CLIENT_ID"\s*:\s*"([^"]+)"', r'"REACT_APP_CLIENT_SECRET"\s*:\s*"([^"]+)"'),
-        (r'REACT_APP_CLIENT_ID["\']?\s*[:=]\s*["\']([^"\']+)', r'REACT_APP_CLIENT_SECRET["\']?\s*[:=]\s*["\']([^"\']+)'),
-    ]
+    checked_assets = 0
+
     for url in EDALNICE_INDEX_URLS:
         try:
             response = requests.get(url, headers=headers, timeout=20)
             response.raise_for_status()
-            text = response.text
-            for id_pattern, secret_pattern in patterns:
-                client_id = re.search(id_pattern, text)
-                client_secret = re.search(secret_pattern, text)
-                if client_id and client_secret:
-                    return client_id.group(1), client_secret.group(1)
+            html = response.text
+
+            direct = _edalnice_find_credentials(html)
+            if direct:
+                return direct
+
+            for asset_url in _edalnice_asset_urls(url, html):
+                try:
+                    asset = requests.get(
+                        asset_url,
+                        headers={**headers, "Referer": url},
+                        timeout=20,
+                    )
+                    asset.raise_for_status()
+                    checked_assets += 1
+
+                    # Nechceme tahat obří nesouvisející soubory do paměti.
+                    if len(asset.content) > 10_000_000:
+                        continue
+
+                    found = _edalnice_find_credentials(asset.text)
+                    if found:
+                        return found
+                except Exception as exc:
+                    last_error = exc
         except Exception as exc:
             last_error = exc
-    raise RuntimeError(f"eDalnice: nepodařilo se načíst veřejné klientské údaje ({last_error or 'nenalezeny'}).")
+
+    detail = str(last_error) if last_error else "client_id/client_secret nebyly nalezeny"
+    raise RuntimeError(
+        f"eDalnice: veřejné klientské údaje nebyly nalezeny ani v HTML ani v {checked_assets} JS/JSON assetech ({detail})."
+    )
 
 
 def _edalnice_token(force=False):
@@ -320,7 +409,6 @@ def _edalnice_lookup(spz):
         elif valid_since > now:
             future.append(item)
 
-    # Odstraníme případné duplicity stejné známky nalezené ve více částech odpovědi.
     unique = {}
     for item in all_items:
         key = (item["valid_since"].isoformat(), item["valid_until"].isoformat())
@@ -329,15 +417,12 @@ def _edalnice_lookup(spz):
 
     selected = None
     if current:
-        # Je-li současně evidovaná další známka, chceme v kartě ukázat rovnou
-        # nejzazší datum, do kterého je vozidlo pokryté známkou.
         candidates = [item for item in all_items if item.get("valid_until") and item["valid_until"] >= now]
         if candidates:
             selected = max(candidates, key=lambda x: x["valid_until"])
         else:
             selected = max(current, key=lambda x: x.get("valid_until") or datetime.min.replace(tzinfo=timezone.utc))
     elif future:
-        # Pokud není aktuální, ale je již koupená budoucí, ponecháme stav future.
         selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
 
     return {
@@ -401,10 +486,10 @@ def _refresh_main_vignettes(core, force=False):
                 updated += 1
                 changed = True
             except Exception as exc:
-                errors.append(f"{spz}: {type(exc).__name__}: {exc}")
+                error_text = f"{spz}: {type(exc).__name__}: {exc}"
+                errors.append(error_text)
+                print(f"eDalnice refresh error: {error_text}")
                 vehicle["vignette_last_error"] = str(exc)[:300]
-                # Při chybě neposouváme čas 'ověřeno', aby web netvrdil,
-                # že proběhlo úspěšné ověření, když API selhalo.
                 changed = True
 
         if changed:
@@ -437,7 +522,6 @@ def _maybe_start_vignette_refresh(core):
 def register(core):
     app = core.app
 
-    # Automatická kontrola běží mimo obsluhu stránky, takže nebrzdí otevření webu.
     @app.before_request
     def auto_vignette_refresh():
         _maybe_start_vignette_refresh(core)
