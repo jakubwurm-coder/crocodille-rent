@@ -50,13 +50,13 @@
   const makeMeta = (record) => {
     const checked = formatChecked(record.checkedAt);
     if (!checked) return '';
-    return `Ověřeno ${checked}${record.source ? ' · eDalnice' : ''}`;
+    return `Ověřeno ${checked}${record.source ? ' · edalnice.gov.cz' : ''}`;
   };
 
   const makeStkMeta = (record) => {
     const checked = formatChecked(record.stkCheckedAt);
     if (!checked) return '';
-    return `Ověřeno ${checked}${record.stkSource ? ' · Datová kostka' : ''}`;
+    return `Ověřeno ${checked}${record.stkSource ? ' · dataovozidlech.cz' : ''}`;
   };
 
   const enhanceStkDetail = (record) => {
