@@ -39,6 +39,19 @@ def ensure_schema():
                 "CREATE INDEX IF NOT EXISTS idx_vehicles_vin ON vehicles ((data->>'vin'))"
             )
 
+            # Dálniční známka je výhradně údaj z eDalnice.
+            # Staré ručně zadané hodnoty z původní evidence fyzicky odstraníme
+            # z PostgreSQL. Hodnoty, které už mají zdroj "edalnice", zůstávají.
+            cur.execute(
+                """
+                UPDATE vehicles
+                SET data = data - 'vignette_until' - 'vignette',
+                    updated_at = NOW()
+                WHERE COALESCE(data->>'vignette_source', '') <> 'edalnice'
+                  AND (data ? 'vignette_until' OR data ? 'vignette')
+                """
+            )
+
 
 def _seed_if_empty(seed_file):
     if not enabled() or not seed_file:
