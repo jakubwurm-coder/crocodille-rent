@@ -10,7 +10,10 @@
     checkedAt: el.dataset.checkedAt || '',
     futureFrom: el.dataset.futureFrom || '',
     source: el.dataset.source || '',
-    exempt: el.dataset.exempt === '1'
+    exempt: el.dataset.exempt === '1',
+    stkUntil: el.dataset.stkUntil || '',
+    stkCheckedAt: el.dataset.stkCheckedAt || '',
+    stkSource: el.dataset.stkSource || ''
   }));
 
   const parseDate = (value) => {
@@ -48,6 +51,69 @@
     const checked = formatChecked(record.checkedAt);
     if (!checked) return '';
     return `Ověřeno ${checked}${record.source ? ' · eDalnice' : ''}`;
+  };
+
+  const makeStkMeta = (record) => {
+    const checked = formatChecked(record.stkCheckedAt);
+    if (!checked) return '';
+    return `Ověřeno ${checked}${record.stkSource ? ' · Datová kostka' : ''}`;
+  };
+
+  const enhanceStkDetail = (record) => {
+    const cards = [...document.querySelectorAll('.status-card')];
+    const card = cards.find((item) => {
+      const label = item.querySelector('strong');
+      return label && label.textContent.trim().toUpperCase() === 'STK';
+    });
+    if (!card) return;
+
+    const textWrap = card.querySelector('div');
+    const pill = card.querySelector('.pill');
+    const oldValue = textWrap ? textWrap.querySelector('span') : null;
+    if (!textWrap) return;
+
+    const days = daysLeft(record.stkUntil);
+    let headline = record.stkUntil ? `Platná do ${formatDate(record.stkUntil)}` : 'Neověřeno';
+    let detail = '';
+    let state = 'unknown';
+
+    if (record.stkUntil) {
+      if (days === 0) detail = 'Končí dnes';
+      else if (days === 1) detail = 'Zbývá 1 den';
+      else if (days != null && days > 1) detail = `Zbývá ${days} dní`;
+      else if (days != null && days < 0) detail = `Po platnosti ${Math.abs(days)} dní`;
+
+      state = days != null && days < 0 ? 'bad' : days != null && days <= 14 ? 'bad' : days != null && days <= 45 ? 'soon' : 'ok';
+    }
+
+    if (oldValue) oldValue.remove();
+    [...textWrap.querySelectorAll('.stk-live-main,.stk-live-sub,.stk-live-meta')].forEach((el) => el.remove());
+
+    const main = document.createElement('span');
+    main.className = 'stk-live-main';
+    main.textContent = headline;
+    textWrap.appendChild(main);
+
+    if (detail) {
+      const sub = document.createElement('small');
+      sub.className = 'stk-live-sub';
+      sub.textContent = detail;
+      textWrap.appendChild(sub);
+    }
+
+    const metaText = makeStkMeta(record);
+    if (metaText) {
+      const meta = document.createElement('small');
+      meta.className = 'stk-live-meta';
+      meta.textContent = metaText;
+      textWrap.appendChild(meta);
+    }
+
+    if (pill) {
+      pill.classList.remove('ok', 'soon', 'bad', 'unknown');
+      pill.classList.add(state);
+      pill.textContent = state === 'bad' ? 'POZOR' : state === 'soon' ? 'BRZY' : state === 'ok' ? 'OK' : 'NEOVĚŘENO';
+    }
   };
 
   const enhanceDetail = (record) => {
@@ -154,7 +220,9 @@
   };
 
   if (document.querySelector('.vehicle-screen')) {
-    enhanceDetail(records[0] || {});
+    const record = records[0] || {};
+    enhanceStkDetail(record);
+    enhanceDetail(record);
   } else {
     records.forEach(enhanceOverviewCard);
   }
