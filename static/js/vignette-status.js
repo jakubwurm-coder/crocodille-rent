@@ -67,6 +67,7 @@
     });
     if (!card) return;
 
+    card.classList.add('stk-live-card');
     const textWrap = card.querySelector('div');
     const pill = card.querySelector('.pill');
     const oldValue = textWrap ? textWrap.querySelector('span') : null;
