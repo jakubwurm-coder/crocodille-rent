@@ -247,6 +247,22 @@ def _edalnice_token(force=False):
     return token
 
 
+def _edalnice_collect_charge_dicts(node):
+    """Najde všechny záznamy známek v odpovědi eDalnice, i když jsou v jiné vnořené sekci."""
+    found = []
+    if isinstance(node, dict):
+        has_since = "validSince" in node or "valid_since" in node
+        has_until = "validUntil" in node or "valid_until" in node
+        if has_since and has_until:
+            found.append(node)
+        for value in node.values():
+            found.extend(_edalnice_collect_charge_dicts(value))
+    elif isinstance(node, list):
+        for value in node:
+            found.extend(_edalnice_collect_charge_dicts(value))
+    return found
+
+
 def _edalnice_lookup(spz):
     plate = re.sub(r"\s+", "", str(spz or "").strip().upper())
     if not plate:
@@ -277,38 +293,57 @@ def _edalnice_lookup(spz):
     now = datetime.now(timezone.utc)
     current = []
     future = []
-    for charge in payload.get("charges") or []:
-        valid_since = _parse_iso(charge.get("validSince"))
-        valid_until = _parse_iso(charge.get("validUntil"))
+    all_items = []
+
+    # eDalnice může vracet aktuální a nadcházející známky v různých částech JSONu.
+    # Proto nečteme pouze payload['charges'], ale všechny vnořené záznamy s validSince/validUntil.
+    for charge in _edalnice_collect_charge_dicts(payload):
+        valid_since = _parse_iso(charge.get("validSince") or charge.get("valid_since"))
+        valid_until = _parse_iso(charge.get("validUntil") or charge.get("valid_until"))
         if valid_since and valid_since.tzinfo is None:
             valid_since = valid_since.replace(tzinfo=timezone.utc)
         if valid_until and valid_until.tzinfo is None:
             valid_until = valid_until.replace(tzinfo=timezone.utc)
+        if not valid_since or not valid_until:
+            continue
+
         item = {
             "valid_since": valid_since,
             "valid_until": valid_until,
-            "is_currently_valid": bool(charge.get("isCurrentlyValid")),
-            "fuel_type": charge.get("fuelType"),
+            "is_currently_valid": bool(charge.get("isCurrentlyValid") or charge.get("is_currently_valid")),
+            "fuel_type": charge.get("fuelType") or charge.get("fuel_type"),
         }
-        if item["is_currently_valid"] or (valid_since and valid_until and valid_since <= now <= valid_until):
+        all_items.append(item)
+
+        if item["is_currently_valid"] or valid_since <= now <= valid_until:
             current.append(item)
-        elif valid_since and valid_since > now:
+        elif valid_since > now:
             future.append(item)
 
+    # Odstraníme případné duplicity stejné známky nalezené ve více částech odpovědi.
+    unique = {}
+    for item in all_items:
+        key = (item["valid_since"].isoformat(), item["valid_until"].isoformat())
+        unique[key] = item
+    all_items = list(unique.values())
+
     selected = None
-    if current and future:
-        # Pokud je už koupená navazující známka, v kartě rovnou zobrazíme
-        # její konec platnosti místo konce aktuální známky.
-        selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
-    elif current:
-        selected = max(current, key=lambda x: x.get("valid_until") or datetime.min.replace(tzinfo=timezone.utc))
+    if current:
+        # Je-li současně evidovaná další známka, chceme v kartě ukázat rovnou
+        # nejzazší datum, do kterého je vozidlo pokryté známkou.
+        candidates = [item for item in all_items if item.get("valid_until") and item["valid_until"] >= now]
+        if candidates:
+            selected = max(candidates, key=lambda x: x["valid_until"])
+        else:
+            selected = max(current, key=lambda x: x.get("valid_until") or datetime.min.replace(tzinfo=timezone.utc))
     elif future:
+        # Pokud není aktuální, ale je již koupená budoucí, ponecháme stav future.
         selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
 
     return {
         "plate": plate,
         "is_valid": bool(current),
-        "is_exempt": bool(payload.get("isGivenExemption")),
+        "is_exempt": bool(payload.get("isGivenExemption") or payload.get("is_given_exemption")),
         "valid_since": selected.get("valid_since") if selected else None,
         "valid_until": selected.get("valid_until") if selected else None,
         "future_vignette": bool(selected and not current and future),
@@ -344,6 +379,7 @@ def _refresh_main_vignettes(core, force=False):
                 vehicle["vignette_checked_at"] = now_iso
                 vehicle["vignette_source"] = "edalnice"
                 vehicle["vignette_is_exempt"] = result["is_exempt"]
+                vehicle.pop("vignette_last_error", None)
                 vehicle["vignette_future_from"] = (
                     result["valid_since"].date().isoformat()
                     if result.get("future_vignette") and result.get("valid_since")
@@ -358,7 +394,6 @@ def _refresh_main_vignettes(core, force=False):
                     vehicle["vignette_until"] = result["valid_until"].date().isoformat()
                 elif result.get("future_vignette"):
                     vehicle["vignette_status"] = "future"
-                    # Budoucí známku neukazujeme jako právě platnou.
                     vehicle["vignette_until"] = ""
                 else:
                     vehicle["vignette_status"] = "missing"
@@ -368,7 +403,8 @@ def _refresh_main_vignettes(core, force=False):
             except Exception as exc:
                 errors.append(f"{spz}: {type(exc).__name__}: {exc}")
                 vehicle["vignette_last_error"] = str(exc)[:300]
-                vehicle["vignette_checked_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                # Při chybě neposouváme čas 'ověřeno', aby web netvrdil,
+                # že proběhlo úspěšné ověření, když API selhalo.
                 changed = True
 
         if changed:
