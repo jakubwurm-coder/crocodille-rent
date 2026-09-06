@@ -296,7 +296,11 @@ def _edalnice_lookup(spz):
             future.append(item)
 
     selected = None
-    if current:
+    if current and future:
+        # Pokud je už koupená navazující známka, v kartě rovnou zobrazíme
+        # její konec platnosti místo konce aktuální známky.
+        selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
+    elif current:
         selected = max(current, key=lambda x: x.get("valid_until") or datetime.min.replace(tzinfo=timezone.utc))
     elif future:
         selected = min(future, key=lambda x: x.get("valid_since") or datetime.max.replace(tzinfo=timezone.utc))
