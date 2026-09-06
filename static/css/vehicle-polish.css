@@ -1,2 +1,48 @@
-/* Finální doladění detailu vozidla – typografie, hierarchie, proporce */
-.pro-detail{grid-template-columns:minmax(460px,40%) minmax(700px,60%);gap:26px;padding-bottom:110px}.vehicle-left{min-height:650px;border-color:rgba(120,170,230,.24);box-shadow:0 28px 90px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05),0 0 0 1px rgba(77,136,210,.08)}.pro-back{top:22px;left:22px;height:46px;padding:0 15px;background:rgba(8,14,24,.44);border:1px solid rgba(255,255,255,.14);font-size:15px;font-weight:800}.vehicle-status-badge{top:82px;left:34px;right:auto;padding:9px 16px;background:rgba(47,189,104,.14);border:1px solid rgba(88,236,142,.3)}.wide-hero{position:relative;isolation:isolate;overflow:hidden;height:275px;min-height:275px;padding:70px 42px 0;background:radial-gradient(circle at 56% 50%,rgba(41,115,221,.26),rgba(41,115,221,0) 42%),linear-gradient(180deg,rgba(255,255,255,.015),rgba(255,255,255,0))}.wide-hero img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;transform:scale(.80);transform-origin:center center;filter:drop-shadow(0 10px 16px rgba(9,20,33,.35)) drop-shadow(0 26px 30px rgba(5,15,29,.42))}.pro-main{padding:22px 28px 16px}.wide-main h1{font-size:50px;line-height:.98;letter-spacing:-2.2px;margin:0 0 13px;font-weight:900}.vin-line{gap:10px}.vin-line em{font-size:15px;letter-spacing:.2px}.vin-line b{font-size:16px;letter-spacing:.15px}.copy-vin{font-size:11px!important;padding:6px 9px!important}.wide-main span{color:#dfeaf7}.stats{margin:0 28px;padding:18px 0 24px}.stats div{min-height:84px;padding-right:18px}.stats div+div{padding-left:22px}.stats small{font-size:11px!important;letter-spacing:.55px!important;color:#90a8c4!important}.stats strong{font-size:18px!important;line-height:1.25!important;font-weight:850!important}.stats .ui-icon{width:22px!important;height:22px!important;margin-bottom:14px!important}.section-lead{margin-bottom:4px}.section-lead small{font-size:10px!important;letter-spacing:1.1px!important;color:#6f8daf!important}.status-grid{gap:14px}.status-card{min-height:104px;grid-template-columns:42px minmax(0,1fr) auto;gap:14px;padding:18px 20px;border-color:rgba(120,170,230,.18)}.status-icon{width:33px;height:33px}.status-card>div>strong{font-size:17px!important;line-height:1.1!important;letter-spacing:.1px!important;font-weight:900!important}.status-card>div>span{font-size:19px!important;line-height:1.2!important;font-weight:750!important;color:#aebfd5!important}.status-card>div>small{font-size:12px!important;line-height:1.25!important}.status-card .pill{font-size:12px!important;min-width:48px;height:34px;padding:0 12px;display:flex;align-items:center;justify-content:center}.status-card .service-km{font-size:23px!important;font-weight:900!important;color:#fff!important}.service-card-separated>div>strong{font-size:13px!important}.service-card-separated small{font-size:12px!important}.panel{padding:22px 24px 26px;border-color:rgba(120,170,230,.18)}.panel h2{font-size:23px;padding-bottom:18px;letter-spacing:-.25px}.registry-meta{font-size:12px!important;color:#7f96b1!important}.registry-item small{font-size:10px!important;letter-spacing:.6px!important}.registry-item strong{font-size:17px!important}.payload-item strong{font-size:25px!important}.bottom{z-index:20;bottom:22px;background:rgba(7,17,29,.72);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(18px)}@media(min-width:1051px){.bottom{left:auto;right:42px;transform:none}}@media(max-width:1250px){.pro-detail{grid-template-columns:minmax(420px,39%) minmax(620px,61%)}.wide-main h1{font-size:46px}.status-card>div>strong{font-size:16px!important}.status-card>div>span{font-size:18px!important}}@media(max-width:1050px){.wide-hero{height:245px;min-height:245px}.wide-hero img{transform:scale(.8)}.wide-main h1{font-size:44px}}
+/* Premium detail vozidla – kompaktní typografie, čistá hierarchie, fleet-dashboard vzhled */
+.pro-detail{grid-template-columns:minmax(430px,38%) minmax(720px,62%);gap:28px;padding-bottom:110px;align-items:start}
+.vehicle-left{min-height:610px;border-color:rgba(120,170,230,.22);background:linear-gradient(180deg,rgba(20,57,94,.94),rgba(8,31,54,.98));box-shadow:0 28px 90px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.045),0 0 0 1px rgba(77,136,210,.07)}
+.pro-back{top:22px;left:22px;height:44px;padding:0 14px;background:rgba(8,14,24,.38);border:1px solid rgba(255,255,255,.12);font-size:14px;font-weight:800;backdrop-filter:blur(10px)}
+.pro-back:hover{background:rgba(21,44,72,.72);border-color:rgba(117,181,255,.28)}
+.vehicle-status-badge{top:80px;left:32px;right:auto;padding:8px 14px;background:rgba(47,189,104,.13);border:1px solid rgba(88,236,142,.26)}
+.wide-hero{position:relative;isolation:isolate;overflow:hidden;height:248px;min-height:248px;padding:62px 34px 0;background:radial-gradient(circle at 56% 49%,rgba(41,115,221,.22),rgba(41,115,221,0) 44%),linear-gradient(180deg,rgba(255,255,255,.012),rgba(255,255,255,0))}
+.wide-hero img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;transform:scale(.78);transform-origin:center center;filter:drop-shadow(0 10px 16px rgba(9,20,33,.30)) drop-shadow(0 24px 28px rgba(5,15,29,.36))}
+.pro-main{padding:16px 28px 14px}
+.wide-main h1{font-size:42px;line-height:1;letter-spacing:-1.7px;margin:0 0 13px;font-weight:900;color:#fff}
+.vin-line{gap:9px;align-items:center}
+.vin-line em{font-size:13px;letter-spacing:.25px;color:#8ea8c4;font-weight:800}
+.vin-line b{font-size:15px;letter-spacing:.12px;color:#dce8f6;font-weight:850}
+.copy-vin{font-size:10px!important;padding:5px 8px!important;border-radius:8px!important}
+.wide-main span{color:#dfeaf7}
+.stats{margin:0 28px;padding:16px 0 20px;border-top:1px solid rgba(255,255,255,.10)}
+.stats div{min-height:74px;padding-right:16px}.stats div+div{padding-left:20px}
+.stats small{font-size:10px!important;letter-spacing:.7px!important;color:#839bb7!important;font-weight:850!important}
+.stats strong{font-size:17px!important;line-height:1.23!important;font-weight:850!important;color:#fff!important}
+.stats .ui-icon{width:20px!important;height:20px!important;margin-bottom:12px!important;color:#63c7ff!important}
+.section-lead{margin-bottom:8px;padding-left:2px}
+.section-lead small{font-size:10px!important;letter-spacing:1.25px!important;color:#6f8daf!important;font-weight:900!important}
+.status-grid{gap:14px}
+.status-card{min-height:102px;grid-template-columns:40px minmax(0,1fr) auto;gap:14px;padding:17px 19px;border-color:rgba(120,170,230,.16);background:linear-gradient(145deg,rgba(15,48,79,.96),rgba(8,31,52,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.status-card:hover{transform:translateY(-1px);border-color:rgba(109,177,255,.25);background:linear-gradient(145deg,rgba(18,55,90,.98),rgba(9,34,57,.99))}
+.status-icon{width:31px;height:31px;color:#5bc9ff}
+.status-card>div>strong{font-size:16px!important;line-height:1.08!important;letter-spacing:.05px!important;font-weight:900!important;color:#fff!important}
+.status-card>div>span{font-size:18px!important;line-height:1.18!important;font-weight:760!important;color:#aebfd5!important}
+.status-card>div>small{font-size:11px!important;line-height:1.25!important;color:#93a8c0!important}
+.status-card .pill{font-size:11px!important;font-weight:900!important;min-width:46px;height:32px;padding:0 11px;display:flex;align-items:center;justify-content:center;border-radius:999px;letter-spacing:.2px}
+.status-card .service-km{font-size:22px!important;font-weight:900!important;color:#fff!important;letter-spacing:-.3px}
+.service-card-separated{background:linear-gradient(145deg,rgba(21,56,91,.98),rgba(11,35,59,.98))!important;border-color:rgba(88,166,255,.31)!important}
+.service-card-separated>div>strong{font-size:12px!important;letter-spacing:.8px!important;color:#8fc1ff!important}
+.service-card-separated small{font-size:11px!important;color:#b7c9dd!important}
+.panel{padding:21px 24px 25px;border-color:rgba(120,170,230,.16);background:linear-gradient(180deg,rgba(17,51,84,.92),rgba(10,35,59,.96));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.panel h2{font-size:21px;padding-bottom:17px;letter-spacing:-.2px;font-weight:900}
+.registry-meta{font-size:11px!important;color:#7188a2!important;margin-top:13px!important}
+.registry-grid{gap:10px!important}
+.registry-item{padding:13px 15px!important;border-radius:14px!important;background:rgba(255,255,255,.036)!important;border-color:rgba(255,255,255,.085)!important}
+.registry-item small{font-size:9px!important;letter-spacing:.75px!important;color:#849bb6!important;font-weight:900!important}
+.registry-item strong{font-size:16px!important;line-height:1.22!important;font-weight:850!important}
+.payload-item{border-color:rgba(88,166,255,.34)!important;background:linear-gradient(145deg,rgba(25,52,82,.90),rgba(14,31,50,.95))!important}
+.payload-item strong{font-size:23px!important;font-weight:950!important}
+.bottom{z-index:20;bottom:22px;background:rgba(7,17,29,.70);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(0,0,0,.28)}
+@media(min-width:1051px){.bottom{left:auto;right:42px;transform:none}}
+@media(max-width:1250px){.pro-detail{grid-template-columns:minmax(400px,38%) minmax(620px,62%)}.wide-main h1{font-size:39px}.status-card>div>strong{font-size:15px!important}.status-card>div>span{font-size:17px!important}}
+@media(max-width:1050px){.pro-detail{grid-template-columns:1fr}.wide-hero{height:235px;min-height:235px}.wide-hero img{transform:scale(.78)}.wide-main h1{font-size:38px}.vehicle-left{min-height:auto}}
+@media(max-width:700px){.pro-main{padding:14px 20px 12px}.wide-main h1{font-size:34px}.stats{margin:0 20px}.status-card{padding:15px 16px;grid-template-columns:36px minmax(0,1fr) auto}.status-icon{width:28px;height:28px}.panel{padding:18px 18px 22px}}
