@@ -3,9 +3,10 @@
 {% set last_service = (v.get('service_records', [])|last) if v.get('service_records', []) else none %}
 {% set service_next_text = (last_service.next_service if last_service and last_service.next_service else v.next_service_note) %}
 {% set icon_sprite = url_for('static', filename='icons/fleet-icons.svg') %}
-{% set status_items = [('stk','STK',v.stk_until),('vignette','DÁLNIČNÍ ZNÁMKA',v.vignette_until),('liability','POVINNÉ RUČENÍ',v.liability_until),('casco','HAVARIJNÍ POJIŠTĚNÍ',v.casco_until),('assistance','ASISTENCE',v.assistance_until)] %}
 {% set dk=v.get('datova_kostka',{}) %}
 {% set b=dk.get('basic',{}) %}
+{% set stk_state=external_data_state(v,'stk') %}
+{% set vignette_state=external_data_state(v,'vignette') %}
 
 {% with messages=get_flashed_messages() %}{% if messages %}<div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>{% endif %}{% endwith %}
 
@@ -41,18 +42,67 @@
     </section>
 
     <section class="status-grid">
-      {% for icon,label,value in status_items %}
-        {% set s=status_for(value) %}
-        <article class="status-card">
-          <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#{{ icon }}"></use></svg>
-          <div>
-            <strong>{{ label }}</strong>
-            <span>{% if value %}{{ value|czdate }}{% else %}nezadáno{% endif %}</span>
-            {% if icon == 'assistance' %}<small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small>{% endif %}
-          </div>
-          <b class="pill {{ s[0] }}">{{ s[1] }}</b>
-        </article>
-      {% endfor %}
+      {% set stk_status=status_for(v.stk_until) %}
+      <article class="status-card {% if stk_state.loading %}status-card-loading{% endif %}" {% if stk_state.loading %}data-external-loading="1"{% endif %}>
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#stk"></use></svg>
+        <div>
+          <strong>STK</strong>
+          {% if stk_state.loading %}
+            <span class="loading-line"><i class="loading-spinner"></i>Načítám aktuální stav…</span>
+            {% if v.stk_until %}<small class="last-known">Poslední známý údaj: {{ v.stk_until|czdate }}</small>{% endif %}
+          {% else %}
+            <span>{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezadáno{% endif %}</span>
+          {% endif %}
+        </div>
+        {% if stk_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ stk_status[0] }}">{{ stk_status[1] }}</b>{% endif %}
+      </article>
+
+      {% set vignette_status=status_for(v.vignette_until) %}
+      <article class="status-card {% if vignette_state.loading %}status-card-loading{% endif %}" {% if vignette_state.loading %}data-external-loading="1"{% endif %}>
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#vignette"></use></svg>
+        <div>
+          <strong>DÁLNIČNÍ ZNÁMKA</strong>
+          {% if vignette_state.loading %}
+            <span class="loading-line"><i class="loading-spinner"></i>Načítám aktuální stav…</span>
+            {% if v.vignette_until %}<small class="last-known">Poslední známý údaj: {{ v.vignette_until|czdate }}</small>{% endif %}
+          {% else %}
+            <span>{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezadáno{% endif %}</span>
+          {% endif %}
+        </div>
+        {% if vignette_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ vignette_status[0] }}">{{ vignette_status[1] }}</b>{% endif %}
+      </article>
+
+      {% set liability_status=status_for(v.liability_until) %}
+      {% set casco_status=status_for(v.casco_until) %}
+      {% if liability_status[0] == 'bad' or casco_status[0] == 'bad' %}
+        {% set insurance_class='bad' %}{% set insurance_text='PO TERMÍNU' %}
+      {% elif liability_status[0] == 'soon' or casco_status[0] == 'soon' %}
+        {% set insurance_class='soon' %}{% set insurance_text='BLÍŽÍ SE' %}
+      {% else %}
+        {% set insurance_class='ok' %}{% set insurance_text='OK' %}
+      {% endif %}
+      <article class="status-card insurance-card">
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#liability"></use></svg>
+        <div>
+          <strong>POJIŠTĚNÍ</strong>
+          <span class="insurance-line"><em>Povinné ručení</em> {% if v.liability_until %}{{ v.liability_until|czdate }}{% else %}nezadáno{% endif %}</span>
+          <span class="insurance-line"><em>Havarijní pojištění</em> {% if v.casco_until %}{{ v.casco_until|czdate }}{% else %}nezadáno{% endif %}</span>
+          <small class="data-source">Klientský portál pojišťovny</small>
+        </div>
+        <b class="pill {{ insurance_class }}">{{ insurance_text }}</b>
+      </article>
+
+      {% set assistance_status=status_for(v.assistance_until) %}
+      <article class="status-card">
+        <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#assistance"></use></svg>
+        <div>
+          <strong>ASISTENCE</strong>
+          <span>{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</span>
+          <small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small>
+          <small class="data-source">Klientský portál pojišťovny</small>
+        </div>
+        <b class="pill {{ assistance_status[0] }}">{{ assistance_status[1] }}</b>
+      </article>
 
       {% set next_date_status=status_for(v.next_service_date) %}
       <article class="status-card service-card service-card-separated">
@@ -139,7 +189,7 @@
 </div>
 
 <style>
-.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.assistance-contact{display:block;margin-top:5px;color:#9fb2c9;font-size:12px;font-weight:800}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}
+.vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}.assistance-contact,.data-source,.last-known{display:block;margin-top:5px;color:#9fb2c9;font-size:12px;font-weight:800}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}.data-source{color:#7890aa;font-weight:750}.insurance-line{display:block!important;font-size:14px!important;margin-top:4px!important}.insurance-line em{font-style:normal;color:#9fb2c9;font-size:12px;font-weight:850;margin-right:6px}.status-card-loading{border-color:rgba(88,166,255,.34)!important}.loading-line{display:flex!important;align-items:center;gap:8px;color:#cfe4ff!important;font-weight:850!important}.loading-spinner{width:13px;height:13px;border:2px solid rgba(159,201,255,.25);border-top-color:#9fc9ff;border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}.loading-pill{background:rgba(88,166,255,.14)!important;color:#9fc9ff!important;border-color:rgba(88,166,255,.3)!important}@keyframes spin{to{transform:rotate(360deg)}}
 .service-card-separated{margin-top:10px;border:1px solid rgba(88,166,255,.42)!important;background:linear-gradient(145deg,rgba(28,58,92,.98),rgba(14,34,56,.98))!important;box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06)!important;transform:translateY(-1px)}.service-card-separated .status-icon{width:28px;height:28px;color:#7db9ff!important}.service-card-separated>div>strong{font-size:14px!important;letter-spacing:.55px;color:#9fc9ff!important}.service-card-separated .service-km{font-size:24px!important;font-weight:950!important;color:#fff!important;line-height:1.15;margin-top:4px}.service-card-separated small{font-size:13px!important;color:#c7d9ee!important;margin-top:5px!important}.service-card-separated .pill{margin-left:auto}
 .registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item{border:1px solid rgba(88,166,255,.38)!important;background:linear-gradient(145deg,rgba(25,52,82,.92),rgba(14,31,50,.96))!important;box-shadow:0 8px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.04)}.payload-item small{color:#9fc9ff!important;font-weight:950!important}.payload-item strong{font-size:28px!important;font-weight:950!important;color:#fff!important;letter-spacing:-.4px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.service-card-separated .service-km{font-size:22px!important}.payload-item strong{font-size:25px!important}}
 </style>
@@ -147,10 +197,23 @@
 <script>
 (function(){
   const btn=document.querySelector('.copy-vin');
-  if(!btn) return;
-  btn.addEventListener('click',async()=>{
-    try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
-  });
+  if(btn){
+    btn.addEventListener('click',async()=>{
+      try{await navigator.clipboard.writeText(btn.dataset.vin);btn.textContent='Zkopírováno';setTimeout(()=>btn.textContent='Kopírovat',1400)}catch(e){}
+    });
+  }
+
+  const loading=document.querySelector('[data-external-loading="1"]');
+  const refreshKey='vehicle-external-refresh-{{ v.id }}';
+  if(loading){
+    const count=parseInt(sessionStorage.getItem(refreshKey)||'0',10);
+    if(count<8){
+      sessionStorage.setItem(refreshKey,String(count+1));
+      setTimeout(()=>window.location.reload(),3500);
+    }
+  }else{
+    sessionStorage.removeItem(refreshKey);
+  }
 })();
 </script>
 
