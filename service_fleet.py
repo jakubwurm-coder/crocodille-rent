@@ -5,7 +5,7 @@ import base64
 import re
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -30,6 +30,11 @@ EDALNICE_VALIDATION_URL = (
 )
 VIGNETTE_REFRESH_SECONDS = int(os.environ.get("VIGNETTE_REFRESH_SECONDS", "43200"))
 VIGNETTE_STALE_SECONDS = int(os.environ.get("VIGNETTE_STALE_SECONDS", "72000"))
+VIGNETTE_CACHE_WINDOW_DAYS = int(os.environ.get("VIGNETTE_CACHE_WINDOW_DAYS", "30"))
+VIGNETTE_CACHE_NEAR_DAYS = int(os.environ.get("VIGNETTE_CACHE_NEAR_DAYS", "7"))
+VIGNETTE_CACHE_DAILY_SECONDS = int(os.environ.get("VIGNETTE_CACHE_DAILY_SECONDS", "86400"))
+VIGNETTE_CACHE_NEAR_SECONDS = int(os.environ.get("VIGNETTE_CACHE_NEAR_SECONDS", "21600"))
+VIGNETTE_CACHE_EXPIRED_SECONDS = int(os.environ.get("VIGNETTE_CACHE_EXPIRED_SECONDS", "3600"))
 
 _edalnice_token_cache = {"token": "", "expires_at": 0.0}
 _edalnice_client_cache = {"client_id": "", "client_secret": "", "expires_at": 0.0}
@@ -192,6 +197,16 @@ def _parse_iso(value):
         return None
 
 
+def _parse_date(value):
+    raw = str(value or "").strip()[:10]
+    if not raw:
+        return None
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except Exception:
+        return None
+
+
 def _edalnice_browser_headers(accept="*/*"):
     return {
         "Accept": accept,
@@ -202,12 +217,7 @@ def _edalnice_browser_headers(accept="*/*"):
 
 
 def _edalnice_client_credentials(force=False):
-    """Načte veřejný OAuth client z aktuálního JS bundle eDalnice.
-
-    eDalnice už nevkládá REACT_APP_CLIENT_* do HTML. Aktuální frontend má
-    dvojici client_id:client_secret ve svém JS bundle a používá ji pro
-    client_credentials flow. Hodnota je tedy veřejná stejně jako ve webu.
-    """
+    """Načte veřejný OAuth client z aktuálního JS bundle eDalnice."""
     now = time.time()
     if (
         not force
@@ -242,9 +252,7 @@ def _edalnice_client_credentials(force=False):
         if url not in script_urls:
             script_urls.append(url)
 
-    # Bezpečnostní limit: aktuální stránka má řádově jednotky/desítky bundle souborů.
     script_urls = script_urls[:80]
-
     patterns = [
         r'["\'](eshop\.client):([^"\']+)["\']',
         r'\b(eshop\.client):([A-Za-z0-9._~!*()\-]+)',
@@ -431,28 +439,58 @@ def _edalnice_lookup(spz):
     }
 
 
-def _checked_recently(vehicle):
+def _vignette_refresh_due(vehicle, force=False):
+    """Databáze je primární zdroj; eDalnice se volá jen když je potřeba."""
+    if force:
+        return True
+
+    source = str(vehicle.get("vignette_source") or "").strip()
     checked = _parse_iso(vehicle.get("vignette_checked_at"))
-    if not checked:
-        return False
-    if checked.tzinfo is None:
+    if checked and checked.tzinfo is None:
         checked = checked.replace(tzinfo=timezone.utc)
-    return (datetime.now(timezone.utc) - checked).total_seconds() < VIGNETTE_STALE_SECONDS
+
+    # Nové vozidlo nebo starý ruční záznam se ověří okamžitě.
+    if not source or not checked:
+        return True
+
+    age_seconds = max(0.0, (datetime.now(timezone.utc) - checked).total_seconds())
+    until = _parse_date(vehicle.get("vignette_until"))
+
+    # Ověřená chybějící/budoucí známka bez uloženého konce: 1x denně.
+    if not until:
+        return age_seconds >= VIGNETTE_CACHE_DAILY_SECONDS
+
+    days_left = (until - date.today()).days
+    if days_left > VIGNETTE_CACHE_WINDOW_DAYS:
+        return False
+    if days_left > VIGNETTE_CACHE_NEAR_DAYS:
+        return age_seconds >= VIGNETTE_CACHE_DAILY_SECONDS
+    if days_left >= 0:
+        return age_seconds >= VIGNETTE_CACHE_NEAR_SECONDS
+    return age_seconds >= VIGNETTE_CACHE_EXPIRED_SECONDS
+
+
+def _checked_recently(vehicle):
+    # Zachováno kvůli kompatibilitě se starším voláním; nově je rozhodující
+    # _vignette_refresh_due a datum expirace uložené v PostgreSQL.
+    return not _vignette_refresh_due(vehicle, force=False)
 
 
 def _refresh_main_vignettes(core, force=False):
     if not _vignette_refresh_lock.acquire(blocking=False):
-        return {"updated": 0, "errors": ["Kontrola už právě běží."]}
+        return {"updated": 0, "skipped": 0, "errors": ["Kontrola už právě běží."]}
     try:
         vehicles = core.load_vehicles()
         changed = False
         updated = 0
+        skipped = 0
         errors = []
         for vehicle in vehicles:
             spz = str(vehicle.get("spz") or "").strip().upper()
             if not spz or not core.is_active_vehicle(vehicle):
                 continue
-            if not force and _checked_recently(vehicle):
+            if not _vignette_refresh_due(vehicle, force=force):
+                skipped += 1
                 continue
             try:
                 result = _edalnice_lookup(spz)
@@ -476,25 +514,35 @@ def _refresh_main_vignettes(core, force=False):
                 elif result.get("future_vignette"):
                     vehicle["vignette_status"] = "future"
                     vehicle["vignette_until"] = ""
+                    vehicle["vignette_future_until"] = (
+                        result["valid_until"].date().isoformat()
+                        if result.get("valid_until")
+                        else ""
+                    )
                 else:
                     vehicle["vignette_status"] = "missing"
                     vehicle["vignette_until"] = ""
+                    vehicle.pop("vignette_future_until", None)
                 updated += 1
                 changed = True
                 print(
                     f"eDalnice refresh OK: {spz} status={vehicle.get('vignette_status')} "
-                    f"until={vehicle.get('vignette_until') or '-'}"
+                    f"until={vehicle.get('vignette_until') or vehicle.get('vignette_future_until') or '-'}"
                 )
             except Exception as exc:
                 error_text = f"{spz}: {type(exc).__name__}: {exc}"
                 errors.append(error_text)
                 print(f"eDalnice refresh error: {error_text}")
                 vehicle["vignette_last_error"] = str(exc)[:300]
+                # Neaktualizujeme checked_at a hlavně nemažeme poslední známou platnost.
                 changed = True
 
         if changed:
-            core.save_vehicles(vehicles, f"Automatická kontrola dálničních známek ({updated} vozidel)")
-        return {"updated": updated, "errors": errors}
+            core.save_vehicles(
+                vehicles,
+                f"Cache dálničních známek ({updated} obnoveno, {skipped} z DB)",
+            )
+        return {"updated": updated, "skipped": skipped, "errors": errors}
     finally:
         _vignette_refresh_lock.release()
 
@@ -512,7 +560,10 @@ def _maybe_start_vignette_refresh(core):
             if result.get("errors"):
                 print("eDalnice refresh errors:", "; ".join(result["errors"]))
             else:
-                print(f"eDalnice refresh batch OK: {result.get('updated', 0)} vozidel")
+                print(
+                    f"eDalnice refresh batch OK: {result.get('updated', 0)} obnoveno, "
+                    f"{result.get('skipped', 0)} z DB"
+                )
         except Exception as exc:
             print(f"eDalnice background refresh failed: {exc}")
 
@@ -530,6 +581,7 @@ def register(core):
     def admin_vignette_refresh():
         if not core.require_admin():
             return core.redirect(core.url_for("login"))
+        # Ruční tlačítko je jediná cesta, která cache vědomě obejde.
         result = _refresh_main_vignettes(core, force=True)
         if result["errors"]:
             core.flash(
