@@ -1,13 +1,11 @@
 import os
 import json
 import hmac
-import base64
 import re
 import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
 
 import psycopg2
 import requests
@@ -19,22 +17,16 @@ SERVICE_VINS = [
 ]
 
 # eDalnice – veřejné ověření platnosti podle země registrace + SPZ.
-# Česká republika má v API tento country ID.
+# Aktuální frontend eDalnice (09/2026) volá tento endpoint přímo bez OAuth tokenu.
 EDALNICE_COUNTRY_ID_CZ = "3906ba89-153c-4038-8e36-0ca1deb76076"
-EDALNICE_INDEX_URLS = (
-    "https://edalnice.gov.cz/",
-    "https://edalnice.cz/",
-)
-EDALNICE_AUTH_URL = "https://auth.edalnice.cz/auth/connect/token"
 EDALNICE_VALIDATION_URL = (
-    "https://eshop.edalnice.cz/api/v3/charge_registrations/"
+    "https://eshop.edalnice.gov.cz/api/v3/charge_registrations/"
     + EDALNICE_COUNTRY_ID_CZ
     + "/"
 )
 VIGNETTE_REFRESH_SECONDS = int(os.environ.get("VIGNETTE_REFRESH_SECONDS", "43200"))
 VIGNETTE_STALE_SECONDS = int(os.environ.get("VIGNETTE_STALE_SECONDS", "72000"))
 
-_edalnice_token_cache = {"token": "", "expires_at": 0.0}
 _vignette_refresh_lock = threading.Lock()
 _vignette_last_started = 0.0
 
@@ -194,148 +186,6 @@ def _parse_iso(value):
         return None
 
 
-def _edalnice_find_credentials(text):
-    """Najde veřejný OAuth client_id/client_secret v HTML nebo JS bundle eDalnice."""
-    patterns = [
-        (
-            r'"REACT_APP_CLIENT_ID"\s*:\s*"([^"]+)"',
-            r'"REACT_APP_CLIENT_SECRET"\s*:\s*"([^"]+)"',
-        ),
-        (
-            r'REACT_APP_CLIENT_ID["\']?\s*[:=]\s*["\']([^"\']+)',
-            r'REACT_APP_CLIENT_SECRET["\']?\s*[:=]\s*["\']([^"\']+)',
-        ),
-        (
-            r'["\']clientId["\']\s*:\s*["\']([^"\']+)',
-            r'["\']clientSecret["\']\s*:\s*["\']([^"\']+)',
-        ),
-        (
-            r'["\']client_id["\']\s*:\s*["\']([^"\']+)',
-            r'["\']client_secret["\']\s*:\s*["\']([^"\']+)',
-        ),
-        (
-            r'["\']CLIENT_ID["\']\s*[:=]\s*["\']([^"\']+)',
-            r'["\']CLIENT_SECRET["\']\s*[:=]\s*["\']([^"\']+)',
-        ),
-    ]
-    for id_pattern, secret_pattern in patterns:
-        client_id = re.search(id_pattern, text)
-        client_secret = re.search(secret_pattern, text)
-        if client_id and client_secret:
-            return client_id.group(1), client_secret.group(1)
-    return None
-
-
-def _edalnice_asset_urls(base_url, html):
-    """Vrátí JS/JSON assety odkazované hlavní stránkou eDalnice."""
-    candidates = []
-
-    for match in re.finditer(r'<script[^>]+src=["\']([^"\']+)["\']', html, flags=re.I):
-        candidates.append(match.group(1))
-    for match in re.finditer(r'<link[^>]+href=["\']([^"\']+)["\']', html, flags=re.I):
-        href = match.group(1)
-        if ".js" in href or ".json" in href:
-            candidates.append(href)
-    for match in re.finditer(r'https?://[^"\'\s<>]+\.(?:js|json)(?:\?[^"\'\s<>]*)?', html, flags=re.I):
-        candidates.append(match.group(0))
-
-    result = []
-    seen = set()
-    for raw in candidates:
-        url = urljoin(base_url, raw.replace("&amp;", "&"))
-        parsed = urlparse(url)
-        if parsed.scheme not in ("http", "https"):
-            continue
-        if url in seen:
-            continue
-        seen.add(url)
-        result.append(url)
-        if len(result) >= 60:
-            break
-    return result
-
-
-def _edalnice_client_credentials():
-    """
-    Načte veřejné klientské údaje eDalnice.
-
-    Dříve byly přímo v HTML. Novější frontend je může mít až v načítaném
-    JavaScript bundle, proto kontrolujeme hlavní HTML i odkazované JS/JSON assety.
-    """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/javascript,text/javascript,application/json,*/*",
-        "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
-    }
-    last_error = None
-    checked_assets = 0
-
-    for url in EDALNICE_INDEX_URLS:
-        try:
-            response = requests.get(url, headers=headers, timeout=20)
-            response.raise_for_status()
-            html = response.text
-
-            direct = _edalnice_find_credentials(html)
-            if direct:
-                return direct
-
-            for asset_url in _edalnice_asset_urls(url, html):
-                try:
-                    asset = requests.get(
-                        asset_url,
-                        headers={**headers, "Referer": url},
-                        timeout=20,
-                    )
-                    asset.raise_for_status()
-                    checked_assets += 1
-
-                    # Nechceme tahat obří nesouvisející soubory do paměti.
-                    if len(asset.content) > 10_000_000:
-                        continue
-
-                    found = _edalnice_find_credentials(asset.text)
-                    if found:
-                        return found
-                except Exception as exc:
-                    last_error = exc
-        except Exception as exc:
-            last_error = exc
-
-    detail = str(last_error) if last_error else "client_id/client_secret nebyly nalezeny"
-    raise RuntimeError(
-        f"eDalnice: veřejné klientské údaje nebyly nalezeny ani v HTML ani v {checked_assets} JS/JSON assetech ({detail})."
-    )
-
-
-def _edalnice_token(force=False):
-    now = time.time()
-    if not force and _edalnice_token_cache["token"] and _edalnice_token_cache["expires_at"] > now + 60:
-        return _edalnice_token_cache["token"]
-
-    client_id, client_secret = _edalnice_client_credentials()
-    basic = base64.b64encode(f"{client_id}:{client_secret}".encode("utf-8")).decode("ascii")
-    response = requests.post(
-        EDALNICE_AUTH_URL,
-        data={"grant_type": "client_credentials", "Scope": "eshop.api eshoppayment.api"},
-        headers={
-            "Authorization": f"Basic {basic}",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json",
-        },
-        timeout=20,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    token = str(payload.get("access_token") or "").strip()
-    if not token:
-        raise RuntimeError("eDalnice: autentizace nevrátila access_token.")
-    expires_in = int(payload.get("expires_in") or 300)
-    _edalnice_token_cache["token"] = token
-    _edalnice_token_cache["expires_at"] = now + max(60, expires_in)
-    return token
-
-
 def _edalnice_collect_charge_dicts(node):
     """Najde všechny záznamy známek v odpovědi eDalnice, i když jsou v jiné vnořené sekci."""
     found = []
@@ -357,35 +207,34 @@ def _edalnice_lookup(spz):
     if not plate:
         raise ValueError("Chybí SPZ.")
 
-    def request_status(token):
-        return requests.get(
-            EDALNICE_VALIDATION_URL + plate,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json,text/json",
-                "Accept-Language": "cs",
-                "Origin": "https://edalnice.gov.cz",
-                "Referer": "https://edalnice.gov.cz/",
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0 Safari/537.36",
-            },
-            timeout=20,
+    response = requests.get(
+        EDALNICE_VALIDATION_URL + plate,
+        headers={
+            "Accept": "*/*",
+            "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
+            "Origin": "https://edalnice.gov.cz",
+            "Referer": "https://edalnice.gov.cz/",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        },
+        timeout=20,
+    )
+
+    if not response.ok:
+        body = (response.text or "")[:500].replace("\n", " ")
+        raise RuntimeError(
+            f"eDalnice API HTTP {response.status_code} pro {plate}: {body}"
         )
 
-    token = _edalnice_token()
-    response = request_status(token)
-    if response.status_code == 401:
-        token = _edalnice_token(force=True)
-        response = request_status(token)
-    response.raise_for_status()
-    payload = response.json()
+    try:
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(f"eDalnice API pro {plate} nevrátilo platné JSON: {exc}") from exc
 
     now = datetime.now(timezone.utc)
     current = []
     future = []
     all_items = []
 
-    # eDalnice může vracet aktuální a nadcházející známky v různých částech JSONu.
-    # Proto nečteme pouze payload['charges'], ale všechny vnořené záznamy s validSince/validUntil.
     for charge in _edalnice_collect_charge_dicts(payload):
         valid_since = _parse_iso(charge.get("validSince") or charge.get("valid_since"))
         valid_until = _parse_iso(charge.get("validUntil") or charge.get("valid_until"))
