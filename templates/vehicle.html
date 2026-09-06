@@ -56,7 +56,6 @@
             {% if v.stk_until %}<small class="last-known">Poslední známý údaj: {{ v.stk_until|czdate }}</small>{% endif %}
           {% else %}
             <span class="primary-status-text">Platná do <b>{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
-            <small class="card-source">dataovozidlech.cz</small>
           {% endif %}
         </div>
         {% if stk_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ stk_status[0] }}">{{ stk_status[1] }}</b>{% endif %}
@@ -72,7 +71,6 @@
             {% if v.vignette_until %}<small class="last-known">Poslední známý údaj: {{ v.vignette_until|czdate }}</small>{% endif %}
           {% else %}
             <span class="primary-status-text">Platná do <b>{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
-            <small class="card-source">edalnice.gov.cz</small>
           {% endif %}
         </div>
         {% if vignette_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ vignette_status[0] }}">{{ vignette_status[1] }}</b>{% endif %}
@@ -112,7 +110,6 @@
           <strong>ASISTENCE VOZIDLA</strong>
           <span class="primary-status-text">Platná do <b>{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
           <small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small>
-          <small class="card-source">informační portál pojišťoven</small>
         </div>
         <b class="pill {{ assistance_status[0] }}">{{ assistance_status[1] }}</b>
       </article>
@@ -204,7 +201,7 @@
 <style>
 .vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}
 .vehicle-update-info{margin:0 0 14px;padding:12px 15px;border:1px solid rgba(88,166,255,.18);border-radius:12px;background:rgba(88,166,255,.055);color:#9fb2c9;font-size:12px;font-weight:750;line-height:1.45}
-.status-grid{align-items:stretch}.status-card{min-height:134px;align-items:center}.status-card-content{min-width:0;flex:1}.status-card-content>strong{display:block;margin-bottom:6px}.primary-status-text{display:block!important;font-size:15px!important;line-height:1.3!important;color:#9fb2c9!important;font-weight:750!important}.primary-status-text b{font-size:18px;color:#fff;font-weight:950}.assistance-contact,.last-known,.card-source{display:block;margin-top:7px;color:#9fb2c9;font-size:12px;font-weight:800}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}.card-source{color:#7e94ad;font-size:11px;font-weight:750}
+.status-grid{align-items:stretch}.status-card{min-height:134px;align-items:center}.status-card-content{min-width:0;flex:1}.status-card-content>strong{display:block;margin-bottom:6px}.primary-status-text{display:block!important;font-size:15px!important;line-height:1.3!important;color:#9fb2c9!important;font-weight:750!important}.primary-status-text b{font-size:18px;color:#fff;font-weight:950}.assistance-contact,.last-known{display:block;margin-top:7px;color:#9fb2c9;font-size:12px;font-weight:800}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}
 .insurance-card{min-height:148px}.insurance-details{display:grid;gap:8px;margin-top:3px}.insurance-detail-row{display:grid;grid-template-columns:minmax(125px,.9fr) minmax(155px,1.1fr);align-items:baseline;gap:12px}.insurance-label{font-size:12px;color:#9fb2c9;font-weight:850;line-height:1.2}.insurance-validity{font-size:13px;color:#9fb2c9;font-weight:750;white-space:nowrap}.insurance-validity b{margin-left:4px;font-size:16px;color:#fff;font-weight:950}.assistance-card .primary-status-text{margin-top:2px}
 .status-card-loading{border-color:rgba(88,166,255,.34)!important}.loading-line{display:flex!important;align-items:center;gap:8px;color:#cfe4ff!important;font-weight:850!important}.loading-spinner{width:13px;height:13px;border:2px solid rgba(159,201,255,.25);border-top-color:#9fc9ff;border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}.loading-pill{background:rgba(88,166,255,.14)!important;color:#9fc9ff!important;border-color:rgba(88,166,255,.3)!important}@keyframes spin{to{transform:rotate(360deg)}}
 .service-card-separated{grid-column:1/-1;margin-top:10px;min-height:98px;border:1px solid rgba(88,166,255,.42)!important;background:linear-gradient(145deg,rgba(28,58,92,.98),rgba(14,34,56,.98))!important;box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06)!important;transform:translateY(-1px)}.service-card-separated .status-icon{width:28px;height:28px;color:#7db9ff!important}.service-card-separated>div>strong{font-size:14px!important;letter-spacing:.55px;color:#9fc9ff!important}.service-card-separated .service-km{font-size:24px!important;font-weight:950!important;color:#fff!important;line-height:1.15;margin-top:4px}.service-card-separated small{font-size:13px!important;color:#c7d9ee!important;margin-top:5px!important}.service-card-separated .pill{margin-left:auto}
