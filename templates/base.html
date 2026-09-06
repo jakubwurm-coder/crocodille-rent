@@ -30,7 +30,10 @@
         data-checked-at="{{ v.get('vignette_checked_at','') }}"
         data-future-from="{{ v.get('vignette_future_from','') }}"
         data-source="{{ v.get('vignette_source','') }}"
-        data-exempt="{{ '1' if v.get('vignette_is_exempt') else '0' }}">
+        data-exempt="{{ '1' if v.get('vignette_is_exempt') else '0' }}"
+        data-stk-until="{{ v.get('stk_until','') }}"
+        data-stk-checked-at="{{ v.get('stk_checked_at','') }}"
+        data-stk-source="{{ v.get('stk_source','') }}">
       </span>
     {% elif vehicles is defined %}
       {% for item in vehicles %}
@@ -43,7 +46,10 @@
           data-checked-at="{{ item.get('vignette_checked_at','') }}"
           data-future-from="{{ item.get('vignette_future_from','') }}"
           data-source="{{ item.get('vignette_source','') }}"
-          data-exempt="{{ '1' if item.get('vignette_is_exempt') else '0' }}">
+          data-exempt="{{ '1' if item.get('vignette_is_exempt') else '0' }}"
+          data-stk-until="{{ item.get('stk_until','') }}"
+          data-stk-checked-at="{{ item.get('stk_checked_at','') }}"
+          data-stk-source="{{ item.get('stk_source','') }}">
         </span>
       {% endfor %}
     {% endif %}
