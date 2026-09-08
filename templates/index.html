@@ -3,21 +3,35 @@
 {% set attention = namespace(items=[], count=0) %}
 {% for v in vehicles %}
   {% set items = vehicle_alert_items(v) %}
-  {% if items %}{% set attention.items = attention.items + [(v,items)] %}{% set attention.count = attention.count + 1 %}{% endif %}
+  {% if items %}
+    {% set attention.items = attention.items + [(v, items)] %}
+    {% set attention.count = attention.count + 1 %}
+  {% endif %}
 {% endfor %}
 
 <header class="fleet-hero">
-  <div class="fleet-hero-copy"><div class="brand">Vans <span>Renting</span></div><h1>Vozový park</h1><p>Přehled vozidel a důležitých termínů</p></div>
+  <div class="fleet-hero-copy">
+    <div class="brand">Vans <span>Renting</span></div>
+    <h1>Vozový park</h1>
+    <p>Přehled vozidel a důležitých termínů</p>
+  </div>
   <div class="fleet-hero-actions">
-    {% if admin_logged %}<a class="fleet-settings" href="/admin" title="Administrace">⚙</a>{% endif %}
+    {% if admin_logged %}<a class="fleet-settings" href="/admin">Administrace</a>{% endif %}
     <a class="btn small muted-btn" href="/logout">Odhlásit</a>
   </div>
 </header>
 
 <section class="fleet-toolbar">
-  <div class="fleet-total-card"><small>CELKEM VOZIDEL</small><strong>{{ vehicles|length }}</strong></div>
+  <div class="fleet-total-card">
+    <small>CELKEM VOZIDEL</small>
+    <strong>{{ vehicles|length }}</strong>
+  </div>
   <form class="fleet-search" method="get" id="fleet-search-form">
-    <input id="fleet-search-input" name="q" value="{{ q }}" placeholder="Hledat podle SPZ nebo VIN" list="vehicle-suggestions" autocomplete="off">
+    <label for="fleet-search-input">Vyhledávání</label>
+    <div class="fleet-search-box">
+      <span class="fleet-search-icon">⌕</span>
+      <input id="fleet-search-input" name="q" value="{{ q }}" placeholder="Hledat podle SPZ nebo VIN" list="vehicle-suggestions" autocomplete="off">
+    </div>
     <datalist id="vehicle-suggestions">
       {% for v in vehicles %}
         <option value="{{ v.spz }}">{{ v.brand }} {{ v.model }} · {{ v.vin }}</option>
@@ -29,27 +43,85 @@
 
 {% if attention.count %}
 <section class="attention-panel">
-  <div class="attention-panel-head"><div class="attention-icon">!</div><div><h2>Vyžaduje pozornost</h2><p>Blížící se nebo překročené termíny</p></div></div>
+  <div class="attention-panel-head">
+    <div>
+      <small>TERMÍNY</small>
+      <h2>Vyžaduje pozornost</h2>
+      <p>Blížící se nebo překročené termíny</p>
+    </div>
+    <span class="attention-count">{{ attention.count }}</span>
+  </div>
   <div class="attention-list">
     {% for v, items in attention.items %}
-      <a href="/v/{{ v.id }}" class="attention-row"><div class="attention-row-left"><strong>{{ v.spz }}</strong><div class="attention-badges">{% for item in items %}<span class="attention-badge {{ item.state }}">{{ item.label }} · {{ item.text }}</span>{% endfor %}</div></div><span class="attention-arrow">›</span></a>
+      <a href="/v/{{ v.id }}" class="attention-row">
+        <div class="attention-vehicle">
+          <strong>{{ v.spz }}</strong>
+          <span>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</span>
+        </div>
+        <div class="attention-badges">
+          {% for item in items %}
+            <span class="attention-badge {{ item.state }}">{{ item.label }} · {{ item.text }}</span>
+          {% endfor %}
+        </div>
+        <span class="attention-arrow">›</span>
+      </a>
     {% endfor %}
   </div>
 </section>
 {% endif %}
 
-<section class="fleet-section-head"><small>VOZIDLA</small><h2>Přehled vozidel</h2></section>
+<section class="fleet-section-head">
+  <div>
+    <small>VOZIDLA</small>
+    <h2>Přehled vozidel</h2>
+  </div>
+  {% if q %}<a class="clear-search" href="/">Zrušit filtr</a>{% endif %}
+</section>
+
 <div class="fleet-cards">
   {% for v in vehicles %}
     {% set alerts = vehicle_alert_items(v) %}
     <a class="vehicle-card" href="/v/{{ v.id }}">
-      <div class="vehicle-card-top"><div class="vehicle-title-wrap"><h3>{{ v.spz or 'SPZ nezadána' }}</h3><p>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</p></div><span class="card-arrow">›</span></div>
-      <div class="vehicle-card-meta"><div class="meta-item"><small>ID VOZIDLA</small><strong>{{ v.vehicle_id or '—' }}</strong></div><div class="meta-item"><small>VIN</small><strong class="vin-text">{{ v.vin or 'nezadáno' }}</strong></div></div>
-      <div class="vehicle-card-status">{% if alerts %}<div class="status-badges">{% for item in alerts %}<span class="status-badge {{ item.state }}">{{ item.label }} · {{ item.text }}</span>{% endfor %}</div>{% else %}<span class="status-ok"><i></i>Nevyžaduje pozornost</span>{% endif %}</div>
+      <div class="vehicle-card-visual">
+        {% if v.get('photo') %}
+          <img src="{{ url_for('vehicle_image', filename=v.photo) }}" alt="{{ v.spz }}">
+        {% else %}
+          <span>{{ v.brand or 'Vozidlo' }}</span>
+        {% endif %}
+      </div>
+      <div class="vehicle-card-body">
+        <div class="vehicle-card-top">
+          <div>
+            <h3>{{ v.spz or 'SPZ nezadána' }}</h3>
+            <p>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</p>
+          </div>
+          <span class="card-arrow">›</span>
+        </div>
+        <div class="vehicle-card-meta">
+          <div class="meta-item">
+            <small>ID VOZIDLA</small>
+            <strong>{{ v.vehicle_id or '—' }}</strong>
+          </div>
+          <div class="meta-item meta-vin">
+            <small>VIN</small>
+            <strong>{{ v.vin or 'nezadáno' }}</strong>
+          </div>
+        </div>
+        <div class="vehicle-card-status">
+          {% if alerts %}
+            <div class="status-badges">
+              {% for item in alerts %}
+                <span class="status-badge {{ item.state }}">{{ item.label }} · {{ item.text }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <span class="status-ok"><i></i>Nevyžaduje pozornost</span>
+          {% endif %}
+        </div>
+      </div>
     </a>
   {% else %}
-    <p>Žádná vozidla neodpovídají hledání.</p>
+    <div class="fleet-empty">Žádná vozidla neodpovídají hledání.</div>
   {% endfor %}
 </div>
-
 {% endblock %}
