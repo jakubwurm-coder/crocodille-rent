@@ -46,7 +46,7 @@
     {% for v, items in attention.items %}
       <a href="/v/{{ v.id }}" class="attention-row fleet-attention-row">
         <div class="attention-vehicle">
-          <strong>{{ v.spz }}</strong>
+          <strong>RZ: {{ v.spz }}</strong>
           <span>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</span>
         </div>
         <div class="attention-badges">
@@ -76,7 +76,7 @@
       <div class="fleet-card-copy">
         <div class="vehicle-card-top">
           <div>
-            <h3>{{ v.spz or 'SPZ nezadána' }}</h3>
+            <h3>RZ: {{ v.spz or 'nezadána' }}</h3>
             <p>{{ v.brand or 'Vozidlo' }} {{ v.model or v.name or '' }}</p>
           </div>
           <span class="card-arrow">›</span>
