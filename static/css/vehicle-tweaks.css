@@ -1,69 +1,200 @@
 .compact-section-lead{
   padding-top:0;
-  margin-bottom:2px;
+  margin:0 0 8px;
 }
 
 .compact-section-lead small{
   display:block;
-  font-size:11px;
-  letter-spacing:1.1px;
+  font-size:12px;
+  line-height:1.2;
+  letter-spacing:1.25px;
   color:#7fa4ca;
+  font-weight:900;
+}
+
+.status-card-content > strong{
+  font-size:18px !important;
+  line-height:1.15 !important;
+  letter-spacing:-.15px !important;
+}
+
+.validity-label{
+  margin-top:14px !important;
+  font-size:13px !important;
+  line-height:1.2 !important;
 }
 
 .validity-date{
-  font-size:22px !important;
+  margin-top:4px !important;
+  font-size:20px !important;
   line-height:1.05 !important;
-  letter-spacing:-.35px !important;
+  letter-spacing:-.25px !important;
+}
+
+.status-card .pill{
+  font-size:11px !important;
+  line-height:1 !important;
+  padding:7px 11px !important;
 }
 
 .assistance-note,
 .assistance-contact{
-  font-size:15px !important;
-  line-height:1.45 !important;
+  font-size:13px !important;
+  line-height:1.4 !important;
 }
 
 .assistance-note{
-  margin-top:14px !important;
+  margin-top:13px !important;
   color:#b9cee3 !important;
 }
 
 .assistance-contact{
-  margin-top:5px !important;
+  margin-top:6px !important;
   color:#d9e8f6 !important;
   font-weight:800 !important;
 }
 
 .assistance-contact a{
-  font-size:16px;
-  font-weight:950;
-  color:#fff;
+  font-size:15px !important;
+  font-weight:950 !important;
+  color:#fff !important;
+}
+
+.service-card-separated{
+  align-items:center !important;
+}
+
+.service-card-separated .panel-kicker{
+  display:block;
+  margin:0 0 8px !important;
+  font-size:11px !important;
+  line-height:1.2 !important;
+}
+
+.service-card-separated h2{
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  font-size:22px !important;
+  line-height:1.15 !important;
+  letter-spacing:-.35px !important;
+}
+
+.service-next-value{
+  font-size:22px !important;
+  line-height:1.1 !important;
+  letter-spacing:-.3px !important;
 }
 
 .technical-kicker-only{
-  margin-bottom:16px;
+  margin-bottom:14px;
   align-items:center;
 }
 
 .technical-kicker-only .panel-kicker{
   display:block;
   margin:0;
+  font-size:11px !important;
+  line-height:1.2 !important;
+  letter-spacing:1.15px !important;
 }
 
 .registry-grid{
   margin-top:0 !important;
+  gap:10px !important;
+}
+
+.registry-item{
+  padding:14px 16px !important;
+}
+
+.registry-item small{
+  font-size:10px !important;
+  line-height:1.2 !important;
+  letter-spacing:.7px !important;
 }
 
 .registry-item strong{
-  font-size:18px;
+  margin-top:6px !important;
+  font-size:16px !important;
+  line-height:1.2 !important;
+  letter-spacing:-.15px !important;
+}
+
+.wide-main h1{
+  font-size:46px !important;
+  line-height:.98 !important;
+  letter-spacing:-1.6px !important;
+}
+
+.vin-line em{
+  font-size:10px !important;
+}
+
+.vin-line b{
+  font-size:14px !important;
+}
+
+.stats small{
+  font-size:9px !important;
+  letter-spacing:.8px !important;
+}
+
+.stats strong{
+  font-size:16px !important;
+  line-height:1.25 !important;
+}
+
+@media(max-width:1050px){
+  .wide-main h1{
+    font-size:42px !important;
+  }
+
+  .status-card-content > strong{
+    font-size:17px !important;
+  }
+
+  .validity-date{
+    font-size:19px !important;
+  }
 }
 
 @media(max-width:640px){
+  .compact-section-lead small{
+    font-size:10px;
+  }
+
+  .wide-main h1{
+    font-size:36px !important;
+  }
+
+  .status-card-content > strong{
+    font-size:16px !important;
+  }
+
+  .validity-label{
+    font-size:12px !important;
+  }
+
   .validity-date{
-    font-size:19px !important;
+    font-size:18px !important;
   }
 
   .assistance-note,
   .assistance-contact{
+    font-size:12px !important;
+  }
+
+  .assistance-contact a{
     font-size:14px !important;
+  }
+
+  .service-card-separated h2,
+  .service-next-value{
+    font-size:19px !important;
+  }
+
+  .registry-item strong{
+    font-size:15px !important;
   }
 }
