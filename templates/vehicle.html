@@ -2,6 +2,17 @@
 {% block content %}
 {% set dk=v.get('datova_kostka',{}) %}
 {% set b=dk.get('basic',{}) %}
+{% set raw=dk.get('raw',{}) %}
+{% set direct_payload=raw.get('HmotnostUzitecneZatizeniPrumer') %}
+{% set max_mass_raw=raw.get('HmotnostiPripPov') %}
+{% set operating_mass=raw.get('HmotnostiProvozni') %}
+{% if direct_payload %}
+  {% set useful_payload=direct_payload|int %}
+{% elif max_mass_raw and operating_mass %}
+  {% set useful_payload=((max_mass_raw|string).split('/')[0]|trim|int) - (operating_mass|int) %}
+{% else %}
+  {% set useful_payload=0 %}
+{% endif %}
 
 {% with messages=get_flashed_messages() %}
   {% if messages %}<div class="flashbox vehicle-flash">{{ messages[0] }}</div>{% endif %}
@@ -41,9 +52,8 @@
   </aside>
 
   <main class="vehicle-right">
-    <section class="section-lead">
-      <small>PROVOZNÍ PŘEHLED</small>
-      <h2>Důležité termíny</h2>
+    <section class="section-lead compact-section-lead">
+      <small>PROVOZNÍ PŘEHLED · DENNĚ AUTOMATICKY AKTUALIZOVÁNO</small>
     </section>
 
     <section class="status-grid">
@@ -82,7 +92,6 @@
           <strong>POJIŠTĚNÍ</strong>
           <span class="validity-label">Platné do</span>
           <b class="validity-date">{% if v.insurance_until %}{{ v.insurance_until|czdate }}{% else %}nezadáno{% endif %}</b>
-          <small class="status-subline">Povinné ručení · Havarijní pojištění</small>
         </div>
         <b class="pill {{ ins[0] }}">{{ ins[1] }}</b>
       </article>
@@ -109,15 +118,19 @@
     </section>
 
     <section class="panel registry-panel">
-      <div class="registry-head">
-        <div><small class="panel-kicker">TECHNICKÁ DATA</small><h2>Základní technické údaje</h2></div>
+      <div class="registry-head technical-kicker-only">
+        <div><small class="panel-kicker">TECHNICKÁ DATA</small></div>
         {% if admin_logged %}<form method="post" action="/admin/{{ v.id }}/datova-kostka"><button class="btn small" type="submit">Obnovit podle VIN</button></form>{% endif %}
       </div>
       {% if dk %}
         <div class="registry-grid">
-          {% for label,value,suffix in [('Značka',b.get('brand'),''),('Model',b.get('model'),''),('První registrace',b.get('first_registration'),''),('Palivo',b.get('fuel'),''),('Typ motoru',b.get('engine_type'),''),('Objem motoru',b.get('engine_capacity'),' cm³'),('Výkon',b.get('power_kw'),' kW'),('Emisní norma',b.get('emission'),'')] %}
-            {% if value %}<div class="registry-item"><small>{{ label }}</small><strong>{{ value }}{{ suffix }}</strong></div>{% endif %}
-          {% endfor %}
+          {% if b.get('brand') %}<div class="registry-item"><small>Značka</small><strong>{{ b.get('brand') }}</strong></div>{% endif %}
+          {% if b.get('model') %}<div class="registry-item"><small>Model</small><strong>{{ b.get('model') }}</strong></div>{% endif %}
+          {% if b.get('first_registration') %}<div class="registry-item"><small>První registrace</small><strong>{{ b.get('first_registration')|czdate }}</strong></div>{% endif %}
+          {% if b.get('fuel') %}<div class="registry-item"><small>Palivo</small><strong>{{ b.get('fuel') }}</strong></div>{% endif %}
+          {% if b.get('engine_capacity') %}<div class="registry-item"><small>Objem motoru</small><strong>{{ b.get('engine_capacity') }} cm³</strong></div>{% endif %}
+          {% if b.get('power_kw') %}<div class="registry-item"><small>Výkon</small><strong>{{ b.get('power_kw') }} kW</strong></div>{% endif %}
+          {% if useful_payload > 0 %}<div class="registry-item"><small>Užitečná hmotnost</small><strong>{{ useful_payload }} kg</strong></div>{% endif %}
         </div>
       {% else %}<p class="empty">Technická data zatím nejsou načtena.</p>{% endif %}
     </section>
