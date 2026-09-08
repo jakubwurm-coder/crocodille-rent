@@ -2,48 +2,117 @@
 {% block content %}
 {% set dk=v.get('datova_kostka',{}) %}
 {% set b=dk.get('basic',{}) %}
-{% set icon_sprite = url_for('static', filename='icons/fleet-icons.svg') %}
 
-{% with messages=get_flashed_messages() %}{% if messages %}<div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>{% endif %}{% endwith %}
+{% with messages=get_flashed_messages() %}
+  {% if messages %}<div class="flashbox vehicle-flash">{{ messages[0] }}</div>{% endif %}
+{% endwith %}
 
 <div class="vehicle-screen pro-detail">
   <aside class="vehicle-left">
     {% if admin_logged or client_logged %}<a class="back pro-back" href="/">← <span>Zpět</span></a>{% endif %}
+
     <div class="wide-hero pro-hero">
-      {% if v.get('photo') %}<img src="{{ url_for('vehicle_image', filename=v.photo) }}" alt="{{ v.spz }}">{% else %}<div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>{% endif %}
+      {% if v.get('photo') %}
+        <img src="{{ url_for('vehicle_image', filename=v.photo) }}" alt="{{ v.spz }}">
+      {% else %}
+        <div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>
+      {% endif %}
     </div>
-    <section class="main-info wide-main pro-main"><div><h1>{{ v.spz or 'SPZ nezadána' }}</h1><div class="vin-line"><span><em>VIN:</em> <b>{{ v.vin or 'nezadáno' }}</b></span></div></div></section>
+
+    <section class="main-info wide-main pro-main">
+      <h1>{{ v.spz or 'SPZ nezadána' }}</h1>
+      <div class="vin-line"><em>VIN</em><b>{{ v.vin or 'nezadáno' }}</b></div>
+    </section>
+
     <section class="stats wide-stats pro-stats">
-      <div><small>ZNAČKA / MODEL</small><strong>{{ v.brand or b.get('brand') or 'nezadáno' }} {{ v.model or b.get('model') or '' }}</strong></div>
-      <div><small>ID VOZIDLA</small><strong>{{ v.vehicle_id or 'nezadáno' }}</strong></div>
-      <div><small>ROK VÝROBY</small><strong>{{ v.year or b.get('year') or 'nezadáno' }}</strong></div>
+      <div>
+        <small>ZNAČKA / MODEL</small>
+        <strong>{{ v.brand or b.get('brand') or 'nezadáno' }} {{ v.model or b.get('model') or '' }}</strong>
+      </div>
+      <div>
+        <small>ID VOZIDLA</small>
+        <strong>{{ v.vehicle_id or 'nezadáno' }}</strong>
+      </div>
+      <div>
+        <small>ROK VÝROBY</small>
+        <strong>{{ v.year or b.get('year') or 'nezadáno' }}</strong>
+      </div>
     </section>
   </aside>
 
   <main class="vehicle-right">
-    <section class="section-lead"><div><small>PROVOZNÍ PŘEHLED</small></div></section>
-    <section class="status-grid">
-      {% set stk=status_for(v.stk_until) %}
-      <article class="status-card"><div class="status-card-content"><strong>STK</strong><span class="validity-label">Platná do</span><b class="validity-date">{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezjištěno{% endif %}</b></div><b class="pill {{ stk[0] }}">{{ stk[1] }}</b></article>
-
-      {% set vig=status_for(v.vignette_until) %}
-      <article class="status-card"><div class="status-card-content"><strong>DÁLNIČNÍ ZNÁMKA</strong>
-        {% if v.vignette_status == 'exempt' %}<span class="validity-label">Stav</span><b class="validity-date">Osvobozeno</b>
-        {% elif v.vignette_status == 'missing' %}<span class="validity-label">Stav</span><b class="validity-date">Nenalezena</b>
-        {% else %}<span class="validity-label">Platná do</span><b class="validity-date">{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezjištěno{% endif %}</b>{% if v.vignette_status == 'future' and v.vignette_future_from %}<small>Platnost začne {{ v.vignette_future_from|czdate }}</small>{% endif %}{% endif %}
-      </div>{% if v.vignette_status not in ['exempt','missing'] %}<b class="pill {{ vig[0] }}">{{ vig[1] }}</b>{% endif %}</article>
-
-      {% set ins=status_for(v.insurance_until) %}
-      <article class="status-card insurance-card"><div class="status-card-content"><strong>POJIŠTĚNÍ</strong><span class="validity-label">Platné do</span><b class="validity-date">{% if v.insurance_until %}{{ v.insurance_until|czdate }}{% else %}nezadáno{% endif %}</b></div><b class="pill {{ ins[0] }}">{{ ins[1] }}</b></article>
-
-      {% set ass=status_for(v.assistance_until) %}
-      <article class="status-card assistance-card"><div class="status-card-content"><strong>ASISTENCE VOZIDLA</strong><span class="validity-label">Platná do</span><b class="validity-date">{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</b><small class="assistance-note">Při využití asistenčních služeb nahlásit <b>SPZ vozidla</b>.</small><small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small></div><b class="pill {{ ass[0] }}">{{ ass[1] }}</b></article>
+    <section class="section-lead">
+      <small>PROVOZNÍ PŘEHLED</small>
+      <h2>Důležité termíny</h2>
     </section>
 
-    <section class="panel service-card-separated"><h2>Příští výměna oleje</h2><p class="wide-note">{% if v.next_service_km %}<strong>{{ v.next_service_km|km }}</strong>{% else %}nezadáno{% endif %}</p></section>
+    <section class="status-grid">
+      {% set stk=status_for(v.stk_until) %}
+      <article class="status-card">
+        <div class="status-card-content">
+          <strong>STK</strong>
+          <span class="validity-label">Platná do</span>
+          <b class="validity-date">{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezjištěno{% endif %}</b>
+        </div>
+        <b class="pill {{ stk[0] }}">{{ stk[1] }}</b>
+      </article>
+
+      {% set vig=status_for(v.vignette_until) %}
+      <article class="status-card">
+        <div class="status-card-content">
+          <strong>DÁLNIČNÍ ZNÁMKA</strong>
+          {% if v.vignette_status == 'exempt' %}
+            <span class="validity-label">Stav</span>
+            <b class="validity-date">Osvobozeno</b>
+          {% elif v.vignette_status == 'missing' %}
+            <span class="validity-label">Stav</span>
+            <b class="validity-date">Nenalezena</b>
+          {% else %}
+            <span class="validity-label">Platná do</span>
+            <b class="validity-date">{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezjištěno{% endif %}</b>
+            {% if v.vignette_status == 'future' and v.vignette_future_from %}<small class="future-note">Platnost začne {{ v.vignette_future_from|czdate }}</small>{% endif %}
+          {% endif %}
+        </div>
+        {% if v.vignette_status not in ['exempt','missing'] %}<b class="pill {{ vig[0] }}">{{ vig[1] }}</b>{% endif %}
+      </article>
+
+      {% set ins=status_for(v.insurance_until) %}
+      <article class="status-card">
+        <div class="status-card-content">
+          <strong>POJIŠTĚNÍ</strong>
+          <span class="validity-label">Platné do</span>
+          <b class="validity-date">{% if v.insurance_until %}{{ v.insurance_until|czdate }}{% else %}nezadáno{% endif %}</b>
+          <small class="status-subline">Povinné ručení · Havarijní pojištění</small>
+        </div>
+        <b class="pill {{ ins[0] }}">{{ ins[1] }}</b>
+      </article>
+
+      {% set ass=status_for(v.assistance_until) %}
+      <article class="status-card assistance-card">
+        <div class="status-card-content">
+          <strong>ASISTENCE VOZIDLA</strong>
+          <span class="validity-label">Platná do</span>
+          <b class="validity-date">{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</b>
+          <small class="assistance-note">Při využití asistenčních služeb nahlásit SPZ vozidla.</small>
+          <small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small>
+        </div>
+        <b class="pill {{ ass[0] }}">{{ ass[1] }}</b>
+      </article>
+    </section>
+
+    <section class="panel service-card-separated">
+      <div>
+        <small class="panel-kicker">SERVIS</small>
+        <h2>Příští výměna oleje</h2>
+      </div>
+      <div class="service-next-value">{% if v.next_service_km %}{{ v.next_service_km|km }}{% else %}Nezadáno{% endif %}</div>
+    </section>
 
     <section class="panel registry-panel">
-      <div class="registry-head"><div><small class="panel-kicker">TECHNICKÁ DATA</small><h2>Základní technické údaje</h2></div>{% if admin_logged %}<form method="post" action="/admin/{{ v.id }}/datova-kostka"><button class="btn small" type="submit">Obnovit podle VIN</button></form>{% endif %}</div>
+      <div class="registry-head">
+        <div><small class="panel-kicker">TECHNICKÁ DATA</small><h2>Základní technické údaje</h2></div>
+        {% if admin_logged %}<form method="post" action="/admin/{{ v.id }}/datova-kostka"><button class="btn small" type="submit">Obnovit podle VIN</button></form>{% endif %}
+      </div>
       {% if dk %}
         <div class="registry-grid">
           {% for label,value,suffix in [('Značka',b.get('brand'),''),('Model',b.get('model'),''),('První registrace',b.get('first_registration'),''),('Palivo',b.get('fuel'),''),('Typ motoru',b.get('engine_type'),''),('Objem motoru',b.get('engine_capacity'),' cm³'),('Výkon',b.get('power_kw'),' kW'),('Emisní norma',b.get('emission'),'')] %}
@@ -55,16 +124,45 @@
 
     {% if client_logged or admin_logged %}
     <section class="panel">
-      <h2>Dokumenty</h2>
-      {% if v.documents %}<div class="docs wide-docs">{% for d in v.documents %}<a class="doc" href="/documents/{{ d.filename }}" target="_blank"><strong>{{ d.original_name or d.title or d.filename }}</strong><small>PDF</small></a>{% endfor %}</div>{% else %}<p class="empty">Žádné dokumenty.</p>{% endif %}
+      <div><small class="panel-kicker">SOUBORY</small><h2>Dokumenty</h2></div>
+      {% if v.documents %}
+        <div class="docs wide-docs">
+          {% for d in v.documents %}
+            <a class="doc" href="/documents/{{ d.filename }}" target="_blank">
+              <div><strong>{{ d.original_name or d.title or d.filename }}</strong><small>PDF</small></div><span>↗</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}<p class="empty">Žádné dokumenty.</p>{% endif %}
     </section>
     {% endif %}
 
     {% if admin_logged %}
-    <section class="panel service-panel"><h2>Servisní historie</h2>{% if v.service_records %}<div class="timeline wide-timeline pro-timeline">{% for s in v.service_records %}<article class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content">{% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}<strong>{{ s.title }}</strong><div class="service-meta">{% if s.km %}<span>{{ s.km|km }}</span>{% endif %}{% if s.next_service %}<span>Příště: {{ s.next_service }}</span>{% endif %}</div></div></article>{% endfor %}</div>{% else %}<p class="empty">Zatím nejsou zadané servisní úkony.</p>{% endif %}</section>
+    <section class="panel service-panel">
+      <div><small class="panel-kicker">SERVIS</small><h2>Servisní historie</h2></div>
+      {% if v.service_records %}
+        <div class="timeline wide-timeline pro-timeline">
+          {% for s in v.service_records %}
+            <article class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                {% if s.date %}<time>{{ s.date|czdate }}</time>{% endif %}
+                <strong>{{ s.title }}</strong>
+                <div class="service-meta">
+                  {% if s.km %}<span>{{ s.km|km }}</span>{% endif %}
+                  {% if s.next_service %}<span>Příště: {{ s.next_service }}</span>{% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}<p class="empty">Zatím nejsou zadané servisní úkony.</p>{% endif %}
+    </section>
     {% endif %}
 
-    {% if admin_logged and v.note %}<section class="panel"><h2>Poznámka</h2><p class="wide-note">{{ v.note }}</p></section>{% endif %}
+    {% if admin_logged and v.note %}
+      <section class="panel"><div><small class="panel-kicker">INTERNÍ</small><h2>Poznámka</h2></div><p class="wide-note">{{ v.note }}</p></section>
+    {% endif %}
   </main>
 </div>
 {% endblock %}
