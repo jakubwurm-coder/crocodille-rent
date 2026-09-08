@@ -5,3 +5,6 @@ gunicorn
 psycopg2-binary
 qrcode
 Pillow
+PyJWT
+cryptography
+httpx[http2]

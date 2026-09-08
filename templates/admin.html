@@ -1,78 +1,42 @@
 {% extends 'base.html' %}
 {% block content %}
 <header class="topbar">
-  <div>
-    <div class="brand">CROCODILLE <span>RENT</span></div>
-    <h1>Administrace</h1>
-    <p>Editace karet vozidel</p>
-  </div>
+  <div><div class="brand">CROCODILLE <span>RENT</span></div><h1>Administrace</h1><p>Správa vozidel v PostgreSQL</p></div>
   <div class="top-actions">
+    <form action="/admin/sync-now" method="post"><button class="btn small" type="submit">Synchronizovat nyní</button></form>
     <a class="btn small muted-btn" href="/qr">QR kódy</a>
     <a class="btn small muted-btn" href="/">Web</a>
-    <a class="btn small muted-btn" href="/admin/logout">Odhlásit</a>
+    <a class="btn small muted-btn" href="/logout">Odhlásit</a>
   </div>
 </header>
 
-{% with messages=get_flashed_messages() %}
-  {% if messages %}
-    <div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>
-  {% endif %}
-{% endwith %}
+{% with messages=get_flashed_messages() %}{% if messages %}<div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>{% endif %}{% endwith %}
 
 <section class="admin-panel add-vin-panel">
-  <div>
-    <h2>Přidat vozidlo podle VIN</h2>
-    <p class="admin-help">Zadej pouze VIN. Základní technické údaje se načtou automaticky z Datové kostky a vytvoří se nová karta vozidla.</p>
-  </div>
+  <div><h2>Přidat vozidlo podle VIN</h2><p class="admin-help">Po zadání VIN se ihned načte Datová kostka, STK, SPZ a následně eDalnice. Nové vozidlo se uloží přímo do PostgreSQL.</p></div>
   <form action="/admin/add-by-vin" method="post" class="add-vin-form">
     <input name="vin" maxlength="17" minlength="17" required placeholder="17místný VIN" autocomplete="off" spellcheck="false">
     <button class="btn" type="submit">Přidat vozidlo</button>
   </form>
 </section>
 
-{% set ns = namespace(stk=0, vignette=0, insurance=0) %}
+{% set ns = namespace(stk=0, vignette=0, insurance=0, assistance=0) %}
 {% for v in vehicles %}
-  {% set flags = namespace(stk=false, vignette=false, insurance=false) %}
   {% for item in vehicle_alert_items(v) %}
     {% set due30 = item.text == 'propadlé' or (item.text.split(' ')[0] | int) <= 30 %}
-    {% if due30 and item.key == 'stk_until' %}{% set flags.stk = true %}{% endif %}
-    {% if due30 and item.key == 'vignette_until' %}{% set flags.vignette = true %}{% endif %}
-    {% if due30 and item.key in ['liability_until', 'casco_until'] %}{% set flags.insurance = true %}{% endif %}
+    {% if due30 and item.key == 'stk_until' %}{% set ns.stk = ns.stk + 1 %}{% endif %}
+    {% if due30 and item.key == 'vignette_until' %}{% set ns.vignette = ns.vignette + 1 %}{% endif %}
+    {% if due30 and item.key == 'insurance_until' %}{% set ns.insurance = ns.insurance + 1 %}{% endif %}
+    {% if due30 and item.key == 'assistance_until' %}{% set ns.assistance = ns.assistance + 1 %}{% endif %}
   {% endfor %}
-  {% if flags.stk %}{% set ns.stk = ns.stk + 1 %}{% endif %}
-  {% if flags.vignette %}{% set ns.vignette = ns.vignette + 1 %}{% endif %}
-  {% if flags.insurance %}{% set ns.insurance = ns.insurance + 1 %}{% endif %}
 {% endfor %}
 
 <section class="dashboard-grid">
   <div class="dashboard-card"><span>Vozidel celkem</span><strong>{{ dashboard.total }}</strong></div>
   <div class="dashboard-card ok-card"><span>V provozu</span><strong>{{ dashboard.active }}</strong></div>
   <div class="dashboard-card warn-card"><span>STK do 30 dnů</span><strong>{{ ns.stk }}</strong></div>
-  <div class="dashboard-card warn-card"><span>Dálniční známky do 30 dnů</span><strong>{{ ns.vignette }}</strong></div>
+  <div class="dashboard-card warn-card"><span>Známka do 30 dnů</span><strong>{{ ns.vignette }}</strong></div>
   <div class="dashboard-card warn-card"><span>Pojištění do 30 dnů</span><strong>{{ ns.insurance }}</strong></div>
-</section>
-
-<section class="admin-panel">
-  <h2>Vyžaduje pozornost</h2>
-  {% set attention = namespace(count=0) %}
-  <div class="attention-list">
-    {% for v in vehicles %}
-      {% for item in vehicle_alert_items(v) %}
-        {% set due30 = item.text == 'propadlé' or (item.text.split(' ')[0] | int) <= 30 %}
-        {% if due30 %}
-          {% set attention.count = attention.count + 1 %}
-          <a href="/v/{{ v.id }}" class="attention-row">
-            <strong>{{ v.vehicle_id or 'ID nezadáno' }}</strong>
-            <span>{{ v.spz or 'SPZ nezadána' }}</span>
-            <em>{{ item.label }} – {{ item.text }}</em>
-          </a>
-        {% endif %}
-      {% endfor %}
-    {% endfor %}
-  </div>
-  {% if attention.count == 0 %}
-    <p class="admin-help">Aktuálně nic nevyžaduje pozornost.</p>
-  {% endif %}
 </section>
 
 <div class="admin-vehicle-list">
@@ -82,36 +46,19 @@
         <div class="copy-line"><small>ID</small><strong>{{ v.vehicle_id or 'nezadáno' }}</strong></div>
         <div class="copy-line"><small>SPZ</small><strong>{{ v.spz or 'nezadáno' }}</strong></div>
         <div class="copy-line"><small>VIN</small><strong>{{ v.vin or 'nezadáno' }}</strong></div>
-        <div class="vehicle-admin-name">{{ v.brand or v.name or v.model or 'Vozidlo' }}</div>
-        {% if v.get('datova_kostka') %}
-          <div class="dk-state ok">Datová kostka načtena</div>
-        {% elif v.vin %}
-          <div class="dk-state pending">Datová kostka se načte automaticky</div>
-        {% endif %}
+        <div class="vehicle-admin-name">{{ v.brand or '' }} {{ v.model or v.name or '' }}</div>
       </div>
       <div class="admin-card-actions">
         {% if v.spz %}<a class="btn small muted-btn" href="/qr-code/{{ v.spz }}.svg?download=1">QR</a>{% endif %}
         <a class="btn small muted-btn" href="/v/{{ v.id }}">Karta</a>
         <a class="btn small" href="/admin/{{ v.id }}">Upravit</a>
-        <form action="/admin/{{ v.id }}/delete" method="post" class="delete-vehicle-form" onsubmit="return confirm('Opravdu chcete trvale smazat vozidlo {{ v.spz or v.vehicle_id or v.id }}? Tuto akci nelze vrátit zpět.');">
-          <button class="btn small delete-btn" type="submit">Smazat</button>
-        </form>
+        <form action="/admin/{{ v.id }}/delete" method="post" onsubmit="return confirm('Opravdu trvale smazat vozidlo {{ v.spz or v.id }}?');"><button class="btn small delete-btn" type="submit">Smazat</button></form>
       </div>
     </div>
   {% endfor %}
 </div>
 
 <style>
-.add-vin-panel{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px}
-.add-vin-panel h2{margin-top:0}
-.add-vin-form{display:flex;gap:10px;align-items:center}
-.add-vin-form input{min-width:330px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#0d1724;color:#fff;font-size:16px;text-transform:uppercase;letter-spacing:.6px}
-.admin-card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.delete-vehicle-form{margin:0}
-.delete-btn{background:#b42318;border-color:#b42318;color:#fff}
-.delete-btn:hover{background:#d92d20;border-color:#d92d20}
-.dk-state{margin-top:8px;font-size:12px;font-weight:850}
-.dk-state.ok{color:#8de5ac}.dk-state.pending{color:#ffd08a}
-@media(max-width:800px){.add-vin-panel{grid-template-columns:1fr}.add-vin-form{align-items:stretch;flex-direction:column}.add-vin-form input{min-width:0;width:100%}.admin-card-actions{flex-direction:column;align-items:stretch}.admin-card-actions .btn{text-align:center}.delete-vehicle-form,.delete-vehicle-form .btn{width:100%}}
+.add-vin-panel{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px}.add-vin-form{display:flex;gap:10px;align-items:center}.add-vin-form input{min-width:330px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#0d1724;color:#fff;font-size:16px;text-transform:uppercase}.admin-card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.admin-card-actions form{margin:0}.delete-btn{background:#b42318;border-color:#b42318;color:#fff}@media(max-width:800px){.add-vin-panel{grid-template-columns:1fr}.add-vin-form{flex-direction:column}.add-vin-form input{min-width:0;width:100%}}
 </style>
 {% endblock %}

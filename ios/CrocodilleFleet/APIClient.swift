@@ -1,5 +1,7 @@
 import Foundation
 
+private let productionBaseURL = URL(string: "https://vansrenting-crocodille.onrender.com")!
+
 @MainActor
 final class FleetStore: ObservableObject {
     @Published var vehicles: [Vehicle] = []
@@ -7,99 +9,85 @@ final class FleetStore: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var notificationAuthorization = "Kontroluji…"
-    @Published var scheduledNotificationCount = 0
-
-    private let baseURL = URL(string: "https://vansrenting-crocodille.onrender.com")!
+    @Published var pushRegistration = "Čekám na registraci…"
 
     func refresh() async {
         isLoading = true
         defer { isLoading = false }
 
         do {
-            let vehiclesResponse: VehicleEnvelope = try await fetch("/api/v1/vehicles")
-            vehicles = vehiclesResponse.vehicles
+            let response: VehicleEnvelope = try await fetch("/api/v1/vehicles")
+            vehicles = response.vehicles
             errorMessage = nil
         } catch {
-            errorMessage = "Vozidla se nepodařilo načíst: \(readableMessage(for: error))"
+            errorMessage = "Vozidla se nepodařilo načíst: \(error.localizedDescription)"
             return
         }
 
         do {
-            let alertsResponse: AlertsEnvelope = try await fetch("/api/v1/alerts?days=30")
-            alerts = alertsResponse.alerts
-            scheduledNotificationCount = await NotificationManager.shared.schedule(
-                alerts: alertsResponse.alerts
-            )
-            await refreshNotificationStatus()
+            let response: AlertsEnvelope = try await fetch("/api/v1/alerts?days=30")
+            alerts = response.alerts
         } catch {
-            // Vozidla už jsou načtená, takže chyba upozornění nesmí shodit celý přehled.
             alerts = vehicles.flatMap(\.alerts)
-            scheduledNotificationCount = await NotificationManager.shared.schedule(alerts: alerts)
-            await refreshNotificationStatus()
         }
+        await refreshNotificationStatus()
     }
 
     func refreshNotificationStatus() async {
         let state = await NotificationManager.shared.authorizationState()
         notificationAuthorization = state.title
-
-        if state != .allowed {
-            scheduledNotificationCount = 0
-        }
+        pushRegistration = UserDefaults.standard.string(forKey: "apnsDeviceToken")?.isEmpty == false
+            ? "Registrováno na serveru"
+            : "Čekám na APNs token"
     }
 
     private func fetch<T: Decodable>(_ path: String) async throws -> T {
-        guard let url = URL(string: path, relativeTo: baseURL) else {
-            throw APIError.invalidURL
-        }
-
+        guard let url = URL(string: path, relativeTo: productionBaseURL) else { throw APIError.invalidURL }
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard 200..<300 ~= http.statusCode else {
-            let preview = String(data: data.prefix(300), encoding: .utf8) ?? ""
-            throw APIError.httpStatus(http.statusCode, preview)
-        }
-
-        do {
-            return try JSONDecoder().decode(T.self, from: data)
-        } catch {
-            let preview = String(data: data.prefix(300), encoding: .utf8) ?? ""
-            throw APIError.decoding(error.localizedDescription, preview)
-        }
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        guard 200..<300 ~= http.statusCode else { throw APIError.httpStatus(http.statusCode) }
+        return try JSONDecoder().decode(T.self, from: data)
     }
+}
 
-    private func readableMessage(for error: Error) -> String {
-        if let apiError = error as? APIError {
-            return apiError.localizedDescription
+enum PushRegistrationService {
+    static func register(deviceToken: String) async {
+        let url = productionBaseURL.appending(path: "api/v1/devices/register")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        request.httpBody = try? JSONSerialization.data(withJSONObject: [
+            "token": deviceToken,
+            "platform": "ios",
+            "app_version": version
+        ])
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode {
+                UserDefaults.standard.set(deviceToken, forKey: "apnsDeviceToken")
+            }
+        } catch {
+            print("Push token registration failed: \(error.localizedDescription)")
         }
-        return error.localizedDescription
     }
 }
 
 private enum APIError: LocalizedError {
     case invalidURL
     case invalidResponse
-    case httpStatus(Int, String)
-    case decoding(String, String)
+    case httpStatus(Int)
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL:
-            return "Neplatná adresa API."
-        case .invalidResponse:
-            return "Server vrátil neplatnou odpověď."
-        case let .httpStatus(code, preview):
-            return preview.isEmpty ? "Server vrátil HTTP \(code)." : "Server vrátil HTTP \(code): \(preview)"
-        case let .decoding(message, preview):
-            return preview.isEmpty ? "Chyba formátu dat: \(message)" : "Chyba formátu dat: \(message). Odpověď: \(preview)"
+        case .invalidURL: return "Neplatná adresa API."
+        case .invalidResponse: return "Server vrátil neplatnou odpověď."
+        case .httpStatus(let code): return "Server vrátil HTTP \(code)."
         }
     }
 }
