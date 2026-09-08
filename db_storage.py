@@ -1,11 +1,15 @@
-import json
 import os
-from datetime import datetime, timezone
+import threading
+from datetime import timezone
 
 import psycopg2
 from psycopg2.extras import Json
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+
+_SCHEMA_LOCK = threading.Lock()
+_SCHEMA_READY = False
+_WRITE_LOCK_KEY = 764311221
 
 
 def enabled():
@@ -23,61 +27,65 @@ def _connect():
 
 
 def ensure_schema():
+    global _SCHEMA_READY
     require_enabled()
-    with _connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS vehicles (
-                    id TEXT PRIMARY KEY,
-                    data JSONB NOT NULL,
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    if _SCHEMA_READY:
+        return
+    with _SCHEMA_LOCK:
+        if _SCHEMA_READY:
+            return
+        with _connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS vehicles (
+                        id TEXT PRIMARY KEY,
+                        data JSONB NOT NULL,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_spz ON vehicles ((data->>'spz'))")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_vin ON vehicles ((data->>'vin'))")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_spz ON vehicles ((data->>'spz'))")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_vin ON vehicles ((data->>'vin'))")
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS device_tokens (
-                    token TEXT PRIMARY KEY,
-                    platform TEXT NOT NULL DEFAULT 'ios',
-                    app_version TEXT NOT NULL DEFAULT '',
-                    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS device_tokens (
+                        token TEXT PRIMARY KEY,
+                        platform TEXT NOT NULL DEFAULT 'ios',
+                        app_version TEXT NOT NULL DEFAULT '',
+                        enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS notification_log (
-                    token TEXT NOT NULL,
-                    alert_key TEXT NOT NULL,
-                    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    PRIMARY KEY (token, alert_key)
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS notification_log (
+                        token TEXT NOT NULL,
+                        alert_key TEXT NOT NULL,
+                        sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        PRIMARY KEY (token, alert_key)
+                    )
+                    """
                 )
-                """
-            )
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS job_runs (
-                    job_key TEXT NOT NULL,
-                    run_key TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'running',
-                    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    finished_at TIMESTAMPTZ,
-                    details JSONB,
-                    PRIMARY KEY (job_key, run_key)
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS job_runs (
+                        job_key TEXT NOT NULL,
+                        run_key TEXT NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'running',
+                        started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        finished_at TIMESTAMPTZ,
+                        details JSONB,
+                        PRIMARY KEY (job_key, run_key)
+                    )
+                    """
                 )
-                """
-            )
-
-            # Služební vozidla už nejsou součástí aplikace.
-            cur.execute("DROP TABLE IF EXISTS service_vehicles")
+        _SCHEMA_READY = True
 
 
 def load_vehicles():
@@ -95,10 +103,16 @@ def load_vehicles():
 
 
 def save_vehicles(vehicles):
+    """Atomicky uloží celý registr vozidel.
+
+    Advisory lock serializuje souběžné zápisy webu a automatických synchronizací,
+    takže se neopakuje dřívější deadlock při paralelních UPDATE/DELETE operacích.
+    """
     ensure_schema()
     ids = []
     with _connect() as conn:
         with conn.cursor() as cur:
+            cur.execute("SELECT pg_advisory_xact_lock(%s)", (_WRITE_LOCK_KEY,))
             for vehicle in vehicles:
                 vehicle_id = str(vehicle.get("id") or "").strip()
                 if not vehicle_id:
