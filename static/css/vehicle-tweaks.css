@@ -1,0 +1,69 @@
+.compact-section-lead{
+  padding-top:0;
+  margin-bottom:2px;
+}
+
+.compact-section-lead small{
+  display:block;
+  font-size:11px;
+  letter-spacing:1.1px;
+  color:#7fa4ca;
+}
+
+.validity-date{
+  font-size:22px !important;
+  line-height:1.05 !important;
+  letter-spacing:-.35px !important;
+}
+
+.assistance-note,
+.assistance-contact{
+  font-size:15px !important;
+  line-height:1.45 !important;
+}
+
+.assistance-note{
+  margin-top:14px !important;
+  color:#b9cee3 !important;
+}
+
+.assistance-contact{
+  margin-top:5px !important;
+  color:#d9e8f6 !important;
+  font-weight:800 !important;
+}
+
+.assistance-contact a{
+  font-size:16px;
+  font-weight:950;
+  color:#fff;
+}
+
+.technical-kicker-only{
+  margin-bottom:16px;
+  align-items:center;
+}
+
+.technical-kicker-only .panel-kicker{
+  display:block;
+  margin:0;
+}
+
+.registry-grid{
+  margin-top:0 !important;
+}
+
+.registry-item strong{
+  font-size:18px;
+}
+
+@media(max-width:640px){
+  .validity-date{
+    font-size:19px !important;
+  }
+
+  .assistance-note,
+  .assistance-contact{
+    font-size:14px !important;
+  }
+}
