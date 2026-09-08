@@ -7,6 +7,7 @@
 {% set b=dk.get('basic',{}) %}
 {% set stk_state=external_data_state(v,'stk') %}
 {% set vignette_state=external_data_state(v,'vignette') %}
+{% set insurance_until = v.liability_until or v.casco_until %}
 
 {% with messages=get_flashed_messages() %}{% if messages %}<div class="flashbox" style="margin-bottom:18px">{{ messages[0] }}</div>{% endif %}{% endwith %}
 
@@ -38,7 +39,7 @@
 
   <main class="vehicle-right">
     <section class="vehicle-update-info">
-      Karta vozidla je denně aktualizována pomocí veřejných databází.
+      Karta vozidla je aktualizována jednou týdně pomocí veřejných databází.
     </section>
 
     <section class="section-lead">
@@ -55,7 +56,8 @@
             <span class="loading-line"><i class="loading-spinner"></i>Načítám aktuální stav…</span>
             {% if v.stk_until %}<small class="last-known">Poslední známý údaj: {{ v.stk_until|czdate }}</small>{% endif %}
           {% else %}
-            <span class="primary-status-text">Platná do <b>{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
+            <span class="validity-label">Platná do</span>
+            <b class="validity-date">{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezadáno{% endif %}</b>
           {% endif %}
         </div>
         {% if stk_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ stk_status[0] }}">{{ stk_status[1] }}</b>{% endif %}
@@ -70,7 +72,8 @@
             <span class="loading-line"><i class="loading-spinner"></i>Načítám aktuální stav…</span>
             {% if v.vignette_until %}<small class="last-known">Poslední známý údaj: {{ v.vignette_until|czdate }}</small>{% endif %}
           {% else %}
-            <span class="primary-status-text">Platná do <b>{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
+            <span class="validity-label">Platná do</span>
+            <b class="validity-date">{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezadáno{% endif %}</b>
           {% endif %}
         </div>
         {% if vignette_state.loading %}<b class="pill loading-pill">NAČÍTÁM</b>{% else %}<b class="pill {{ vignette_status[0] }}">{{ vignette_status[1] }}</b>{% endif %}
@@ -89,16 +92,9 @@
         <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#liability"></use></svg>
         <div class="status-card-content">
           <strong>POJIŠTĚNÍ</strong>
-          <div class="insurance-details">
-            <div class="insurance-detail-row">
-              <span class="insurance-label">Povinné ručení</span>
-              <span class="insurance-validity">platné do <b>{% if v.liability_until %}{{ v.liability_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
-            </div>
-            <div class="insurance-detail-row">
-              <span class="insurance-label">Havarijní pojištění</span>
-              <span class="insurance-validity">platné do <b>{% if v.casco_until %}{{ v.casco_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
-            </div>
-          </div>
+          <span class="validity-label">Platné do</span>
+          <b class="validity-date">{% if insurance_until %}{{ insurance_until|czdate }}{% else %}nezadáno{% endif %}</b>
+          <small class="insurance-subtext">Povinné ručení · Havarijní pojištění</small>
         </div>
         <b class="pill {{ insurance_class }}">{{ insurance_text }}</b>
       </article>
@@ -108,7 +104,9 @@
         <svg class="ui-icon status-icon"><use href="{{ icon_sprite }}#assistance"></use></svg>
         <div class="status-card-content">
           <strong>ASISTENCE VOZIDLA</strong>
-          <span class="primary-status-text">Platná do <b>{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</b></span>
+          <span class="validity-label">Platná do</span>
+          <b class="validity-date">{% if v.assistance_until %}{{ v.assistance_until|czdate }}{% else %}nezadáno{% endif %}</b>
+          <small class="assistance-note">Při využití asistenčních služeb nahlásit <b>SPZ vozidla</b>.</small>
           <small class="assistance-contact">Kontakt: <a href="tel:1224">1224</a></small>
         </div>
         <b class="pill {{ assistance_status[0] }}">{{ assistance_status[1] }}</b>
@@ -201,14 +199,12 @@
 <style>
 .vin-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.vin-line b{font-weight:750}.copy-vin{appearance:none;border:1px solid rgba(88,166,255,.28);background:rgba(88,166,255,.09);color:#9fc9ff;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:850;cursor:pointer}.section-lead{display:flex;justify-content:space-between;gap:20px;align-items:end;padding:4px 2px 0}.section-lead small,.panel-kicker{display:block;color:#6f8daf;font-size:11px;font-weight:950;letter-spacing:.8px;margin-bottom:5px}
 .vehicle-update-info{margin:0 0 14px;padding:12px 15px;border:1px solid rgba(88,166,255,.18);border-radius:12px;background:rgba(88,166,255,.055);color:#9fb2c9;font-size:12px;font-weight:750;line-height:1.45}
-.status-grid{align-items:stretch}.status-card{min-height:134px;align-items:center}.status-card-content{min-width:0;flex:1}.status-card-content>strong{display:block;margin-bottom:6px}.primary-status-text{display:block!important;font-size:15px!important;line-height:1.3!important;color:#9fb2c9!important;font-weight:750!important}.primary-status-text b{font-size:18px;color:#fff;font-weight:950}.assistance-contact,.last-known{display:block;margin-top:7px;color:#9fb2c9;font-size:12px;font-weight:800}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}
-.insurance-card{min-height:148px}.insurance-details{display:grid;gap:8px;margin-top:3px}.insurance-detail-row{display:grid;grid-template-columns:minmax(125px,.9fr) minmax(155px,1.1fr);align-items:baseline;gap:12px}.insurance-label{font-size:12px;color:#9fb2c9;font-weight:850;line-height:1.2}.insurance-validity{font-size:13px;color:#9fb2c9;font-weight:750;white-space:nowrap}.insurance-validity b{margin-left:4px;font-size:16px;color:#fff;font-weight:950}.assistance-card .primary-status-text{margin-top:2px}
+.status-grid{align-items:stretch}.status-card{min-height:146px;align-items:center}.status-card-content{min-width:0;flex:1}.status-card-content>strong{display:block;margin-bottom:8px}.validity-label{display:block;color:#8ea4bd;font-size:12px;font-weight:800;line-height:1.2}.validity-date{display:block;margin-top:2px;color:#fff;font-size:25px;font-weight:950;line-height:1.08;letter-spacing:-.35px}.insurance-subtext,.assistance-note,.assistance-contact,.last-known{display:block;margin-top:8px;color:#8ea4bd;font-size:11px;font-weight:750;line-height:1.35}.insurance-subtext{opacity:.82}.assistance-note b{color:#cfe0f7;font-weight:900}.assistance-contact a{color:#9fc9ff;text-decoration:none;font-weight:950}.assistance-card{min-height:168px}.insurance-card{min-height:152px}
 .status-card-loading{border-color:rgba(88,166,255,.34)!important}.loading-line{display:flex!important;align-items:center;gap:8px;color:#cfe4ff!important;font-weight:850!important}.loading-spinner{width:13px;height:13px;border:2px solid rgba(159,201,255,.25);border-top-color:#9fc9ff;border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}.loading-pill{background:rgba(88,166,255,.14)!important;color:#9fc9ff!important;border-color:rgba(88,166,255,.3)!important}@keyframes spin{to{transform:rotate(360deg)}}
 .service-card-separated{grid-column:1/-1;margin-top:10px;min-height:98px;border:1px solid rgba(88,166,255,.42)!important;background:linear-gradient(145deg,rgba(28,58,92,.98),rgba(14,34,56,.98))!important;box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06)!important;transform:translateY(-1px)}.service-card-separated .status-icon{width:28px;height:28px;color:#7db9ff!important}.service-card-separated>div>strong{font-size:14px!important;letter-spacing:.55px;color:#9fc9ff!important}.service-card-separated .service-km{font-size:24px!important;font-weight:950!important;color:#fff!important;line-height:1.15;margin-top:4px}.service-card-separated small{font-size:13px!important;color:#c7d9ee!important;margin-top:5px!important}.service-card-separated .pill{margin-left:auto}
 .registry-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.15)}.registry-meta{margin:14px 0;color:#8fa2bb;font-size:13px}.registry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.registry-item{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.registry-item small,.registry-detail-item small{display:block;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;margin-bottom:7px}.registry-item strong{display:block;color:#fff;font-size:18px;line-height:1.25}.payload-item{border:1px solid rgba(88,166,255,.38)!important;background:linear-gradient(145deg,rgba(25,52,82,.92),rgba(14,31,50,.96))!important;box-shadow:0 8px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.04)}.payload-item small{color:#9fc9ff!important;font-weight:950!important}.payload-item strong{font-size:28px!important;font-weight:950!important;color:#fff!important;letter-spacing:-.4px}.registry-details{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:16px}.registry-details summary{cursor:pointer;color:#cfe0f7;font-weight:850;font-size:15px;user-select:none}.registry-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:480px;overflow:auto}.registry-detail-item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;min-width:0}.registry-detail-item span{color:#e9f2ff;font-size:14px;word-break:break-word}.vehicle-no-photo{height:100%;display:flex;align-items:center;justify-content:center;color:#9eb1c9;font-weight:900;font-size:28px}.issue-list{display:grid;gap:10px;margin-top:18px}.issue-row{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.16)}.issue-dot{width:9px;height:9px;margin-top:6px;border-radius:999px;background:#ef6464}.issue-row strong{display:block}.issue-row small{display:block;color:var(--muted);margin-top:4px}
-@media(max-width:1100px){.insurance-detail-row{grid-template-columns:1fr;gap:2px}.insurance-validity{white-space:normal}}
-@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}.status-card{min-height:122px}.service-card-separated{grid-column:auto}}
-@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.service-card-separated .service-km{font-size:22px!important}.payload-item strong{font-size:25px!important}.primary-status-text b{font-size:17px}.insurance-card{min-height:auto}}
+@media(max-width:900px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr 1fr}.registry-head,.section-lead{align-items:flex-start;flex-direction:column}.status-card{min-height:132px}.service-card-separated{grid-column:auto}}
+@media(max-width:560px){.registry-grid,.registry-detail-grid{grid-template-columns:1fr}.service-card-separated .service-km{font-size:22px!important}.payload-item strong{font-size:25px!important}.validity-date{font-size:22px}.insurance-card,.assistance-card{min-height:auto}}
 </style>
 
 <script>
