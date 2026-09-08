@@ -1,27 +1,48 @@
-@media(max-width:1300px){
+@media(max-width:1380px){
+  .fleet-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .vehicle-screen{
+    grid-template-columns:minmax(390px,42%) minmax(0,58%);
+  }
+
+  .registry-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
   .edit{
     grid-template-columns:repeat(3,1fr);
   }
 }
 
-@media(max-width:1050px){
+@media(max-width:1080px){
   .shell{
-    padding:18px;
+    padding:22px;
+  }
+
+  .fleet-toolbar{
+    grid-template-columns:170px minmax(0,1fr);
   }
 
   .vehicle-screen{
-    display:block;
-    max-width:760px;
-    margin:0 auto 86px;
+    grid-template-columns:1fr;
+    max-width:860px;
+    margin:0 auto 70px;
   }
 
   .vehicle-left{
-    margin-bottom:18px;
+    position:relative;
+    top:auto;
+    min-height:0;
   }
 
   .wide-hero{
-    height:340px;
-    min-height:0;
+    height:330px;
+  }
+
+  .vehicle-right{
+    padding-top:4px;
   }
 
   .compact-list,
@@ -40,7 +61,92 @@
   }
 }
 
-@media(max-width:640px){
+@media(max-width:760px){
+  .shell{
+    padding:16px;
+  }
+
+  .fleet-hero{
+    align-items:flex-start;
+  }
+
+  .fleet-hero-copy h1{
+    font-size:38px;
+  }
+
+  .fleet-hero-actions{
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .fleet-toolbar{
+    grid-template-columns:1fr;
+  }
+
+  .fleet-total-card{
+    min-height:70px;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .fleet-total-card strong{
+    margin:0;
+  }
+
+  .attention-row{
+    grid-template-columns:1fr 24px;
+    gap:10px 14px;
+  }
+
+  .attention-badges{
+    grid-column:1 / -1;
+  }
+
+  .attention-arrow{
+    grid-column:2;
+    grid-row:1;
+  }
+
+  .fleet-cards{
+    grid-template-columns:1fr;
+  }
+
+  .vehicle-card{
+    display:grid;
+    grid-template-columns:150px minmax(0,1fr);
+  }
+
+  .vehicle-card-visual{
+    height:100%;
+    min-height:190px;
+    padding:24px 12px;
+  }
+
+  .vehicle-card-meta{
+    grid-template-columns:110px minmax(0,1fr);
+  }
+
+  .status-grid{
+    grid-template-columns:1fr;
+  }
+
+  .status-card{
+    min-height:146px;
+  }
+
+  .registry-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .service-card-separated{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:12px;
+  }
+}
+
+@media(max-width:560px){
   html,
   body{
     width:100%;
@@ -51,239 +157,175 @@
   .shell{
     width:100%;
     max-width:100%;
-    padding:14px;
+    padding:12px;
     overflow-x:hidden;
   }
 
-  .topbar{
-    align-items:flex-start;
+  .fleet-hero{
+    display:block;
+    margin-bottom:18px;
   }
 
-  .topbar h1{
-    font-size:28px;
+  .fleet-hero-copy h1{
+    margin-top:12px;
+    font-size:34px;
   }
 
-  .grid{
+  .fleet-hero-copy p{
+    font-size:15px;
+  }
+
+  .fleet-hero-actions{
+    margin-top:16px;
+    justify-content:flex-start;
+  }
+
+  .fleet-search-box{
+    height:50px;
+  }
+
+  .attention-panel,
+  .vehicle-card,
+  .panel,
+  .status-card{
+    border-radius:18px;
+  }
+
+  .attention-panel-head{
+    padding:16px;
+  }
+
+  .attention-row{
+    padding:14px 16px;
+  }
+
+  .fleet-section-head h2,
+  .attention-panel-head h2{
+    font-size:22px;
+  }
+
+  .vehicle-card{
+    display:block;
+  }
+
+  .vehicle-card-visual{
+    height:126px;
+    min-height:0;
+  }
+
+  .vehicle-card-body{
+    padding:16px;
+  }
+
+  .vehicle-card-top h3{
+    font-size:25px;
+  }
+
+  .vehicle-card-meta{
     grid-template-columns:1fr;
-  }
-
-  .vehicle-row{
-    align-items:flex-start;
-    flex-wrap:wrap;
-  }
-
-  .vehicle-row .tile-main{
-    flex:1 1 150px;
-  }
-
-  .vehicle-row .vehicle-status{
-    flex:1 1 100%;
-    min-width:0;
-  }
-
-  .vehicle-row .status-reasons{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    min-width:0;
-  }
-
-  .vehicle-row .status-reason{
-    max-width:100%;
-    white-space:normal;
-    overflow-wrap:anywhere;
+    gap:10px;
   }
 
   .vehicle-screen{
     width:auto;
     max-width:none;
-    min-width:0;
-    margin:-14px -14px 72px;
-    overflow-x:hidden;
-  }
-
-  .vehicle-left,
-  .vehicle-right,
-  .status-grid,
-  .status-card,
-  .panel{
-    min-width:0;
-    max-width:100%;
+    margin:-12px -12px 60px;
   }
 
   .vehicle-left{
-    width:100%;
     border-radius:0;
     border-left:0;
     border-right:0;
   }
 
   .wide-hero{
-    height:260px;
-    padding-left:20px;
-    padding-right:20px;
+    height:250px;
+    padding:54px 20px 8px;
   }
 
-  .wide-main{
-    padding:20px;
+  .pro-main{
+    padding:18px 20px 14px;
   }
 
   .wide-main h1{
     font-size:38px;
-    letter-spacing:-1.5px;
-    overflow-wrap:anywhere;
+    letter-spacing:-1.3px;
   }
 
-  .wide-main p{
-    font-size:18px;
-  }
-
-  .wide-main span{
+  .vin-line{
     display:block;
-    min-width:0;
-    overflow-wrap:anywhere;
+  }
+
+  .vin-line b{
+    display:block;
+    margin-top:5px;
   }
 
   .stats{
     margin:0 20px;
-    padding:0 0 18px;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-
-  .stats div{
-    min-width:0;
-    padding-right:12px;
-  }
-
-  .stats div + div{
-    padding-left:12px;
-  }
-
-  .stats strong,
-  .stats small{
-    overflow-wrap:anywhere;
-  }
-
-  .vehicle-right{
-    width:100%;
-    padding:0 14px;
-  }
-
-  .status-grid{
-    width:100%;
-    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:14px 0 20px;
+    grid-template-columns:1fr;
     gap:10px;
-  }
-
-  .status-card{
-    width:100%;
-    min-height:112px;
-    padding:16px 14px;
-    grid-template-columns:34px minmax(0,1fr);
-    gap:10px;
-    align-items:start;
-  }
-
-  .status-card > div{
-    min-width:0;
-  }
-
-  .status-icon{
-    width:30px;
-    height:30px;
-  }
-
-  .status-card strong{
-    font-size:16px;
-    line-height:1.05;
-    overflow-wrap:anywhere;
-  }
-
-  .status-card span{
-    font-size:16px;
-    line-height:1.15;
-    overflow-wrap:anywhere;
-  }
-
-  .status-card small{
-    font-size:14px;
-    overflow-wrap:anywhere;
-  }
-
-  .status-card .service-km{
-    font-size:20px;
-  }
-
-  .status-card .pill{
-    grid-column:1 / -1;
-    justify-self:start;
-    margin-top:0;
-    font-size:11px;
-    padding:6px 9px;
-  }
-
-  .panel{
-    width:100%;
-    border-radius:20px;
-    padding:20px 16px 24px;
-  }
-
-  .vehicle-tile img{
-    width:78px;
-    height:78px;
-  }
-
-  .edit{
-    grid-template-columns:1fr;
-  }
-}
-
-@media(max-width:520px){
-  .status-grid{
-    grid-template-columns:1fr;
-    gap:12px;
-  }
-
-  .status-card{
-    min-height:96px;
-    grid-template-columns:38px minmax(0,1fr) auto;
-    align-items:center;
-    padding:16px;
-  }
-
-  .status-card .pill{
-    grid-column:auto;
-    justify-self:end;
-  }
-
-  .status-card strong{
-    font-size:17px;
-    overflow-wrap:normal;
-    word-break:normal;
-  }
-
-  .status-card span{
-    font-size:18px;
-    overflow-wrap:normal;
-    word-break:normal;
-  }
-}
-
-@media(max-width:390px){
-  .stats{
-    grid-template-columns:1fr;
-    gap:14px;
   }
 
   .stats div,
   .stats div + div{
-    min-height:0;
     border-left:0;
-    border-top:1px solid rgba(255,255,255,.12);
-    padding:14px 0 0;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding:12px 0 0;
   }
 
   .stats div:first-child{
     border-top:0;
+    padding-top:0;
+  }
+
+  .vehicle-right{
+    padding:0 12px;
+  }
+
+  .section-lead h2{
+    font-size:23px;
+  }
+
+  .status-card{
+    min-height:136px;
+    padding:17px;
+  }
+
+  .status-card-content > strong{
+    font-size:17px;
+  }
+
+  .validity-label{
+    margin-top:14px;
+  }
+
+  .validity-date{
+    font-size:24px;
+  }
+
+  .panel{
+    padding:18px;
+  }
+
+  .registry-head{
+    display:block;
+  }
+
+  .registry-head form{
+    margin-top:14px;
+  }
+
+  .registry-grid{
+    grid-template-columns:1fr;
+  }
+
+  .wide-docs{
+    grid-template-columns:1fr;
+  }
+
+  .edit{
+    grid-template-columns:1fr;
   }
 }
