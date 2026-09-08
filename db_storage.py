@@ -1,5 +1,4 @@
 import os
-import threading
 from datetime import timezone
 
 import psycopg2
@@ -7,9 +6,14 @@ from psycopg2.extras import Json
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
-_SCHEMA_LOCK = threading.Lock()
 _SCHEMA_READY = False
 _WRITE_LOCK_KEY = 764311221
+_REQUIRED_TABLES = (
+    "vehicles",
+    "device_tokens",
+    "notification_log",
+    "job_runs",
+)
 
 
 def enabled():
@@ -23,69 +27,98 @@ def require_enabled():
 
 def _connect():
     require_enabled()
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(
+        DATABASE_URL,
+        connect_timeout=8,
+        options="-c statement_timeout=15000 -c lock_timeout=5000",
+    )
+
+
+def _schema_exists():
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    to_regclass('public.vehicles'),
+                    to_regclass('public.device_tokens'),
+                    to_regclass('public.notification_log'),
+                    to_regclass('public.job_runs')
+                """
+            )
+            row = cur.fetchone() or ()
+            return len(row) == len(_REQUIRED_TABLES) and all(row)
 
 
 def ensure_schema():
+    """Jednorázově ověří databázové schéma bez blokování webových requestů.
+
+    V běžném provozu už jsou tabulky vytvořené migrací. Pokud by některá chyběla,
+    vytvoří se pouze při prvním startu procesu. Nepoužíváme Python thread lock,
+    protože ten dříve mohl zablokovat Gunicorn worker během souběžného background jobu.
+    """
     global _SCHEMA_READY
     require_enabled()
     if _SCHEMA_READY:
         return
-    with _SCHEMA_LOCK:
-        if _SCHEMA_READY:
-            return
-        with _connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS vehicles (
-                        id TEXT PRIMARY KEY,
-                        data JSONB NOT NULL,
-                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                    )
-                    """
-                )
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_spz ON vehicles ((data->>'spz'))")
-                cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_vin ON vehicles ((data->>'vin'))")
 
-                cur.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS device_tokens (
-                        token TEXT PRIMARY KEY,
-                        platform TEXT NOT NULL DEFAULT 'ios',
-                        app_version TEXT NOT NULL DEFAULT '',
-                        enabled BOOLEAN NOT NULL DEFAULT TRUE,
-                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                        last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                    )
-                    """
-                )
-
-                cur.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS notification_log (
-                        token TEXT NOT NULL,
-                        alert_key TEXT NOT NULL,
-                        sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                        PRIMARY KEY (token, alert_key)
-                    )
-                    """
-                )
-
-                cur.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS job_runs (
-                        job_key TEXT NOT NULL,
-                        run_key TEXT NOT NULL,
-                        status TEXT NOT NULL DEFAULT 'running',
-                        started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                        finished_at TIMESTAMPTZ,
-                        details JSONB,
-                        PRIMARY KEY (job_key, run_key)
-                    )
-                    """
-                )
+    if _schema_exists():
         _SCHEMA_READY = True
+        return
+
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS vehicles (
+                    id TEXT PRIMARY KEY,
+                    data JSONB NOT NULL,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_spz ON vehicles ((data->>'spz'))")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_vehicles_vin ON vehicles ((data->>'vin'))")
+
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS device_tokens (
+                    token TEXT PRIMARY KEY,
+                    platform TEXT NOT NULL DEFAULT 'ios',
+                    app_version TEXT NOT NULL DEFAULT '',
+                    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS notification_log (
+                    token TEXT NOT NULL,
+                    alert_key TEXT NOT NULL,
+                    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    PRIMARY KEY (token, alert_key)
+                )
+                """
+            )
+
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS job_runs (
+                    job_key TEXT NOT NULL,
+                    run_key TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'running',
+                    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    finished_at TIMESTAMPTZ,
+                    details JSONB,
+                    PRIMARY KEY (job_key, run_key)
+                )
+                """
+            )
+
+    _SCHEMA_READY = True
 
 
 def load_vehicles():
@@ -105,8 +138,8 @@ def load_vehicles():
 def save_vehicles(vehicles):
     """Atomicky uloží celý registr vozidel.
 
-    Advisory lock serializuje souběžné zápisy webu a automatických synchronizací,
-    takže se neopakuje dřívější deadlock při paralelních UPDATE/DELETE operacích.
+    PostgreSQL advisory lock serializuje souběžné zápisy webu a automatických
+    synchronizací a brání dřívějším deadlockům při paralelních UPDATE/DELETE.
     """
     ensure_schema()
     ids = []
