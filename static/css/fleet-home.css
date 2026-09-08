@@ -1,0 +1,229 @@
+.fleet-home-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:28px;
+  margin:0 0 24px;
+}
+
+.fleet-company{
+  color:#64c6f2;
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+
+.fleet-home-header h1{
+  margin:8px 0 6px;
+  font-size:38px;
+  line-height:1.05;
+  letter-spacing:-1.2px;
+}
+
+.fleet-home-header p,
+.fleet-list-heading p{
+  margin:0;
+  color:#91a9c3;
+  font-size:15px;
+  line-height:1.45;
+}
+
+.fleet-home-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.fleet-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,260px));
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.summary-card{
+  padding:18px 20px;
+  border-radius:20px;
+  border:1px solid rgba(127,181,231,.18);
+  background:linear-gradient(155deg,rgba(15,49,82,.96),rgba(7,25,44,.97));
+  box-shadow:0 14px 34px rgba(0,0,0,.18);
+}
+
+.summary-card small{
+  display:block;
+  color:#7fa4ca;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.summary-card strong{
+  display:block;
+  margin:5px 0 3px;
+  color:#fff;
+  font-size:34px;
+  line-height:1;
+  letter-spacing:-1px;
+}
+
+.summary-card span{
+  color:#8fa7c0;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.summary-attention{
+  border-color:rgba(245,158,11,.30);
+}
+
+.fleet-attention-clean{
+  margin:0 0 28px;
+  border-radius:20px;
+}
+
+.fleet-attention-clean .attention-panel-head{
+  padding:18px 20px 14px;
+}
+
+.fleet-attention-clean .attention-panel-head h2{
+  font-size:22px;
+  margin:4px 0 2px;
+}
+
+.fleet-attention-clean .attention-panel-head p{
+  max-width:760px;
+  font-size:13px;
+}
+
+.fleet-attention-row{
+  grid-template-columns:minmax(150px,220px) minmax(0,1fr) 24px;
+  min-height:64px;
+  padding:12px 18px;
+}
+
+.fleet-attention-row .attention-vehicle strong{
+  font-size:17px;
+}
+
+.fleet-attention-row .attention-vehicle span{
+  font-size:12px;
+}
+
+.fleet-list-heading{
+  margin-bottom:12px;
+}
+
+.fleet-list-heading h2{
+  margin-bottom:2px;
+}
+
+.fleet-compact-cards{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+.fleet-compact-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 128px;
+  align-items:stretch;
+  min-height:180px;
+  padding:0;
+}
+
+.fleet-card-copy{
+  min-width:0;
+  padding:18px 18px 16px;
+}
+
+.fleet-compact-card .vehicle-card-top h3{
+  font-size:25px;
+}
+
+.fleet-compact-card .vehicle-card-top p{
+  font-size:14px;
+}
+
+.fleet-card-meta-compact{
+  grid-template-columns:110px minmax(0,1fr);
+  gap:12px;
+  margin-top:14px;
+  padding-top:12px;
+}
+
+.fleet-card-meta-compact .meta-item strong{
+  font-size:12px;
+}
+
+.fleet-compact-card .vehicle-card-status{
+  margin-top:13px;
+}
+
+.fleet-compact-card .status-ok,
+.fleet-compact-card .status-badge{
+  font-size:11px;
+}
+
+.fleet-card-thumb{
+  display:grid;
+  place-items:center;
+  min-width:0;
+  padding:14px 12px;
+  border-left:1px solid rgba(255,255,255,.07);
+  background:radial-gradient(circle at 50% 55%,rgba(57,139,226,.24),transparent 58%);
+}
+
+.fleet-card-thumb img{
+  width:100%;
+  height:100%;
+  max-height:135px;
+  object-fit:contain;
+  filter:drop-shadow(0 14px 18px rgba(0,0,0,.34));
+}
+
+.fleet-card-thumb span{
+  color:#7896b4;
+  font-size:12px;
+  font-weight:900;
+}
+
+@media(max-width:1180px){
+  .fleet-compact-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:760px){
+  .fleet-home-header{
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .fleet-home-header h1{font-size:30px}
+  .fleet-company{font-size:16px}
+
+  .fleet-summary-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .fleet-attention-row{
+    grid-template-columns:1fr 24px;
+    gap:8px 12px;
+  }
+
+  .fleet-attention-row .attention-badges{
+    grid-column:1 / -1;
+  }
+
+  .fleet-compact-cards{grid-template-columns:1fr}
+}
+
+@media(max-width:520px){
+  .fleet-summary-grid{grid-template-columns:1fr}
+
+  .fleet-compact-card{
+    grid-template-columns:minmax(0,1fr) 104px;
+    min-height:164px;
+  }
+
+  .fleet-card-copy{padding:16px}
+  .fleet-compact-card .vehicle-card-top h3{font-size:22px}
+  .fleet-card-meta-compact{grid-template-columns:90px minmax(0,1fr)}
+}
