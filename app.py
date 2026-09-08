@@ -1,6 +1,7 @@
 import hmac
 import io
 import os
+import re
 import threading
 import time
 from datetime import datetime
@@ -8,10 +9,11 @@ from zoneinfo import ZoneInfo
 
 import qrcode
 import qrcode.image.svg
-from flask import request, session
+from flask import g, request, session
 
 import db_storage
 import legacy_app as core
+import media_storage
 import push_notifications
 import service_fleet
 
@@ -124,6 +126,120 @@ def protect_access():
     return core.redirect(core.url_for("client_login", next=_safe_next_url(next_url)))
 
 
+def _media_repo_path(kind, filename):
+    safe = str(filename or "").strip().replace("\\", "/").split("/")[-1]
+    return f"static/{kind}/{safe}" if safe else ""
+
+
+def _capture_media_delete(kind, filename):
+    repo_path = _media_repo_path(kind, filename)
+    if not repo_path:
+        return
+    pending = getattr(g, "media_delete", [])
+    pending.append(repo_path)
+    g.media_delete = pending
+
+
+@app.before_request
+def capture_media_mutation_state():
+    if request.method != "POST" or not core.require_admin():
+        return None
+
+    path = request.path or ""
+
+    match = re.fullmatch(r"/admin/([^/]+)/documents/([^/]+)/delete", path)
+    if match:
+        vehicle = core.get_vehicle(match.group(1))
+        if vehicle:
+            target = next(
+                (
+                    doc
+                    for doc in vehicle.get("documents", [])
+                    if str(doc.get("id")) == str(match.group(2))
+                ),
+                None,
+            )
+            if target:
+                _capture_media_delete("documents", target.get("filename"))
+        return None
+
+    match = re.fullmatch(r"/admin/([^/]+)/delete", path)
+    if match:
+        vehicle = core.get_vehicle(match.group(1))
+        if vehicle:
+            _capture_media_delete("images", vehicle.get("photo"))
+            for document in vehicle.get("documents", []):
+                _capture_media_delete("documents", document.get("filename"))
+        return None
+
+    match = re.fullmatch(r"/admin/([^/]+)", path)
+    if match:
+        vehicle = core.get_vehicle(match.group(1))
+        if vehicle and vehicle.get("photo"):
+            g.media_old_photo = str(vehicle.get("photo") or "")
+    return None
+
+
+def _sync_vehicle_media(vehicle):
+    if not media_storage.enabled() or not vehicle:
+        return
+
+    photo = str(vehicle.get("photo") or "").strip()
+    if photo:
+        local_photo = core.IMAGES_DIR / photo
+        if local_photo.exists():
+            media_storage.sync_file(
+                local_photo,
+                _media_repo_path("images", photo),
+                f"CROCODILLE RENT: uložit fotografii {vehicle.get('spz') or vehicle.get('id')}",
+            )
+
+    for document in vehicle.get("documents", []):
+        filename = str(document.get("filename") or "").strip()
+        if not filename:
+            continue
+        local_document = core.DOCS_DIR / filename
+        if local_document.exists():
+            media_storage.sync_file(
+                local_document,
+                _media_repo_path("documents", filename),
+                f"CROCODILLE RENT: uložit dokument {vehicle.get('spz') or vehicle.get('id')}",
+            )
+
+
+@app.after_request
+def persist_media_mutations(response):
+    if request.method != "POST" or response.status_code >= 400:
+        return response
+
+    try:
+        for repo_path in getattr(g, "media_delete", []):
+            if media_storage.enabled():
+                media_storage.delete_file(repo_path, f"CROCODILLE RENT: smazat {repo_path}")
+
+        path = request.path or ""
+        match = re.fullmatch(r"/admin/([^/]+)", path)
+        if match:
+            vehicle = core.get_vehicle(match.group(1))
+            if vehicle:
+                old_photo = str(getattr(g, "media_old_photo", "") or "")
+                new_photo = str(vehicle.get("photo") or "")
+                if old_photo and new_photo and old_photo != new_photo and media_storage.enabled():
+                    media_storage.delete_file(
+                        _media_repo_path("images", old_photo),
+                        f"CROCODILLE RENT: smazat starou fotografii {old_photo}",
+                    )
+                _sync_vehicle_media(vehicle)
+
+        match = re.fullmatch(r"/admin/([^/]+)/documents/add", path)
+        if match:
+            _sync_vehicle_media(core.get_vehicle(match.group(1)))
+    except Exception:
+        app.logger.exception("Media persistence sync failed")
+
+    return response
+
+
 @app.route("/qr-code/<plate>.svg")
 def qr_code(plate):
     vehicle = core.get_vehicle(plate)
@@ -156,7 +272,7 @@ def run_daily_sync(force=False):
         push = push_notifications.send_due_notifications(core.load_vehicles())
         result.update({"stk": stk, "vignette": vignette, "push": push})
         errors = list(stk.get("errors") or []) + list(vignette.get("errors") or []) + list(push.get("errors") or [])
-        # Výpadek externího API nebere poslední uložená data, ale běh si evidujeme jako dokončený.
+        # Výpadek externího API nemaže poslední uložená data; běh se ale eviduje jako dokončený.
         db_storage.finish_job("daily-sync", run_key, "ok", result)
         result["errors"] = errors
         return result
@@ -186,13 +302,15 @@ def healthz():
             "ok": True,
             "vehicle_count": db_storage.count_vehicles(),
             "persistence": "postgresql",
+            "media_storage": media_storage.backend_name(),
+            "push_configured": push_notifications.configured(),
         })
     except Exception as exc:
         return core.jsonify({"ok": False, "error": str(exc)}), 500
 
 
 def _background_scheduler():
-    # Render web proces drží tento lehký plánovač. Databázový claim zabrání duplicitě
+    # Render web proces drží lehký plánovač. Databázový claim zabrání duplicitě
     # při více gunicorn workerech. Denní synchronizace proběhne po 07:00 českého času.
     while True:
         try:
@@ -210,6 +328,16 @@ if BACKGROUND_JOBS_ENABLED:
         name="crocodille-daily-sync",
         daemon=True,
     ).start()
+
+try:
+    app.logger.info(
+        "CROCODILLE RENT startup database=postgresql media=%s push=%s background_jobs=%s",
+        media_storage.backend_name(),
+        "configured" if push_notifications.configured() else "not-configured",
+        BACKGROUND_JOBS_ENABLED,
+    )
+except Exception:
+    pass
 
 
 if __name__ == "__main__":
