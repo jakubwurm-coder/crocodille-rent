@@ -1,8 +1,7 @@
 .shell{
-  width:100%;
-  max-width:none;
-  margin:0;
-  padding:28px 46px;
+  width:min(1680px,100%);
+  margin:0 auto;
+  padding:28px 34px 64px;
 }
 
 .topbar{
@@ -30,8 +29,8 @@
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:18px;
 }
 
 .table{
@@ -61,7 +60,7 @@
   bottom:14px;
   background:rgba(10,10,10,.90);
   backdrop-filter:blur(12px);
-  border:1px solid rgba(242,183,5,.24);
+  border:1px solid rgba(100,198,242,.22);
   border-radius:999px;
   padding:10px;
   display:flex;
@@ -77,5 +76,5 @@
 }
 
 .bottom a:hover{
-  background:rgba(242,183,5,.16);
+  background:rgba(100,198,242,.14);
 }
