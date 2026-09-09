@@ -3,6 +3,7 @@
 {% set dk=v.get('datova_kostka',{}) %}
 {% set b=dk.get('basic',{}) %}
 {% set raw=dk.get('raw',{}) %}
+{% set icon_path=url_for('static', filename='icons/fleet-icons.svg') %}
 {% set direct_payload=raw.get('HmotnostUzitecneZatizeniPrumer') %}
 {% set max_mass_raw=raw.get('HmotnostiPripPov') %}
 {% set operating_mass=raw.get('HmotnostiProvozni') %}
@@ -23,31 +24,50 @@
     {% if admin_logged or client_logged %}<a class="back pro-back" href="/">← <span>Zpět</span></a>{% endif %}
 
     <div class="wide-hero pro-hero">
+      <div class="hero-grid-lines" aria-hidden="true"></div>
       {% if v.get('photo') %}
         <img src="{{ url_for('vehicle_image', filename=v.photo) }}" alt="{{ v.spz }}">
       {% else %}
         <div class="vehicle-no-photo">{{ v.brand or 'Vozidlo' }}</div>
       {% endif %}
+      <div class="vehicle-lightbar" aria-hidden="true"></div>
     </div>
 
     <section class="main-info wide-main pro-main">
+      <small class="plate-kicker">Registrační značka</small>
       <h1>RZ: {{ v.spz or 'nezadána' }}</h1>
-      <div class="vin-line"><em>VIN</em><b>{{ v.vin or 'nezadáno' }}</b></div>
+      <div class="vin-line">
+        <em>VIN</em>
+        <b>{{ v.vin or 'nezadáno' }}</b>
+      </div>
     </section>
 
-    <section class="stats wide-stats pro-stats">
-      <div>
+    <section class="stats wide-stats pro-stats vehicle-feature-grid">
+      <article class="feature-card">
+        <svg class="ui-icon" aria-hidden="true"><use href="{{ icon_path }}#truck"></use></svg>
         <small>ZNAČKA / MODEL</small>
         <strong>{{ v.brand or b.get('brand') or 'nezadáno' }} {{ v.model or b.get('model') or '' }}</strong>
-      </div>
-      <div>
+      </article>
+      <article class="feature-card">
+        <svg class="ui-icon" aria-hidden="true"><use href="{{ icon_path }}#id"></use></svg>
         <small>ID VOZIDLA</small>
         <strong>{{ v.vehicle_id or 'nezadáno' }}</strong>
-      </div>
-      <div>
+      </article>
+      <article class="feature-card">
+        <svg class="ui-icon" aria-hidden="true"><use href="{{ icon_path }}#calendar"></use></svg>
         <small>ROK VÝROBY</small>
         <strong>{{ v.year or b.get('year') or 'nezadáno' }}</strong>
-      </div>
+      </article>
+      <article class="feature-card feature-card-small">
+        <svg class="ui-icon" aria-hidden="true"><use href="{{ icon_path }}#service"></use></svg>
+        <small>PALIVO</small>
+        <strong>{{ v.fuel or b.get('fuel') or 'nezadáno' }}</strong>
+      </article>
+      <article class="feature-card feature-card-small">
+        <svg class="ui-icon" aria-hidden="true"><use href="{{ icon_path }}#clipboard"></use></svg>
+        <small>PRVNÍ REGISTRACE</small>
+        <strong>{% if v.first_registration %}{{ v.first_registration|czdate }}{% elif b.get('first_registration') %}{{ b.get('first_registration')|czdate }}{% else %}nezadáno{% endif %}</strong>
+      </article>
     </section>
   </aside>
 
@@ -59,6 +79,7 @@
     <section class="status-grid">
       {% set stk=status_for(v.stk_until) %}
       <article class="status-card">
+        <svg class="status-icon" aria-hidden="true"><use href="{{ icon_path }}#stk"></use></svg>
         <div class="status-card-content">
           <strong>STK</strong>
           <span class="validity-label">Platná do</span>
@@ -69,6 +90,7 @@
 
       {% set vig=status_for(v.vignette_until) %}
       <article class="status-card">
+        <svg class="status-icon" aria-hidden="true"><use href="{{ icon_path }}#vignette"></use></svg>
         <div class="status-card-content">
           <strong>DÁLNIČNÍ ZNÁMKA</strong>
           {% if v.vignette_status == 'exempt' %}
@@ -88,6 +110,7 @@
 
       {% set ins=status_for(v.insurance_until) %}
       <article class="status-card">
+        <svg class="status-icon" aria-hidden="true"><use href="{{ icon_path }}#casco"></use></svg>
         <div class="status-card-content">
           <strong>POJIŠTĚNÍ</strong>
           <span class="validity-label">Platné do</span>
@@ -98,6 +121,7 @@
 
       {% set ass=status_for(v.assistance_until) %}
       <article class="status-card assistance-card">
+        <svg class="status-icon" aria-hidden="true"><use href="{{ icon_path }}#assistance"></use></svg>
         <div class="status-card-content">
           <strong>ASISTENCE VOZIDLA</strong>
           <span class="validity-label">Platná do</span>
@@ -110,6 +134,7 @@
     </section>
 
     <section class="panel service-card-separated">
+      <svg class="panel-icon" aria-hidden="true"><use href="{{ icon_path }}#service"></use></svg>
       <div>
         <small class="panel-kicker">SERVIS</small>
         <h2>Příští výměna oleje</h2>
