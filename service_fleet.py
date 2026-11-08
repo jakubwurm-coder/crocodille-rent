@@ -245,6 +245,8 @@ def lookup_vignette(spz):
 
 
 def apply_vignette_result(vehicle, result):
+    if vehicle.get("vignette_manual"):
+        return vehicle
     vehicle["vignette_checked_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     vehicle["vignette_source"] = "edalnice"
     vehicle["vignette_status"] = result.get("status") or "missing"
@@ -269,6 +271,8 @@ def refresh_vignettes(core):
     changed = False
     for vehicle in vehicles:
         spz = str(vehicle.get("spz") or "").strip().upper()
+        if vehicle.get("vignette_manual"):
+            continue
         if not spz or not core.is_active_vehicle(vehicle):
             continue
         try:
