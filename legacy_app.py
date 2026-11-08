@@ -547,6 +547,52 @@ def edit(vehicle_id):
     return render_template("edit.html", v=vehicle)
 
 
+@app.route("/admin/<vehicle_id>/vignette", methods=["POST"])
+def set_vehicle_vignette(vehicle_id):
+    if not require_admin():
+        return redirect(url_for("client_login", next=f"/admin/{vehicle_id}"))
+    vehicle = get_vehicle(vehicle_id)
+    if not vehicle:
+        return render_template("not_found.html", vehicle_id=vehicle_id), 404
+    mode = (request.form.get("vignette_mode") or "").strip()
+    if mode not in ("manual", "automatic"):
+        flash("Neplatný režim dálniční známky.")
+        return redirect(url_for("edit", vehicle_id=vehicle["id"]))
+    raw_date = (request.form.get("vignette_until") or "").strip()
+    if mode == "manual":
+        parsed = parse_date(raw_date)
+        if not parsed or parsed.isoformat() != raw_date:
+            flash("Vyberte platné datum dálniční známky.")
+            return redirect(url_for("edit", vehicle_id=vehicle["id"]))
+
+    def updater(item):
+        item["vignette_manual"] = mode == "manual"
+        item["vignette_is_exempt"] = False
+        item["vignette_future_from"] = ""
+        item["vignette_future_until"] = ""
+        if mode == "manual":
+            item["vignette_until"] = raw_date
+            item["vignette_status"] = "manual"
+            item["vignette_source"] = "manual"
+            item["vignette_manual_updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            item.pop("vignette_last_error", None)
+        else:
+            item["vignette_until"] = ""
+            item["vignette_status"] = "unknown"
+            item["vignette_source"] = "pending_edalnice"
+            item.pop("vignette_manual_updated_at", None)
+        return item
+
+    try:
+        update_vehicle(vehicle["id"], updater)
+        flash("Dálniční známka uložena do PostgreSQL." if mode == "manual"
+              else "Zapnuta automatická kontrola. Datum se načte při další synchronizaci.")
+    except Exception as exc:
+        app.logger.exception("Vignette save failed")
+        flash(f"Uložení dálniční známky selhalo: {exc}")
+    return redirect(url_for("edit", vehicle_id=vehicle["id"]))
+
+
 @app.route("/admin/<vehicle_id>/datova-kostka", methods=["POST"])
 def load_datova_kostka(vehicle_id):
     if not require_admin():
