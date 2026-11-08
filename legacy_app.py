@@ -506,25 +506,6 @@ def edit(vehicle_id):
             for field in fields:
                 if field in request.form:
                     item[field] = (request.form.get(field) or "").strip()
-            # Ruční platnost známky zůstává uložena do vypnutí přepínače.
-            manual_vignette = request.form.get("vignette_manual") == "1"
-            if manual_vignette:
-                raw_date = (request.form.get("vignette_until") or "").strip()
-                parsed = parse_date(raw_date)
-                if not parsed or parsed.isoformat() != raw_date:
-                    raise ValueError("Zadejte platné datum dálniční známky ve formátu RRRR-MM-DD.")
-                item["vignette_manual"] = True
-                item["vignette_until"] = raw_date
-                item["vignette_status"] = "manual"
-                item["vignette_source"] = "manual"
-                item["vignette_manual_updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-                item["vignette_future_from"] = ""
-                item["vignette_future_until"] = ""
-            else:
-                item["vignette_manual"] = False
-                if item.get("vignette_source") == "manual":
-                    item["vignette_status"] = "unknown"
-                    item["vignette_source"] = "pending_edalnice"
             photo = request.files.get("photo")
             if photo and photo.filename:
                 ext = Path(photo.filename).suffix.lower()
