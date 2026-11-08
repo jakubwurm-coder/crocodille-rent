@@ -255,3 +255,11 @@
     grid-template-columns:1fr;
   }
 }
+
+/* Samostatná úprava dálniční známky */
+.vignette-edit-form{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:14px 0}
+.vignette-edit-form label{font-weight:800;color:#cbd5e1}
+.vignette-edit-form input[type=date]{padding:12px 14px;min-height:46px;border-radius:12px;border:1px solid var(--line);background:#0d1724;color:white;font-size:18px}
+.vignette-auto-form{margin:12px 0}
+.vignette-edit-link{display:inline-block;margin:6px 0 8px;color:#80d4ff;font-size:14px;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+#dalnicni-znamka{scroll-margin-top:20px}
