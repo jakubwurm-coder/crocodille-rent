@@ -102,6 +102,7 @@
           {% else %}
             <span class="validity-label">Platná do</span>
             <b class="validity-date">{% if v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nezjištěno{% endif %}</b>
+            {% if v.get('vignette_manual') %}<small class="future-note">Ručně zadané datum (neověřeno eDalnice)</small>{% endif %}
             {% if v.vignette_status == 'future' and v.vignette_future_from %}<small class="future-note">Platnost začne {{ v.vignette_future_from|czdate }}</small>{% endif %}
           {% endif %}
         </div>
