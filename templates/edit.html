@@ -36,9 +36,14 @@
     <label>STK
       <input type="text" value="{% if v.stk_until %}{{ v.stk_until|czdate }}{% else %}nezjištěno{% endif %} · automaticky z Datové kostky" disabled>
     </label>
-    <label>Dálniční známka
-      <input type="text" value="{% if v.vignette_status == 'exempt' %}Osvobozeno{% elif v.vignette_until %}{{ v.vignette_until|czdate }}{% else %}nenalezena{% endif %} · automaticky z eDalnice" disabled>
+    <label>Dálniční známka – platná do
+      <input type="date" id="vignette-until" name="vignette_until" value="{{ v.get('vignette_until','') }}" {% if not v.get('vignette_manual') %}disabled{% endif %}>
     </label>
+    <label style="display:flex;align-items:center;gap:0.65rem">
+      <input type="checkbox" name="vignette_manual" value="1" id="vignette-manual" {% if v.get('vignette_manual') %}checked{% endif %} onchange="document.getElementById('vignette-until').disabled=!this.checked">
+      Ručně zadat platnost – automatická kontrola ji nepřepíše
+    </label>
+    <p class="admin-help">Po vypnutí ručního zadání a uložení se známka opět načítá z eDalnice při další synchronizaci.</p>
 
     <label>Stav vozidla
       <input type="text" name="status" value="{{ v.get('status','V provozu') }}">
