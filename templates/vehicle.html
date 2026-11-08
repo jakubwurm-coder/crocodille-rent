@@ -93,6 +93,7 @@
         <svg class="status-icon" aria-hidden="true"><use href="{{ icon_path }}#vignette"></use></svg>
         <div class="status-card-content">
           <strong>DÁLNIČNÍ ZNÁMKA</strong>
+          {% if admin_logged %}<a class="vignette-edit-link" href="/admin/{{ v.id }}#dalnicni-znamka">Upravit platnost</a>{% endif %}
           {% if v.vignette_status == 'exempt' %}
             <span class="validity-label">Stav</span>
             <b class="validity-date">Osvobozeno</b>
